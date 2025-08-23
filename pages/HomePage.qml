@@ -4,60 +4,42 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 import "../controls"
+import "../components"
 
-Page {
+BasicPage {
     background: Image {
         //width : height = 3 : 2 Aspect ratio
         source: Qt.resolvedUrl("qrc:/assets/images/background.jpg")
     }
 
-    Control {
+    Logo {
         anchors.left: parent.left
         anchors.top: parent.top
         padding: 20
+    }
 
-        contentItem: ColumnLayout {
-            spacing: 0
+    Control {
+        anchors.centerIn: parent
+        padding: 40
 
-            Image {
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                source: Qt.resolvedUrl("qrc:/assets/images/logo.png")
-                fillMode: Image.PreserveAspectFit
+        background: Rectangle {
+            color: Colors.secondaryBackground
+            radius: 8
+        }
+
+        contentItem: PrefsTabBar {
+            spacing: 40
+
+            HomeTabButton {
+                text: qsTr("Windows")
+                icon.source: Qt.resolvedUrl("qrc:/assets/icons/ic_thinclient.svg")
+                onClicked: pageStack.push(dashboardPage, {server : false})
             }
 
-            RowLayout {
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                Layout.leftMargin: 10
-
-                Text {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-
-                    text: "G"
-                    color: Colors.accentHover
-                    font.pixelSize: Fonts.body
-                }
-
-                Text {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-
-                    text: "for"
-                    color: Colors.black
-                    font.pixelSize: Fonts.body
-                }
-
-                Text {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-
-                    text: "Green Computing ..."
-                    color: Colors.accentHover
-                    font.pixelSize: Fonts.body
-                }
+            HomeTabButton {
+                text: qsTr("Server")
+                icon.source: Qt.resolvedUrl("qrc:/assets/icons/ic_thinclient.svg")
+                onClicked: pageStack.push(dashboardPage, {server : true })
             }
         }
     }
@@ -90,5 +72,10 @@ Page {
                 onClicked: {}
             }
         }
+    }
+
+    Component {
+        id: dashboardPage
+        DashboardPage {}
     }
 }

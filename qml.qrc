@@ -23,5 +23,13 @@
         <file>controls/IconButton.qml</file>
         <file>components/Logo.qml</file>
         <file>assets/icons/ic_back.svg</file>
+        <file>controls/HomeTabButton.qml</file>
+        <file>pages/BasicPage.qml</file>
+        <file>components/AppLayout.qml</file>
+        <file>components/PageLogo.qml</file>
+        <file>pages/ServerSettingsPage.qml</file>
+        <file>controls/PrefsTabBar.qml</file>
+        <file>controls/PageTabButton.qml</file>
+        <file>controls/PrefsStackView.qml</file>
     </qresource>
 </RCC>

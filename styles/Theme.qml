@@ -31,6 +31,7 @@ QtObject {
     property int iconSmall: 16 * ScreenConfig.scale
     property int iconMedium: 24 * ScreenConfig.scale
     property int iconLarge: 32 * ScreenConfig.scale
+    property int iconExtraLarge: 64 * ScreenConfig.scale
 
     // 🔘 Buttons (based on Material Design + HMI usability)
     property int buttonHeight: 40   // min height

@@ -4,6 +4,7 @@ import QtQuick.Window 2.15
 import App.Styles 1.0
 
 import "pages"
+import "components"
 
 ApplicationWindow {
     id: window
@@ -12,7 +13,7 @@ ApplicationWindow {
     visible: true
     title: qsTr("G1 Thin Client pc")
 
-    HomePage {
+    contentData: AppLayout {
         anchors.fill: parent
     }
 }

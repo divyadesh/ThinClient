@@ -3,6 +3,8 @@ import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
-BasicPage {
+Page {
+    property var pageStack: StackView.view
 
+    background: null
 }

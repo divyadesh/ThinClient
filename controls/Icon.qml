@@ -12,6 +12,7 @@ Control {
     property int iconHeight: Theme.iconSmall
 
     signal clicked
+    scale: mouse.pressed ? 0.95 : 1.0
 
     background: Rectangle {
         implicitWidth: 40
@@ -28,6 +29,7 @@ Control {
     }
 
     MouseArea {
+        id: mouse
         anchors.fill: parent
         hoverEnabled: true
         onClicked: control.clicked()
