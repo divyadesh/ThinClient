@@ -8,9 +8,6 @@ import "."   // Imports Colors.qml and Fonts.qml from the same folder
 
 QtObject {
     // Colors and Typography
-    // Aliases so you can access Theme.colors.* and Theme.fonts.*
-    property alias colors: Colors
-    property alias fonts: Fonts
 
     // Spacing system (used for margins, paddings, gaps)
     // These values scale consistently across the UI
@@ -31,9 +28,9 @@ QtObject {
     property int radiusLarge: 20
 
     // ⏺ Icon Sizes
-    property int iconSmall: 16
-    property int iconMedium: 24
-    property int iconLarge: 32
+    property int iconSmall: 16 * ScreenConfig.scale
+    property int iconMedium: 24 * ScreenConfig.scale
+    property int iconLarge: 32 * ScreenConfig.scale
 
     // 🔘 Buttons (based on Material Design + HMI usability)
     property int buttonHeight: 40   // min height

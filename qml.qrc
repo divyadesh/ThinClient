@@ -1,5 +1,27 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>assets/images/logo.png</file>
+        <file>assets/images/background.jpg</file>
+        <file>styles/Colors.qml</file>
+        <file>styles/Fonts.qml</file>
+        <file>styles/ScreenConfig.qml</file>
+        <file>styles/Theme.qml</file>
+        <file>utils/StateManager.qml</file>
+        <file>pages/HomePage.qml</file>
+        <file>pages/NetworkPage.qml</file>
+        <file>pages/DisplayPage.qml</file>
+        <file>pages/DeviceSettingsPage.qml</file>
+        <file>pages/DeviceInfoPage.qml</file>
+        <file>pages/DashboardPage.qml</file>
+        <file>utils/FormatUtils.js</file>
+        <file>utils/Validators.js</file>
+        <file>assets/icons/ic_wifi.svg</file>
+        <file>assets/icons/ic_settings.svg</file>
+        <file>assets/icons/ic_thinclient.svg</file>
+        <file>controls/Icon.qml</file>
+        <file>controls/IconButton.qml</file>
+        <file>components/Logo.qml</file>
+        <file>assets/icons/ic_back.svg</file>
     </qresource>
 </RCC>

@@ -8,6 +8,9 @@ SOURCES += \
         main.cpp
 
 RESOURCES += qml.qrc
+# qml_files.files = $$files($$PWD/*.qml, true)
+# qml_files.prefix = "/"
+# RESOURCES += qml_files
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -19,12 +22,3 @@ QML_DESIGNER_IMPORT_PATH =
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-DISTFILES += \
-    styles/Colors.qml \
-    styles/Fonts.qml \
-    styles/ScreenConfig.qml \
-    styles/Theme.qml \
-    utils/FormatUtils.js \
-    utils/StateManager.qml \
-    utils/Validators.js
