@@ -8,3 +8,6 @@ Utility helpers for validation (IP, MAC, subnet), formatting (time, bytes, perce
 Responsive design with support for common HMI screen resolutions
 
 The goal is to deliver a consistent, maintainable, and reusable UI foundation for industrial applications.
+
+<img width="912" height="620" alt="image" src="https://github.com/user-attachments/assets/f970cdb1-5cf1-4597-ab27-2fe47b5dd090" />
+
