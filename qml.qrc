@@ -31,5 +31,10 @@
         <file>controls/PrefsTabBar.qml</file>
         <file>controls/PageTabButton.qml</file>
         <file>controls/PrefsStackView.qml</file>
+        <file>pages/EthernetManualItem.qml</file>
+        <file>components/TCButton.qml</file>
+        <file>components/TCComboBox.qml</file>
+        <file>components/TCTextField.qml</file>
+        <file>components/TCToggleButton.qml</file>
     </qresource>
 </RCC>
