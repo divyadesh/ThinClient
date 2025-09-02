@@ -36,5 +36,7 @@
         <file>components/TCComboBox.qml</file>
         <file>components/TCTextField.qml</file>
         <file>components/TCToggleButton.qml</file>
+        <file>controls/PrefsLabel.qml</file>
+        <file>controls/PrefsButton.qml</file>
     </qresource>
 </RCC>

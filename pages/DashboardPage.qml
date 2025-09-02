@@ -20,7 +20,7 @@ BasicPage {
         spacing: 20
 
         Control {
-            Layout.preferredWidth: 200
+            Layout.preferredWidth: 300
             Layout.fillHeight: true
 
             background: Rectangle {
