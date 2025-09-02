@@ -4,102 +4,155 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 import "../components"
+import "../controls"
 
 BasicPage {
-    id: deviceSettingsPageRoot
-    padding: 20
-    ColumnLayout {
-        spacing: 25
-        Rectangle {
-            width: 500
-            height: 270
-            radius: 4
-            border{ color: Colors.secondaryBackground; width: 2 }
-            color: "transparent"
-            ColumnLayout {
-                anchors { left: parent.left; leftMargin: 20; top: parent.top; topMargin: 20;
-                    right: parent.right; rightMargin: 20; bottom: parent.bottom; bottomMargin: 20 }
+    id: page
+    topPadding: 20
+    bottomPadding: 20
+
+    contentItem: Page {
+        leftPadding: 20
+        rightPadding: 20
+        background: null
+
+        contentItem: Control {
+            padding: 20
+
+            background: Rectangle {
+                radius: 6
+                color: "transparent"
+                border.color: Colors.secondaryBackground
+            }
+
+            contentItem: ColumnLayout {
                 spacing: 10
 
-                Rectangle {
-                    height: 40
-                    width: 150
-                    color: Colors.secondaryBackground
-                    radius: 6
-                    Text {
-                        anchors.centerIn: parent
-                        text: qsTr("Device Settings")
-                    }
+                PrefsButton {
+                    Layout.alignment: Qt.AlignLeft
+                    text: qsTr("Device Settings")
                 }
+
                 ListView {
                     id: availableWifiList
-                    width: 470; height: 150
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
                     clip: true
-                    model: [ qsTr("Audio"), qsTr("Device Name"), qsTr("Time Zone"), qsTr("Language"), qsTr("On Screen Keyboard"),
-                                                            qsTr("Password"), qsTr("Touch Screen")]
+                    spacing: 10
+
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AlwaysOn
+                    }
+
+                    model: [
+                        qsTr("Audio"),
+                        qsTr("Device Name"),
+                        qsTr("Time Zone"),
+                        qsTr("Language"),
+                        qsTr("On Screen Keyboard"),
+                        qsTr("Password"),
+                        qsTr("Touch Screen")
+                    ]
+
                     delegate: Item {
-                        width: availableWifiList.width; height: 44;
-                        Rectangle {
+                        width: availableWifiList.width
+                        height: 44
+
+                        Control {
                             anchors.margins: 2
-                            width: parent.width; height: 40; radius: 6; color: "transparent"
-                            Rectangle {
-                                id: ssidItem
-                                anchors { left: parent.left; right: parent.right; rightMargin: parent.width/2;
-                                    verticalCenter: parent.verticalCenter }
-                                height: 30
-                                radius: 4
-                                color: Colors.secondaryBackground //barariya
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: modelData
-                                }
+                            width: parent.width
+                            hoverEnabled: true
+
+                            MouseArea {
+                                acceptedButtons: Qt.RightButton
+                                anchors.fill: parent
+                                onClicked: { }
                             }
+
+                            background: Rectangle {
+                                implicitHeight: 40
+                                radius: 6
+                                color: parent.hovered ? Colors.accentHover : "transparent"
+                            }
+
+                            PrefsButton {
+                                id: ssidItem
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    rightMargin: parent.width / 2
+                                    verticalCenter: parent.verticalCenter
+                                }
+
+                                text: modelData
+                            }
+
                             Item {
                                 id: barsItem
-                                anchors { left: ssidItem.right; right: parent.right; verticalCenter: parent.verticalCenter }
+                                anchors {
+                                    left: ssidItem.right
+                                    right: parent.right
+                                    verticalCenter: parent.verticalCenter
+                                }
+
                                 Loader {
                                     visible: asynchronous ? (status === Loader.Ready) ? true : false : true
                                     width: sourceComponent.width
                                     height: sourceComponent.height
                                     anchors.centerIn: parent
-                                    sourceComponent: index === 0 ? comboBoxComponent :
-                                                        (index === 1 || index === 2 || index === 3) ? textComponent :
-                                                            (index === 4 || index === 6) ? toggleButtonComponent :
-                                                            textFieldComponent
+
+                                    sourceComponent: componentForIndex(index)
+
+                                    function componentForIndex(idx) {
+                                        switch (idx) {
+                                        case 0:
+                                            return comboBoxComponent
+                                        case 1:
+                                        case 2:
+                                        case 3:
+                                            return textComponent
+                                        case 4:
+                                        case 6:
+                                            return toggleButtonComponent
+                                        default:
+                                            return textFieldComponent
+                                        }
+                                    }
 
                                     Component {
                                         id: toggleButtonComponent
-                                        TCToggleButton {
-                                            id: toggleButton
-                                        }
+                                        TCToggleButton { id: toggleButton }
                                     }
+
                                     Component {
                                         id: textComponent
-                                        Rectangle {
+                                        PrefsButton {
                                             width: 200
-                                            height: 30
-                                            anchors.centerIn: parent
-                                            radius: 4
-                                            color: Colors.secondaryBackground
+                                            text: textForIndex(index)
+
+                                            function textForIndex(idx) {
+                                                switch (idx) {
+                                                case 1: return qsTr("RDClient")
+                                                case 2: return getTimeZone()
+                                                case 3: return qsTr("English")
+                                                default: return ""
+                                                }
+                                            }
+
                                             function getTimeZone() {
                                                 var d = new Date()
                                                 var offsetMinutes = d.getTimezoneOffset()
                                                 var offsetHours = -offsetMinutes / 60
                                                 return "UTC" + (offsetHours >= 0 ? "+" : "") + offsetHours
                                             }
-
-                                            Text {
-                                                anchors.centerIn: parent
-                                                text: index === 1 ? qsTr("RDClient") : index === 2 ? parent.getTimeZone() :
-                                                                                                     index === 3 ? qsTr("English"): ""
-                                            }
                                         }
                                     }
+
                                     Component {
                                         id: textFieldComponent
-                                        TCTextField {
-                                        }
+                                        TCTextField { }
                                     }
+
                                     Component {
                                         id: comboBoxComponent
                                         TCComboBox {
@@ -108,66 +161,51 @@ BasicPage {
                                     }
                                 }
                             }
-                            MouseArea {
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onEntered: {
-                                    parent.color = Colors.accentHover
-                                }
-                                onExited: {
-                                    parent.color = "transparent"//Colors.secondaryBackground
-                                }
-                                onClicked: {
-                                    //TODO: connect to the wifi network
-                                }
-                            }
                         }
-                    }
-                    ScrollBar.vertical: ScrollBar {
-                        policy: ScrollBar.AlwaysOn  // or AsNeeded
                     }
                 }
             }
         }
-        // Rectangle {
-        //     color: "transparent"
-        //     width: 500
-        //     height: 100
-        //     radius: 4
-        //     border { color: Colors.secondaryBackground; width: 2 }
-            ColumnLayout {
-                // anchors { left: parent.left; leftMargin: 20; top: parent.top; topMargin: 20;
-                //     right: parent.right; rightMargin: 20; bottom: parent.bottom; bottomMargin: 20 }
+
+        footer: Control {
+            leftPadding: 20
+            rightPadding: 20
+            contentItem: ColumnLayout {
                 spacing: 20
 
-                Rectangle {
-                    height: 40
-                    width: 250
-                    color: Colors.secondaryBackground
-                    radius: 6
-                    Text {
-                        anchors.centerIn: parent
-                        text: qsTr("Device Restore & Upgrade")
+                Item {
+                    Layout.fillHeight: true
+                }
+
+                PrefsButton {
+                    Layout.preferredWidth: 250
+                    text: qsTr("Device Restore && Upgrade")
+                    onClicked: {}
+                }
+
+                RowLayout {
+                    spacing: 10
+
+                    PrefsButton {
+                        text: qsTr("Reset")
+                        onClicked: {}
+                    }
+
+                    PrefsButton {
+                        text: qsTr("Update")
+                        onClicked: {}
+                    }
+
+                    PrefsButton {
+                        text: qsTr("Export Log")
+                        onClicked: {}
                     }
                 }
-                RowLayout {
-                    Repeater {
-                        model: [qsTr("Reset"), qsTr("Update"), qsTr("Export Log")]
-                        Rectangle {
-                            id: reset
-                            Layout.fillWidth: true
-                            Layout.alignment: Qt.AlignVCenter
-                            height: 30
-                            radius: 4
-                            color: Colors.secondaryBackground //barariya
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData
-                            }
-                        }
-                    }
+
+                Item {
+                    Layout.fillHeight: true
                 }
             }
-        //}
+        }
     }
 }

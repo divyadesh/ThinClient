@@ -4,116 +4,95 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 import "../components"
+import "../controls"
 
 BasicPage {
+    id: page
     padding: 20
-    Rectangle {
+
+    PrefsButton {
         id: displayHeader
-        height: 40
         width: 250
-        color: Colors.secondaryBackground
-        radius: 6
-        Text {
-            anchors.centerIn: parent
-            text: qsTr("Display")
-        }
+        text: qsTr("Display")
     }
-    ColumnLayout {
+
+    Control {
         id: resolutionOrientation
         anchors.top: displayHeader.bottom
         anchors.topMargin: 40
-        Layout.fillWidth: true
-        spacing: 10
-        RowLayout {
-            Layout.fillWidth: true
+        width: parent.width
+
+        contentItem: ColumnLayout {
             spacing: 10
-            Rectangle {
-                id: resolutionText
-                height: 30
-                width: 250
-                color: Colors.secondaryBackground
-                radius: 6
-                Text {
-                    anchors.centerIn: parent
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                PrefsButton {
+                    id: resolutionText
+                    Layout.minimumWidth: 250
                     text: qsTr("Resolution")
                 }
-            }
-            Item {
-                width: 200
-                height: 30
-                clip:false
+
                 TCComboBox {
-                    anchors.fill: parent
                     model: ["Auto", "USB", "HDMI"]
                 }
             }
-        }
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            Rectangle {
-                id: orientationText
-                height: 30
-                width: 250
-                color: Colors.secondaryBackground
-                radius: 6
-                Text {
-                    anchors.centerIn: parent
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                PrefsButton {
+                    id: orientationText
+                    Layout.minimumWidth: 250
                     text: qsTr("Orientation")
                 }
-            }
-            Item {
-                width: 200
-                height: 30
-                clip:false
+
                 TCComboBox {
-                    anchors.fill: parent
                     model: ["Landscape", "Portrait", "Landscape (flipped)", "Portrait (flipped)"]
                 }
             }
         }
     }
-    Rectangle {
+
+    PrefsButton {
         id: powerSaveRect
-        height: 40
         width: 250
+        text: qsTr("Power Save")
         anchors.top: resolutionOrientation.bottom
         anchors.topMargin: 50
-        color: Colors.secondaryBackground
-        radius: 6
-        Text {
-            anchors.centerIn: parent
-            text: qsTr("Power Save")
-        }
     }
+
     ColumnLayout {
         anchors.top: powerSaveRect.bottom
         anchors.topMargin: 40
         Layout.fillWidth: true
         spacing: 10
+
         Repeater {
             model: [qsTr("Display Off"), qsTr("Device Off")]
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 10
-                Rectangle {
-                    height: 30
-                    width: 250
-                    color: Colors.secondaryBackground
-                    radius: 6
-                    Text {
-                        anchors.centerIn: parent
-                        text: modelData//qsTr("Device Off")
-                    }
+
+                PrefsButton {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.minimumWidth: 250
+                    text: qsTr("Power Save")
                 }
-                Item {
-                    width: 200
-                    height: 30
-                    clip:false
-                    TCComboBox {
-                        anchors.fill: parent
-                        model: ["Jack", "USB", "HDMI"]
-                    }
+
+                PrefsButton {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.minimumWidth: 250
+                    text: modelData
+                }
+
+                TCComboBox {
+                    Layout.alignment: Qt.AlignVCenter
+                    model: ["Jack", "USB", "HDMI"]
                 }
             }
         }

@@ -33,4 +33,8 @@ QtObject {
     property color statusInfo: "#3498DB"     // info, blue
 
     readonly property color transparent: "transparent"
+
+    property color btnBg: "#2A2A2A"
+    property color btnBgHover: "#3E3E3E"
+    property color btnBgDisabled: "#AAAAAA"
 }

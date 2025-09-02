@@ -7,12 +7,22 @@ Button {
     id: control
     hoverEnabled: true
     scale: control.pressed ? 0.98 : 1.0
-    font.pixelSize: 16
+    palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
 
     background: Rectangle {
         implicitHeight: 40
-        implicitWidth: 100
+        implicitWidth: 120
         radius: Theme.radiusSmall
-        color: control.enabled ? (control.highlighted ? Colors.accentPrimary : control.hovered ? Colors.accentHover : Colors.inputBorder) : Colors.accentDisabled
+        color: {
+            if (!control.enabled) {
+                return control.highlighted ? Colors.accentDisabled : Colors.btnBgDisabled;
+            }
+
+            if (control.highlighted) {
+                return control.hovered ? Colors.accentHover : Colors.accentPrimary;
+            }
+
+            return Colors.btnBg;
+        }
     }
 }
