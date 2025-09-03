@@ -8,18 +8,13 @@ Button {
     icon.width: Theme.iconExtraLarge
     icon.height: Theme.iconExtraLarge
     display: AbstractButton.TextUnderIcon
-    icon.source: Qt.resolvedUrl("qrc:/assets/icons/ic_thinclient.svg")
-    icon.color: Colors.textPrimary
+    icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+    icon.color: Colors.transparent
 
     padding: 20
     leftPadding: 50
     rightPadding: 50
     hoverEnabled: true
     palette.buttonText: Colors.textPrimary
-
-    background: Rectangle {
-        anchors.fill: parent
-        color: Colors.secondaryBackground
-        radius: 6
-    }
+    background: null
 }

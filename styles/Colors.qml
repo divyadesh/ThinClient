@@ -37,4 +37,22 @@ QtObject {
     property color btnBg: "#2A2A2A"
     property color btnBgHover: "#3E3E3E"
     property color btnBgDisabled: "#AAAAAA"
+
+
+    readonly property color charcoalWhisper: "#2d2f2f"
+     readonly property color sandyDune: "#cec9b2"
+     readonly property color tropicalTeal: "#04ebc3"
+     readonly property color emeraldDepths: "#1a9c84"
+     readonly property color mintedBreeze: "#0bb598"
+     readonly property color aquaBliss: "#5ff0d3"
+     readonly property color steelGray: "#494949"
+     readonly property color verdantTide: "#17a494"
+     readonly property color cyanDream: "#30f0d4"
+     readonly property color mossyStone: "#7c745c"
+
+     function alphaColor(color, alpha) {
+         let actualColor = Qt.darker(color, 1)
+         actualColor.a = alpha
+         return actualColor
+     }
 }

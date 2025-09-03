@@ -38,5 +38,12 @@
         <file>components/TCToggleButton.qml</file>
         <file>controls/PrefsLabel.qml</file>
         <file>controls/PrefsButton.qml</file>
+        <file>assets/icons/back.png</file>
+        <file>assets/icons/ethernet.png</file>
+        <file>assets/icons/power-off.png</file>
+        <file>assets/icons/rd-client.png</file>
+        <file>assets/icons/settings.png</file>
+        <file>assets/icons/wifi.png</file>
+        <file>components/PageHeader.qml</file>
     </qresource>
 </RCC>
