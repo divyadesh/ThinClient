@@ -31,5 +31,19 @@
         <file>controls/PrefsTabBar.qml</file>
         <file>controls/PageTabButton.qml</file>
         <file>controls/PrefsStackView.qml</file>
+        <file>pages/EthernetManualItem.qml</file>
+        <file>components/TCButton.qml</file>
+        <file>components/TCComboBox.qml</file>
+        <file>components/TCTextField.qml</file>
+        <file>components/TCToggleButton.qml</file>
+        <file>controls/PrefsLabel.qml</file>
+        <file>controls/PrefsButton.qml</file>
+        <file>assets/icons/back.png</file>
+        <file>assets/icons/ethernet.png</file>
+        <file>assets/icons/power-off.png</file>
+        <file>assets/icons/rd-client.png</file>
+        <file>assets/icons/settings.png</file>
+        <file>assets/icons/wifi.png</file>
+        <file>components/PageHeader.qml</file>
     </qresource>
 </RCC>

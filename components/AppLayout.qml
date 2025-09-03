@@ -6,8 +6,9 @@ import App.Styles 1.0
 import "../pages"
 import "../controls"
 
-FocusScope {
+BasicPage {
     PrefsStackView {
+        id: pageStack
         anchors.fill: parent
         initialItem: homePaage
     }

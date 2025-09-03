@@ -32,13 +32,13 @@ BasicPage {
 
             HomeTabButton {
                 text: qsTr("Windows")
-                icon.source: Qt.resolvedUrl("qrc:/assets/icons/ic_thinclient.svg")
+                icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
                 onClicked: pageStack.push(dashboardPage, {server : false})
             }
 
             HomeTabButton {
                 text: qsTr("Server")
-                icon.source: Qt.resolvedUrl("qrc:/assets/icons/ic_thinclient.svg")
+                icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
                 onClicked: pageStack.push(dashboardPage, {server : true })
             }
         }

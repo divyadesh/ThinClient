@@ -5,8 +5,8 @@ import App.Styles 1.0
 
 TabButton {
     id: control
-    icon.width: Theme.iconExtraLarge
-    icon.height: Theme.iconExtraLarge
+    icon.width: Theme.iconLarge
+    icon.height: Theme.iconLarge
     display: AbstractButton.TextUnderIcon
     padding: 20
 

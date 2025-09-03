@@ -9,7 +9,6 @@ import "../controls"
 BasicPage {
     id: root
     property bool server: false
-    padding: 20
 
     background: Rectangle {
         color: Colors.secondaryBackground
@@ -17,15 +16,14 @@ BasicPage {
 
     RowLayout {
         anchors.fill: parent
-        spacing: 20
+        spacing: 0
 
         Control {
-            Layout.preferredWidth: 200
+            Layout.preferredWidth: 300
             Layout.fillHeight: true
 
             background: Rectangle {
-                color: Colors.surfaceBackground
-                radius: 4
+                color: Colors.steelGray
             }
 
             ColumnLayout {
@@ -34,12 +32,12 @@ BasicPage {
 
                 Control {
                     Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-                   contentItem: PageLogo {}
+                    contentItem: PageLogo {}
                 }
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 10
+                    Layout.preferredHeight: 25
                 }
 
                 Item {
@@ -50,42 +48,42 @@ BasicPage {
 
                     ColumnLayout {
                         anchors.fill: parent
-                        spacing: 10
+                        spacing: 15
 
                         PageTabButton {
                             Layout.fillWidth: true
                             ButtonGroup.group: tabGroup
                             checked: true
                             text: root.server ? qsTr("RD Server") : qsTr("RD Windows")
-                            onClicked: pageStack.replace(serverSettingsPage)
+                            onClicked: pageStack.replace(serverSettingsPage, {isServer:root.server, pageTitle: text })
                         }
 
                         PageTabButton {
                             Layout.fillWidth: true
                             ButtonGroup.group: tabGroup
                             text: qsTr("Network")
-                            onClicked: pageStack.replace(networkPage)
+                            onClicked: pageStack.replace(networkPage, {pageTitle: text })
                         }
 
                         PageTabButton {
                             Layout.fillWidth: true
                             ButtonGroup.group: tabGroup
                             text: qsTr("Display")
-                            onClicked: pageStack.replace(displayPage)
+                            onClicked: pageStack.replace(displayPage, {pageTitle: text })
                         }
 
                         PageTabButton {
                             Layout.fillWidth: true
                             ButtonGroup.group: tabGroup
                             text: qsTr("Device Settings")
-                            onClicked: pageStack.replace(deviceSettingsPage)
+                            onClicked: pageStack.replace(deviceSettingsPage, {pageTitle: text })
                         }
 
                         PageTabButton {
                             Layout.fillWidth: true
                             ButtonGroup.group: tabGroup
                             text: qsTr("Device Info")
-                            onClicked: pageStack.replace(deviceInfoPage)
+                            onClicked: pageStack.replace(deviceInfoPage, {pageTitle: text })
                         }
 
                         Item { Layout.fillHeight: true }
@@ -94,43 +92,56 @@ BasicPage {
             }
         }
 
-        Control {
+        BasicPage {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             background: Rectangle {
-                color: Colors.surfaceBackground
-                radius: 4
+                color: "#333333"
             }
 
             contentItem: PrefsStackView {
                 id: pageStack
+
+                Component.onCompleted:  {
+                    pageStack.replace(serverSettingsPage, {isServer: root.server, pageTitle: root.server ? qsTr("RD Server") : qsTr("RD Windows") })
+                }
             }
         }
     }
 
     Component {
         id: deviceInfoPage
-        DeviceInfoPage {}
+        DeviceInfoPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
     }
 
     Component {
         id: deviceSettingsPage
-        DeviceSettingsPage {}
+        DeviceSettingsPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
     }
 
     Component {
         id: serverSettingsPage
-        ServerSettingsPage {}
+        ServerSettingsPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
     }
 
     Component {
         id: displayPage
-        DisplayPage {}
+        DisplayPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
     }
 
     Component {
         id: networkPage
-        NetworkPage {}
+        NetworkPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
     }
 }

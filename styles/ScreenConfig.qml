@@ -32,7 +32,7 @@ QtObject {
     })
 
     // Single property to switch resolution
-    property string currentResolution: "WVGA"   // default
+    property string currentResolution: "FHD"   // default
 
     // Derived width/height
     property int screenWidth: resolutions[currentResolution].width
