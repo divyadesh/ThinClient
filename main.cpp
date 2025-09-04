@@ -1,9 +1,11 @@
 #include <QGuiApplication>
-#include <QQmlContext>
 #include <QQmlApplicationEngine>
-#include "WifiNetworkDetailsColl.h"
+#include <QQmlContext>
+#include <QQuickStyle>
+#include <QStyleHints>
 #include "DeviceInfo.h"
 #include "ServerInfoColl.h"
+#include "WifiNetworkDetailsColl.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,7 +13,6 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
     QGuiApplication app(argc, argv);
-
     QQmlApplicationEngine engine;
 
     // Register QML singleton types

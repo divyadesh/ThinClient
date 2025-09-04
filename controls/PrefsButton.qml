@@ -5,7 +5,7 @@ import App.Styles 1.0
 
 Button {
     id: control
-    property int radius: Theme.radiusSmall
+    property int radius: height / 2
     hoverEnabled: true
     scale: control.pressed ? 0.98 : 1.0
     palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
@@ -16,10 +16,10 @@ Button {
         radius: control.radius
         color: {
             if (!control.enabled) {
-                return control.highlighted ? Colors.accentDisabled : Colors.btnBgDisabled;
+                return control.highlighted || control.checked  ? Colors.accentDisabled : Colors.btnBgDisabled;
             }
 
-            if (control.highlighted) {
+            if (control.highlighted || control.checked ) {
                 return control.hovered ? Colors.accentHover : Colors.accentPrimary;
             }
 

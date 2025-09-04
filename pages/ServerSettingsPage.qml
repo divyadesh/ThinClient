@@ -41,41 +41,200 @@ BasicPage {
             }
 
             Control {
-                visible: false
                 Layout.fillWidth: true
+                Layout.preferredHeight: 400
                 Layout.maximumHeight: page.height /3
 
-                contentItem:  ListView {
+                padding: 20
+
+                background: Rectangle {
+                    color: Colors.btnBg
+                    radius: 8
+                }
+
+                contentItem: ListView {
                     id: listView
-                    anchors.fill: parent
+
+                    spacing: 8
+                    clip: true
+
+                    ScrollBar.vertical: ScrollBar{
+                        //policy: "AlwaysOn"
+                    }
+                    ScrollIndicator.vertical: ScrollIndicator { }
+
+                    model: ListModel {
+                        ListElement { name: "Windows"; ip: "192.168.1.15" }
+                        ListElement { name: "Server"; ip: "192.168.1.24:3228" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                    }
 
                     header: Control {
                         width: listView.width
                         padding: 20
 
+                        contentItem:  RowLayout {
+                            spacing: 20
+
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    font.weight: Font.DemiBold
+                                    text: qsTr("Connection Name")
+                                    font.pixelSize: 18
+                                }
+                            }
+
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: qsTr("Server IP")
+                                    font.pixelSize: 18
+                                    font.weight: Font.DemiBold
+                                }
+                            }
+
+
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: qsTr("Auto")
+                                    font.pixelSize: 18
+                                    font.weight: Font.DemiBold
+                                }
+                            }
+
+
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: qsTr("Manage")
+                                    font.pixelSize: 18
+                                    font.weight: Font.DemiBold
+                                }
+                            }
+                        }
+                    }
+
+                    delegate: Control {
+                        id: _control
+                        width: ListView.view.width
+                        padding: 20
+                        hoverEnabled: true
+
+                        background: Rectangle {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                            radius: 8
+                            color: _control.hovered ? Colors.steelGray : "transparent"
+                        }
+
                         contentItem: RowLayout {
-                            PrefsHeader {
-                                Layout.fillWidth: true
-                                text: qsTr("Connection Name")
-                                font.pixelSize: 18
+                            spacing: 20
+
+                            // Name
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: name
+                                }
                             }
 
-                            PrefsHeader {
-                                Layout.fillWidth: true
-                                text: qsTr("Server Ip")
-                                font.pixelSize: 18
+                            // IP
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                PrefsLabel {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    horizontalAlignment: Label.AlignLeft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: ip
+                                }
                             }
 
-                            PrefsHeader {
-                                Layout.fillWidth: true
-                                text: qsTr("Auto")
-                                font.pixelSize: 18
+                            // Switch
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                Switch {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    checked: false
+                                }
                             }
 
-                            PrefsHeader {
-                                Layout.fillWidth: true
-                                text: qsTr("Manage")
-                                font.pixelSize: 18
+                            // Action buttons
+
+                            Control {
+                                Layout.preferredWidth: listView.width / 4
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                contentItem:  RowLayout {
+                                    spacing: 10
+
+                                    PrefsLabel {
+                                        text: qsTr("Connect")
+                                        color: Colors.accentPrimary
+                                        font.underline: true
+                                        horizontalAlignment: Label.AlignHCenter
+                                        verticalAlignment: Label.AlignVCenter
+                                    }
+
+                                    PrefsLabel {
+                                        text: qsTr("Edit")
+                                        color: Colors.accentPrimary
+                                        font.underline: true
+                                        horizontalAlignment: Label.AlignHCenter
+                                        verticalAlignment: Label.AlignVCenter
+                                    }
+
+                                    PrefsLabel {
+                                        color: Colors.accentPrimary
+                                        text: qsTr("Delete")
+                                        font.underline: true
+                                        horizontalAlignment: Label.AlignHCenter
+                                        verticalAlignment: Label.AlignVCenter
+                                    }
+
+                                    Item {
+                                        Layout.fillWidth: true
+                                    }
+                                }
                             }
                         }
                     }
@@ -118,6 +277,10 @@ BasicPage {
                                 id: serverIpField
                                 x: serverIp.width - width - serverIp.rightPadding
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
+
+                                validator: RegExpValidator {
+                                    regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                }
 
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
                             }
@@ -169,7 +332,7 @@ BasicPage {
                             Layout.fillWidth: true
                             text: qsTr("Performance")
                             leftButtonText: qsTr("Best")
-                            rightButtonText: qsTr("Custom")
+                            rightButtonText: qsTr("Auto")
                         }
 
                         PrefsButtonDelegate {
@@ -199,7 +362,18 @@ BasicPage {
                     Layout.fillWidth: true
                     text: qsTr("RD Gateway")
 
+                    contentItem: RowLayout {
+                        PrefsButton {
+                            id: rdGateWay
+                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                            checkable: true
+                            text: qsTr("RD Gateway")
+                            onClicked: {}
+                        }
+                    }
+
                     indicator: ColumnLayout {
+                        enabled: rdGateWay.checked
                         x: rdGateway.width - width - rdGateway.rightPadding
                         y: rdGateway.topPadding + (rdGateway.availableHeight - height) / 2
                         spacing: 10
@@ -213,10 +387,13 @@ BasicPage {
                                 spacing: 20
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
-                                PrefsButton {
+                                PrefsTextField {
                                     Layout.preferredWidth: bottomLayout.implicitWidth
-                                    text: qsTr("Gateway IP")
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    placeholderText: qsTr("Gateway IP")
+                                    validator: RegExpValidator {
+                                        regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                    }
                                 }
 
                                 RowLayout {
@@ -224,14 +401,15 @@ BasicPage {
                                     spacing: 20
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                    PrefsButton {
+                                    PrefsTextField {
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                                        text: qsTr("Username")
+                                        placeholderText: qsTr("Username")
                                     }
 
-                                    PrefsButton {
+                                    PrefsTextField {
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                                        text: qsTr("Password")
+                                        placeholderText: qsTr("Password")
+                                        echoMode: TextInput.Password
                                     }
                                 }
                             }

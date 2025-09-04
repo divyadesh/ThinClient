@@ -35,124 +35,138 @@ BasicPage {
             spacing: 20
             clip: true
 
-            PrefsItemDelegate {
-                id: resolution
+            Control {
                 Layout.fillWidth: true
-                text: qsTr("Resolution")
+                padding: 20
 
-                indicator: PrefsComboBox {
-                    x: resolution.width - width - resolution.rightPadding
-                    y: resolution.topPadding + (resolution.availableHeight - height) / 2
-
-                    model: [
-                        "Auto",
-                        "640 x 480",     // VGA
-                        "800 x 600",     // SVGA
-                        "1024 x 768",    // XGA
-                        "1280 x 720",    // HD
-                        "1280 x 800",    // WXGA
-                        "1366 x 768",    // HD+
-                        "1440 x 900",    // WXGA+
-                        "1600 x 900",    // HD+
-                        "1600 x 1200",   // UXGA
-                        "1680 x 1050",   // WSXGA+
-                        "1920 x 1080",   // Full HD
-                        "1920 x 1200",   // WUXGA
-                        "2048 x 1152",   // 2K-ish
-                        "2560 x 1080",   // UltraWide FHD
-                        "2560 x 1440",   // QHD
-                        "2560 x 1600",   // WQXGA
-                        "3440 x 1440",   // UltraWide QHD
-                        "3840 x 1600",   // UltraWide 4K-ish
-                        "3840 x 2160"    // 4K UHD
-                    ]
+                background: Rectangle {
+                    color: Colors.btnBg
+                    radius: 8
                 }
-            }
 
-            PrefsItemDelegate {
-                id: orientation
-                Layout.fillWidth: true
-                text: qsTr("Orientation")
-
-                indicator: PrefsComboBox {
-                    x: orientation.width - width - orientation.rightPadding
-                    y: orientation.topPadding + (orientation.availableHeight - height) / 2
-
-                    model: [
-                        "Auto",
-                        "Landscape",
-                        "Portrait",
-                        "Landscape (Flipped)",
-                        "Portrait (Flipped)"
-                    ]
-                }
-            }
-
-            PrefsItemDelegate {
-                id: powerSave
-                Layout.fillWidth: true
-                text: qsTr("Power Save")
-                indicator: RowLayout {
-                    x: powerSave.width - width - powerSave.rightPadding
-                    y: powerSave.topPadding + (powerSave.availableHeight - height) / 2
+                contentItem: ColumnLayout {
                     spacing: 20
 
-                    ColumnLayout {
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                        PrefsLabel {
-                            text: qsTr("Display Off")
-                        }
+                    PrefsItemDelegate {
+                        id: resolution
+                        Layout.fillWidth: true
+                        text: qsTr("Resolution")
 
-                        PrefsComboBox {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        indicator: PrefsComboBox {
+                            x: resolution.width - width - resolution.rightPadding
+                            y: resolution.topPadding + (resolution.availableHeight - height) / 2
+
                             model: [
-                                "None",
-                                "10 Minutes",
-                                "30 Minutes",
-                                "60 Minutes"
+                                "Auto",
+                                "640 x 480",     // VGA
+                                "800 x 600",     // SVGA
+                                "1024 x 768",    // XGA
+                                "1280 x 720",    // HD
+                                "1280 x 800",    // WXGA
+                                "1366 x 768",    // HD+
+                                "1440 x 900",    // WXGA+
+                                "1600 x 900",    // HD+
+                                "1600 x 1200",   // UXGA
+                                "1680 x 1050",   // WSXGA+
+                                "1920 x 1080",   // Full HD
+                                "1920 x 1200",   // WUXGA
+                                "2048 x 1152",   // 2K-ish
+                                "2560 x 1080",   // UltraWide FHD
+                                "2560 x 1440",   // QHD
+                                "2560 x 1600",   // WQXGA
+                                "3440 x 1440",   // UltraWide QHD
+                                "3840 x 1600",   // UltraWide 4K-ish
+                                "3840 x 2160"    // 4K UHD
                             ]
-
-                            // Default selected = "None"
-                            currentIndex: 0
-
-                            onCurrentIndexChanged: {
-                                switch (currentIndex) {
-                                case 0: console.log("Display Off: None"); break;
-                                case 1: console.log("Display Off: 10 min"); break;
-                                case 2: console.log("Display Off: 30 min"); break;
-                                case 3: console.log("Display Off: 60 min"); break;
-                                }
-                            }
                         }
                     }
 
-                    ColumnLayout {
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                        PrefsLabel {
-                            text: qsTr("Display Off")
-                        }
+                    PrefsItemDelegate {
+                        id: orientation
+                        Layout.fillWidth: true
+                        text: qsTr("Orientation")
 
-                        PrefsComboBox {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        indicator: PrefsComboBox {
+                            x: orientation.width - width - orientation.rightPadding
+                            y: orientation.topPadding + (orientation.availableHeight - height) / 2
+
                             model: [
-                                "None",
-                                "1 Hour",
-                                "5 Hours",
-                                "10 Hours",
-                                "24 Hours",
-                                "48 Hours"
+                                "Auto",
+                                "Landscape",
+                                "Portrait",
+                                "Landscape (Flipped)",
+                                "Portrait (Flipped)"
                             ]
-                            // Default selected = "None"
-                            currentIndex: 0
+                        }
+                    }
 
-                            onCurrentIndexChanged: {
-                                switch (currentIndex) {
-                                case 0: console.log("Device Off: None"); break;
-                                case 1: console.log("Device Off: 1 hour"); break;
-                                case 2: console.log("Device Off: 5 hours"); break;
-                                case 3: console.log("Device Off: 10 hours"); break;
-                                case 4: console.log("Device Off: 24 hours"); break;
-                                case 5: console.log("Device Off: 48 hours"); break;
+                    PrefsItemDelegate {
+                        id: powerSave
+                        Layout.fillWidth: true
+                        text: qsTr("Power Save")
+                        indicator: RowLayout {
+                            x: powerSave.width - width - powerSave.rightPadding
+                            y: powerSave.topPadding + (powerSave.availableHeight - height) / 2
+                            spacing: 20
+
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                PrefsLabel {
+                                    text: qsTr("Display Off")
+                                }
+
+                                PrefsComboBox {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    model: [
+                                        "None",
+                                        "10 Minutes",
+                                        "30 Minutes",
+                                        "60 Minutes"
+                                    ]
+
+                                    // Default selected = "None"
+                                    currentIndex: 0
+
+                                    onCurrentIndexChanged: {
+                                        switch (currentIndex) {
+                                        case 0: console.log("Display Off: None"); break;
+                                        case 1: console.log("Display Off: 10 min"); break;
+                                        case 2: console.log("Display Off: 30 min"); break;
+                                        case 3: console.log("Display Off: 60 min"); break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                PrefsLabel {
+                                    text: qsTr("Display Off")
+                                }
+
+                                PrefsComboBox {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    model: [
+                                        "None",
+                                        "1 Hour",
+                                        "5 Hours",
+                                        "10 Hours",
+                                        "24 Hours",
+                                        "48 Hours"
+                                    ]
+                                    // Default selected = "None"
+                                    currentIndex: 0
+
+                                    onCurrentIndexChanged: {
+                                        switch (currentIndex) {
+                                        case 0: console.log("Device Off: None"); break;
+                                        case 1: console.log("Device Off: 1 hour"); break;
+                                        case 2: console.log("Device Off: 5 hours"); break;
+                                        case 3: console.log("Device Off: 10 hours"); break;
+                                        case 4: console.log("Device Off: 24 hours"); break;
+                                        case 5: console.log("Device Off: 48 hours"); break;
+                                        }
+                                    }
                                 }
                             }
                         }

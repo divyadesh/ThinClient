@@ -52,5 +52,13 @@
         <file>controls/PrefsHeader.qml</file>
         <file>controls/PrefsComboBox.qml</file>
         <file>assets/icons/down.svg</file>
+        <file>assets/icons/lock.svg</file>
+        <file>assets/icons/menu.svg</file>
+        <file>assets/icons/low.svg</file>
+        <file>assets/icons/lower.svg</file>
+        <file>assets/icons/middle.svg</file>
+        <file>assets/icons/no-signal.svg</file>
+        <file>assets/icons/full.svg</file>
+        <file>assets/icons/no-wifi.svg</file>
     </qresource>
 </RCC>
