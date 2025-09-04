@@ -29,7 +29,7 @@ BasicPage {
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
             text: _control.text
-            font.pixelSize: 24
+            font.pixelSize: 20
         }
     }
 

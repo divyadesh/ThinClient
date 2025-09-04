@@ -3,7 +3,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
-Button {
+TabButton {
     id: control
     property int radius: Theme.radiusSmall
     hoverEnabled: true
@@ -16,10 +16,10 @@ Button {
         radius: control.radius
         color: {
             if (!control.enabled) {
-                return control.highlighted ? Colors.accentDisabled : Colors.btnBgDisabled;
+                return control.checked ? Colors.accentDisabled : Colors.btnBgDisabled;
             }
 
-            if (control.highlighted) {
+            if (control.checked) {
                 return control.hovered ? Colors.accentHover : Colors.accentPrimary;
             }
 
