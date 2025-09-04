@@ -45,5 +45,12 @@
         <file>assets/icons/settings.png</file>
         <file>assets/icons/wifi.png</file>
         <file>components/PageHeader.qml</file>
+        <file>dialogs/DeviceResetDialog.qml</file>
+        <file>controls/PrefsTabButton.qml</file>
+        <file>controls/PrefsTextField.qml</file>
+        <file>controls/PrefsItemDelegate.qml</file>
+        <file>controls/PrefsHeader.qml</file>
+        <file>controls/PrefsComboBox.qml</file>
+        <file>assets/icons/down.svg</file>
     </qresource>
 </RCC>
