@@ -110,7 +110,6 @@ BasicPage {
                                 }
                             }
 
-
                             Control {
                                 Layout.preferredWidth: listView.width / 4
 
@@ -124,7 +123,6 @@ BasicPage {
                                     font.weight: Font.DemiBold
                                 }
                             }
-
 
                             Control {
                                 Layout.preferredWidth: listView.width / 4
@@ -146,12 +144,14 @@ BasicPage {
                         id: _control
                         width: ListView.view.width
                         padding: 20
+                        topPadding: 12
+                        bottomPadding: 12
                         hoverEnabled: true
 
                         background: Rectangle {
                             implicitWidth: 100
-                            implicitHeight: 40
-                            radius: 8
+                            implicitHeight: 28
+                            radius: height / 2
                             color: _control.hovered ? Colors.steelGray : "transparent"
                         }
 
@@ -191,7 +191,8 @@ BasicPage {
                                 Layout.preferredWidth: listView.width / 4
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                Switch {
+                                PrefsCheckBox {
+                                    text: qsTr("Auto-connect")
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     checked: false
@@ -277,10 +278,6 @@ BasicPage {
                                 id: serverIpField
                                 x: serverIp.width - width - serverIp.rightPadding
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
-
-                                validator: RegExpValidator {
-                                    regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                                }
 
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
                             }
@@ -391,9 +388,6 @@ BasicPage {
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
-                                    validator: RegExpValidator {
-                                        regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                                    }
                                 }
 
                                 RowLayout {

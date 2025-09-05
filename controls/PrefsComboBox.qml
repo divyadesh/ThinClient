@@ -3,24 +3,49 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.impl 2.15
 import App.Styles 1.0
+import QtGraphicalEffects 1.0
 
 ComboBox {
     id: control
     width: 260
     property int radius: 6
     hoverEnabled: true
-    scale: control.pressed ? 0.99 : 1.0
 
     // Text color
     palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray
 
-    background: Rectangle {
+    // background: Rectangle {
+    //     implicitWidth: 260
+    //     implicitHeight: 36
+    //     radius: control.radius
+    //     color: Colors.btnBg
+    //     border.width: 1
+    //     border.color: control.activeFocus ? Colors.accentPrimary : Colors.transparent
+    // }
+
+    background: Item {
         implicitWidth: 260
-        implicitHeight: 36
-        radius: control.radius
-        color: Colors.btnBg
-        border.width: 1
-        border.color: control.activeFocus ? Colors.accentPrimary : Colors.transparent
+        implicitHeight: 40
+
+        Rectangle {
+            id: bg
+            anchors.fill: parent
+            radius: 8
+            color: Colors.btnBg
+            border.width: control.activeFocus ? 2 : 1
+            border.color: control.activeFocus ? Colors.accentPrimary : Colors.secondaryBackground
+        }
+
+        // subtle inner shadow
+        DropShadow {
+            anchors.fill: bg
+            source: bg
+            radius: 8
+            samples: 16
+            horizontalOffset: 0
+            verticalOffset: 1
+            color: Qt.rgba(0,0,0,0.4)
+        }
     }
 
     indicator: ColorImage {

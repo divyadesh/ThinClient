@@ -246,7 +246,7 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Enable Ethernet")
 
-                        indicator: Switch {
+                        indicator: PrefsSwitch {
                             x: enableEthernet.width - width - enableEthernet.rightPadding
                             y: enableEthernet.topPadding + (enableEthernet.availableHeight - height) / 2
                         }
@@ -315,9 +315,10 @@ BasicPage {
                             y: dns.topPadding + (dns.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(dns.text)
-                            validator: RegExpValidator {
-                                regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                            }
+                            inputMask: "000.000.000.000;_"
+                            // validator: RegExpValidator {
+                            //     regExp: /^((25[0-5]|2[0-4][0-9]|1\d\d|[1-9]?\d)(\.|$)){4}$/
+                            // }
                         }
                     }
 

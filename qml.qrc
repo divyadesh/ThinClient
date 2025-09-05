@@ -60,5 +60,7 @@
         <file>assets/icons/no-signal.svg</file>
         <file>assets/icons/full.svg</file>
         <file>assets/icons/no-wifi.svg</file>
+        <file>controls/PrefsSwitch.qml</file>
+        <file>controls/PrefsCheckBox.qml</file>
     </qresource>
 </RCC>
