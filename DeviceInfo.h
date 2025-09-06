@@ -9,7 +9,7 @@ class DeviceInfo : public QObject
     Q_OBJECT
     Q_PROPERTY(QString cpuDetails READ cpuDetails WRITE setCpuDetails NOTIFY sigCpuDetailsChanged FINAL)
     Q_PROPERTY(QString ramSize READ ramSize WRITE setRamSize NOTIFY sigRamSizeChanged FINAL)
-    //Q_PROPERTY(QString gpuDetails READ gpuDetails WRITE setGpuDetails NOTIFY sigGpuDetailsChanged FINAL)
+    Q_PROPERTY(QString gpuDetails READ gpuDetails WRITE setGpuDetails NOTIFY sigGpuDetailsChanged FINAL)
 
     QString m_cpuDetails{""};
     QString m_ramSize{"123KB"};
@@ -25,10 +25,16 @@ public:
 
     Q_INVOKABLE void getDeviceInfoDetails();
 
+    QString gpuDetails() const;
+    void setGpuDetails(const QString &newGpuDetails);
+
 signals:
     void sigCpuDetailsChanged(QString cpuDetails);
     void sigRamSizeChanged(QString ramSize);
 
+    void sigGpuDetailsChanged();
+private:
+    QString m_gpuDetails;
 };
 
 #endif // DEVICEINFO_H
