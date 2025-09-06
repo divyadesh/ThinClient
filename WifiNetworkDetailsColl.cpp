@@ -27,7 +27,16 @@ QVariant WifiNetworkDetailsColl::data(const QModelIndex &index, int role) const 
     return QVariant {};
 }
 
+void WifiNetworkDetailsColl::clear() {
+    beginResetModel(); // Notify views that the model is about to change
+    m_WifiDetailsColl.clear(); // Actually clear the data
+    endResetModel(); // Notify views that the model has been reset
+    setActiveSsid("");
+    setActiveBars(-1);
+}
+
 void WifiNetworkDetailsColl::getWifiDetails() {
+    clear();
     m_process.start("nmcli", QStringList() << "-t" << "-f" << "ACTIVE,SSID,BARS" << "dev" << "wifi" << "list");
     m_process.waitForFinished();
     QString output = m_process.readAllStandardOutput();
@@ -39,19 +48,49 @@ void WifiNetworkDetailsColl::getWifiDetails() {
             QString active = fields[0];
             QString ssid   = fields[1];
             QString bars   = fields[2];
+            int bar = -1;
+            if(bars == "▂▄▆█")
+                bar = 4;
+            else if(bars == "▂▄▆_")
+                bar = 3;
+            else if(bars == "▂▄__")
+                bar = 2;
+            else if(bars == "▂___")
+                bar = 1;
+            else if(bars == "____")
+                bar = 0;
             if(active == "yes") {
                 setActiveSsid(ssid);
-                setActiveBars(bars);
+                setActiveBars(bar);
             }
             qDebug() <<"ACTIVE:"<<active <<", SSID:" << ssid << ", Signal Bars:" << bars;
             beginInsertRows(QModelIndex{}, static_cast<int>(m_WifiDetailsColl.size()), static_cast<int>(m_WifiDetailsColl.size()));
-            std::shared_ptr<WifiNetworkDetails> spNewWifiNetwork = std::make_shared<WifiNetworkDetails>(this, active, ssid, bars);//{ new WifiNetworkDetails(this, active, ssid, bars) };
+            std::shared_ptr<WifiNetworkDetails> spNewWifiNetwork = std::make_shared<WifiNetworkDetails>(this, active, ssid, bar);
             if(spNewWifiNetwork) {
                 QQmlEngine::setObjectOwnership(spNewWifiNetwork.get(), QQmlEngine::CppOwnership);
                 m_WifiDetailsColl.emplace_back(spNewWifiNetwork);
             }
             endInsertRows();
         }
+    }
+}
+
+void WifiNetworkDetailsColl::connectToSsid(QString ssid, QString password) {
+    //nmcli dev wifi connect "Home WiFi"
+    QString program = "nmcli";
+    QStringList arguments;
+    arguments << "dev" << "wifi" << "connect" << ssid << "password" << password;
+
+    QProcess process;
+    process.start(program, arguments);
+    process.waitForFinished();
+
+    QString output = process.readAllStandardOutput();
+    QString errorOutput = process.readAllStandardError();
+
+    qDebug() << "connectToSsid() Command Output:\n" << output;
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "Error Output:\n" << errorOutput;
     }
 }
 
@@ -82,11 +121,11 @@ void WifiNetworkDetailsColl::setActiveSsid(const QString &newActiveSsid) {
     emit sigActiveSsidChanged(m_activeSsid);
 }
 
-QString WifiNetworkDetailsColl::activeBars() const {
+int WifiNetworkDetailsColl::activeBars() const {
     return m_activeBars;
 }
 
-void WifiNetworkDetailsColl::setActiveBars(const QString &newActiveBars) {
+void WifiNetworkDetailsColl::setActiveBars(const int &newActiveBars) {
     if (m_activeBars == newActiveBars)
         return;
     m_activeBars = newActiveBars;

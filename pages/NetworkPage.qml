@@ -90,25 +90,22 @@ BasicPage {
                     radius: 8
                 }
 
-                ListModel {
-                    id: wifiModel
-
-                    ListElement { ssid: "Home_Network" }
-                    ListElement { ssid: "CoffeeShop_Wifi" }
-                    ListElement { ssid: "Office_Network" }
-                    ListElement { ssid: "Mobile_Hotspot" }
+                onVisibleChanged: {
+                    if(visible) {
+                        wifiNetworkDetails.getWifiDetails()
+                    }
                 }
 
                 contentItem: ListView {
                     width: parent.width
                     implicitHeight: contentHeight
 
-                    model: wifiModel
+                    model: wifiNetworkDetails
 
                     delegate: PrefsItemDelegate {
                         id: itemDelegate
                         width: ListView.view.width
-                        text: modelData.ssid
+                        //text: modelData.ssid
                         hoverEnabled: true
 
                         background: Rectangle {
@@ -125,7 +122,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                 horizontalAlignment: Text.AlignLeft
                                 verticalAlignment: Text.AlignVCenter
-                                text: modelData
+                                text: wifiDetails.ssid
                             }
 
                             Item { Layout.fillWidth: true }
@@ -135,7 +132,12 @@ BasicPage {
                                 text: qsTr("Connect")
                                 visible: itemDelegate.hovered
                                 radius: height / 2
-                                onClicked: {}
+                                onClicked: {
+                                    wifiNetworkDetails.connectToSsid(wifiDetails.ssid, "901");
+                                }
+                                Component.onCompleted: {
+                                    console.log("connectToSsid type:", typeof wifiNetworkDetails.connectToSsid);
+                                }
                             }
 
                             Icon {
@@ -148,22 +150,30 @@ BasicPage {
 
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                property int strength: 10
+                                property int strength: {console.log("::::>HELLO wifiDetails.ssid="+wifiDetails.ssid
+                                                                    +", wifiDetails.bars="+wifiDetails.bars);wifiDetails.bars}
                                 iconWidth: 20
                                 iconHeight: 15
                                 icon: {
+                                    console.log("::::> strength="+strength)
                                     switch(strength) {
-                                    case 0:
+                                    case 4:
+                                        console.log("::::> 4")
                                         return Qt.resolvedUrl("qrc:/assets/icons/full.svg")
-                                    case 1:
+                                    case 3:
+                                        console.log("::::> 3")
                                         return Qt.resolvedUrl("qrc:/assets/icons/middle.svg")
                                     case 2:
+                                        console.log("::::> 2")
                                         return Qt.resolvedUrl("qrc:/assets/icons/low.svg")
-                                    case 3:
+                                    case 1:
+                                        console.log("::::> 1")
                                         return Qt.resolvedUrl("qrc:/assets/icons/lower.svg")
-                                    case 4:
+                                    case 0:
+                                        console.log("::::> 0")
                                         return Qt.resolvedUrl("qrc:/assets/icons/no-signal.svg")
                                     default:
+                                        console.log("::::> default")
                                         return Qt.resolvedUrl("qrc:/assets/icons/no-wifi.svg")
                                     }
                                 }
@@ -174,7 +184,9 @@ BasicPage {
                                 icon: "qrc:/assets/icons/menu.svg"
                                 iconWidth: 20
                                 iconHeight: 20
-                                onClicked: {}
+                                onClicked: {
+
+                                }
                             }
                         }
                     }
@@ -269,6 +281,10 @@ BasicPage {
                             y: ipAddress.topPadding + (ipAddress.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(ipAddress.text)
+
+                            validator: RegularExpressionValidator {
+                                regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                            }
                         }
                     }
 
@@ -283,6 +299,9 @@ BasicPage {
                             y: netmask.topPadding + (netmask.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(netmask.text)
+                            validator: RegularExpressionValidator {
+                                regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                            }
                         }
                     }
 
@@ -297,6 +316,9 @@ BasicPage {
                             y: gateWay.topPadding + (gateWay.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(gateWay.text)
+                            validator: RegularExpressionValidator {
+                                regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                            }
                         }
                     }
 

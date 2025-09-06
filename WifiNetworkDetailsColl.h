@@ -12,10 +12,13 @@ class WifiNetworkDetailsColl : public QAbstractListModel
     Q_OBJECT
 
     Q_PROPERTY(QString activeSsid READ activeSsid WRITE setActiveSsid NOTIFY sigActiveSsidChanged FINAL)
-    Q_PROPERTY(QString activeBars READ activeBars WRITE setActiveBars NOTIFY sigActiveBarsChanged FINAL)
+    Q_PROPERTY(int activeBars READ activeBars WRITE setActiveBars NOTIFY sigActiveBarsChanged FINAL)
 
     QProcess m_process;
     std::deque<std::shared_ptr<WifiNetworkDetails>> m_WifiDetailsColl;
+
+    QString m_activeSsid;
+    int m_activeBars{-1};
 public:
     enum WifiListCollRole {
         eWifiListCollectionRole = Qt::UserRole + 1
@@ -28,23 +31,21 @@ public:
 
     explicit WifiNetworkDetailsColl(QObject *parent = nullptr);
 
+    Q_INVOKABLE void clear();
     Q_INVOKABLE void getWifiDetails();
+    Q_INVOKABLE void connectToSsid(QString ssid, QString password);
     /*Q_INVOKABLE QString getActiveSsid();
     Q_INVOKABLE QString getActiveBars()/*/
 
     QString activeSsid() const;
     void setActiveSsid(const QString &newActiveSsid);
 
-    QString activeBars() const;
-    void setActiveBars(const QString &newActiveBars);
+    int activeBars() const;
+    void setActiveBars(const int &newActiveBars);
 
 signals:
     void sigActiveSsidChanged(QString activeSsid);
-    void sigActiveBarsChanged(QString activeBars);
-
-private:
-    QString m_activeSsid;
-    QString m_activeBars;
+    void sigActiveBarsChanged(int activeBars);
 };
 
 #endif // WIFINETWORKDETAILSCOLL_H

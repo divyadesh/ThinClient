@@ -294,6 +294,10 @@ BasicPage {
                                 x: serverIp.width - width - serverIp.rightPadding
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
 
+                                validator: RegularExpressionValidator {
+                                    regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                }
+
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
                             }
                         }
@@ -403,6 +407,9 @@ BasicPage {
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
+                                    validator: RegularExpressionValidator {
+                                        regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                    }
                                 }
 
                                 RowLayout {
