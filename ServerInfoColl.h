@@ -22,9 +22,15 @@ public:
     int rowCount(const QModelIndex &refModelIndex = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role /*= Qt::DisplayRole*/) const override;
 
+    int getIndexToBeRemoved(QString connectionName, QString serverIp);
+    void setAutoConnect(QString connectionName, QString serverIp);
+    std::pair<QString, QString> checkAutoConnect();
+
     explicit ServerInfoColl(QObject *parent = nullptr);
 
     Q_INVOKABLE void setServerInfo(QString connectionName, QString serverIp);
+    Q_INVOKABLE void removeConnection(QString connectionName, QString serverIp);
+    Q_INVOKABLE void resetAutoConnect();
 
 signals:
 };

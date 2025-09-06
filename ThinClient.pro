@@ -1,11 +1,13 @@
-QT += quick quickcontrols2 core qml
+QT += quick quickcontrols2 core qml sql
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        Database.cpp \
         DeviceInfo.cpp \
+        PersistData.cpp \
         ServerInfo.cpp \
         ServerInfoColl.cpp \
         WifiNetworkDetails.cpp \
@@ -15,6 +17,7 @@ SOURCES += \
         deviceinfosettings.cpp \
         ethernetmonitor.cpp \
         ethernetworker.cpp \
+        ethernetNetworkConroller.cpp \
         imageupdater.cpp \
         language_model.cpp \
         logoloader.cpp \
@@ -42,7 +45,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    Database.h \
     DeviceInfo.h \
+    DeviceSettings.h \
+    PersistData.h \
     ServerInfo.h \
     ServerInfoColl.h \
     WifiNetworkDetails.h \
@@ -52,6 +58,7 @@ HEADERS += \
     deviceinfosettings.h \
     ethernetmonitor.h \
     ethernetworker.h \
+    ethernetNetworkConroller.h \
     imageupdater.h \
     language_model.h \
     logoloader.h \
