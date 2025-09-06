@@ -94,7 +94,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "ARM Quad-core @ 1.5 Ghz"
+                    text: deviceInfo.cpuDetails
                 }
             }
 
@@ -111,7 +111,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "2 GB"
+                    text: deviceInfo.ramSize
                 }
             }
 

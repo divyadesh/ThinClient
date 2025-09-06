@@ -16,7 +16,7 @@ BasicPage {
     header: PageHeader {
         pageTitle: page.pageTitle
         onBackPressed: {
-            if(pageStack.depth == 1) {
+            if(pageStack.depth === 1) {
                 backToHome()
                 return
             }
@@ -61,6 +61,8 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Audio")
 
+                        property string audioPersistData: persistData.getData("Audio")
+
                         ButtonGroup { id: tabGroup }
 
                         indicator: RowLayout {
@@ -72,26 +74,37 @@ BasicPage {
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
-                                checked: true
+                                checked: audio.audioPersistData === "Jack" || audio.audioPersistData === ""
                                 text: "Jack"
                                 visible: !!text
                                 font.weight: Font.Normal
+                                onClicked: {
+                                    persistData.saveData("Audio", text)
+                                }
                             }
 
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
+                                checked: audio.audioPersistData === "USB"
                                 text: "USB"
                                 visible: !!text
                                 font.weight: Font.Normal
+                                onClicked: {
+                                    persistData.saveData("Audio", text)
+                                }
                             }
 
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
+                                checked: audio.audioPersistData === "HDMI"
                                 text: "HDMI"
                                 visible: !!text
                                 font.weight: Font.Normal
+                                onClicked: {
+                                    persistData.saveData("Audio", text)
+                                }
                             }
                         }
                     }
@@ -102,6 +115,7 @@ BasicPage {
                         text: qsTr("Time Zone")
 
                         indicator: PrefsComboBox {
+                            id: timeZoneComboBox
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
 
@@ -120,6 +134,7 @@ BasicPage {
                             onCurrentIndexChanged: {
                                 var obj = model.get(currentIndex)
                                 appSettings.selectedTimeZone = obj.tzId
+                                persistData.saveData("TimeZone", appSettings.selectedTimeZone)
                             }
                         }
                     }
@@ -130,21 +145,27 @@ BasicPage {
                         text: qsTr("Language")
 
                         indicator: PrefsComboBox {
+                            id: languageComboBox
                             x: language.width - width - language.rightPadding
                             y: language.topPadding + (language.availableHeight - height) / 2
-
 
                             model: languageModel
                             textRole: "langName"
 
-                            Component.onCompleted: {
-                                var idx = languageModel.indexForCode(appSettings.selectedLanguage)
-                                if (idx >= 0) currentIndex = idx
-                            }
-
                             onCurrentIndexChanged: {
-                                var obj = languageModel.get(currentIndex)
-                                appSettings.selectedLanguage = obj.langCode
+                                if(currentIndex > 0) {
+                                    var obj = languageModel.get(currentIndex)
+                                    appSettings.selectedLanguage = obj.langCode
+                                    persistData.saveData("Language", appSettings.selectedLanguage)
+                                }
+                            }
+                            Component.onCompleted: {
+                                let savedOrientation = persistData.getData("Language")
+                                if(savedOrientation !== undefined) {
+                                    let index = languageModel.indexForCode(savedOrientation)
+                                    if(index >= 0)
+                                        languageComboBox.currentIndex = index
+                                }
                             }
                         }
                     }
