@@ -7,6 +7,8 @@
 #include "DeviceInfo.h"
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
+#include "Database.h"
+#include "PersistData.h"
 
 #include "appsettings.h"
 #include "language_model.h"
@@ -49,22 +51,48 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
     engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
 
+    PersistData persistData;
     WifiNetworkDetailsColl wifiNetworkDetailsColl;
     DeviceInfo deviceInfo;
     ServerInfoColl serverInfoColl;
+    auto & dbInstance  = DataBase::getInstance(nullptr);
+    if(!dbInstance.open()) {
+        qDebug()<<"Error: Unable to open database" ;
+    }
+    dbInstance.createTable();
+
     serverInfoColl.setServerInfo("Server1", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server2", "192.168.1.2");
+    serverInfoColl.setServerInfo("Server2", "192.168.1.1");
     serverInfoColl.setServerInfo("Server3", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server4", "192.168.1.2");
+    serverInfoColl.setServerInfo("Server4", "192.168.1.1");
     serverInfoColl.setServerInfo("Server5", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server6", "192.168.1.2");
+    serverInfoColl.setServerInfo("Server6", "192.168.1.1");
     serverInfoColl.setServerInfo("Server7", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server8", "192.168.1.2");
+    serverInfoColl.setServerInfo("Server8", "192.168.1.1");
+    for(int i=1;i<=8;++i) {
+        QStringList insertValues;
+        insertValues.append("Server"+QString::number(i));
+        insertValues.append("192.168.1.1");
+        insertValues.append("USERNAME");
+        insertValues.append("PASSWD");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        insertValues.append("");
+        dbInstance.setInsertIntoValues(insertValues);
+        dbInstance.qmlInsertServerData();
+    }
     deviceInfo.getDeviceInfoDetails();
     wifiNetworkDetailsColl.getWifiDetails();
     engine.rootContext()->setContextProperty("wifiNetworkDetails", &wifiNetworkDetailsColl);
     engine.rootContext()->setContextProperty("deviceInfo", &deviceInfo);
     engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
+    engine.rootContext()->setContextProperty("dataBase", &dbInstance);
+    engine.rootContext()->setContextProperty("persistData", &persistData);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(
