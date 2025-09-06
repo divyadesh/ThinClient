@@ -62,5 +62,8 @@
         <file>assets/icons/no-wifi.svg</file>
         <file>controls/PrefsSwitch.qml</file>
         <file>controls/PrefsCheckBox.qml</file>
+        <file>assets/icons/logos/logo.png</file>
+        <file>assets/icons/logos/G1 boot logo.png</file>
+        <file>assets/icons/background.jpg</file>
     </qresource>
 </RCC>

@@ -3,16 +3,32 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QStyleHints>
+
 #include "DeviceInfo.h"
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
+
+#include "appsettings.h"
+#include "language_model.h"
+#include "timezone_model.h"
 
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
+
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
     QGuiApplication app(argc, argv);
+    QGuiApplication::setOrganizationDomain(QStringLiteral("https://g1thinclientpc.com/"));
+    QGuiApplication::setOrganizationName(QStringLiteral("G1 Thin Client pc"));
+    QGuiApplication::setApplicationName(QStringLiteral("G1ThinClientPC"));
+    QGuiApplication::setApplicationDisplayName(QStringLiteral("G1 Thin Client pc"));
+    QGuiApplication::setApplicationVersion(QStringLiteral("1.0.0"));
+
     QQmlApplicationEngine engine;
 
     // Register QML singleton types
@@ -24,6 +40,14 @@ int main(int argc, char *argv[])
                              1,
                              0,
                              "ScreenConfig");
+
+    AppSettings settings;
+    LanguageModel languageModel(&settings);
+    TimeZoneModel timeZoneModel;
+
+    engine.rootContext()->setContextProperty("appSettings", &settings);
+    engine.rootContext()->setContextProperty("languageModel", &languageModel);
+    engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
 
     WifiNetworkDetailsColl wifiNetworkDetailsColl;
     DeviceInfo deviceInfo;

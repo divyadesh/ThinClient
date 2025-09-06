@@ -9,13 +9,16 @@ import "../components"
 BasicPage {
     background: Image {
         //width : height = 3 : 2 Aspect ratio
-        source: Qt.resolvedUrl("qrc:/assets/images/background.jpg")
+        source: Qt.resolvedUrl("qrc:/assets/icons/background.jpg")
     }
 
-    Logo {
+    Image {
         anchors.left: parent.left
         anchors.top: parent.top
-        padding: 20
+        anchors.leftMargin: -40
+        anchors.topMargin: -40
+        sourceSize: Qt.size(600, 210)
+        source: Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
     Control {
@@ -55,7 +58,7 @@ BasicPage {
             Icon {
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
-                icon: Qt.resolvedUrl("qrc:/assets/icons/ic_wifi.svg")
+                icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
 
                 onClicked: {}
             }
@@ -67,7 +70,7 @@ BasicPage {
             Icon {
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
-                icon: Qt.resolvedUrl("qrc:/assets/icons/ic_settings.svg")
+                icon: Qt.resolvedUrl("qrc:/assets/icons/settings.png")
 
                 onClicked: {}
             }

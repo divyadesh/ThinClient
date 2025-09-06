@@ -119,28 +119,22 @@ BasicPage {
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
 
-                            model: [
-                                "Auto",
-                                "640 x 480",     // VGA
-                                "800 x 600",     // SVGA
-                                "1024 x 768",    // XGA
-                                "1280 x 720",    // HD
-                                "1280 x 800",    // WXGA
-                                "1366 x 768",    // HD+
-                                "1440 x 900",    // WXGA+
-                                "1600 x 900",    // HD+
-                                "1600 x 1200",   // UXGA
-                                "1680 x 1050",   // WSXGA+
-                                "1920 x 1080",   // Full HD
-                                "1920 x 1200",   // WUXGA
-                                "2048 x 1152",   // 2K-ish
-                                "2560 x 1080",   // UltraWide FHD
-                                "2560 x 1440",   // QHD
-                                "2560 x 1600",   // WQXGA
-                                "3440 x 1440",   // UltraWide QHD
-                                "3840 x 1600",   // UltraWide 4K-ish
-                                "3840 x 2160"    // 4K UHD
-                            ]
+                            model: timeZoneModel
+                            textRole: "tzName"
+
+                            Component.onCompleted: {
+                                for (var i = 0; i < model.count; ++i) {
+                                    if (model.get(i).tzId === appSettings.selectedTimeZone) {
+                                        currentIndex = i
+                                        break
+                                    }
+                                }
+                            }
+
+                            onCurrentIndexChanged: {
+                                var obj = model.get(currentIndex)
+                                appSettings.selectedTimeZone = obj.tzId
+                            }
                         }
                     }
 
@@ -153,11 +147,19 @@ BasicPage {
                             x: language.width - width - language.rightPadding
                             y: language.topPadding + (language.availableHeight - height) / 2
 
-                            model: [
-                                "Device Language",
-                                "English",
-                                "Hindi"
-                            ]
+
+                            model: languageModel
+                            textRole: "langName"
+
+                            Component.onCompleted: {
+                                var idx = languageModel.indexForCode(appSettings.selectedLanguage)
+                                if (idx >= 0) currentIndex = idx
+                            }
+
+                            onCurrentIndexChanged: {
+                                var obj = languageModel.get(currentIndex)
+                                appSettings.selectedLanguage = obj.langCode
+                            }
                         }
                     }
 
@@ -176,6 +178,8 @@ BasicPage {
                 background: Rectangle {
                     color: Colors.steelGray
                     radius: 8
+                    border.width: 1
+                    border.color: Colors.borderColor
                 }
 
                 contentItem: ColumnLayout {

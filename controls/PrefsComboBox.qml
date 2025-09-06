@@ -64,10 +64,10 @@ ComboBox {
         width: control.width
 
         background: Rectangle {
-            color: "#343541"       // same as combo background
+            color: Colors.btnBg
             radius: control.radius
             border.width: 1
-            border.color: "#565869"
+            border.color: Colors.borderColor
         }
 
         contentItem: ListView {
@@ -83,7 +83,7 @@ ComboBox {
 
                 background: Rectangle {
                     radius: 6
-                    color: highlighted ? "#202123" : "transparent"   // ChatGPT sidebar highlight
+                    color: highlighted ? "#202123" : "transparent"
                 }
 
                 contentItem: Text {

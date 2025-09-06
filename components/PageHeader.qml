@@ -16,7 +16,7 @@ Control {
 
     background: Rectangle {
         implicitHeight: 84
-        color: Qt.rgba(45/ 255, 47/255, 47/255, 1.0)
+        color: Colors.headerColor
     }
 
     contentItem: RowLayout {

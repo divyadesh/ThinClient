@@ -1,4 +1,4 @@
-QT += quick quickcontrols2
+QT += quick quickcontrols2 core qml
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -10,7 +10,10 @@ SOURCES += \
         ServerInfoColl.cpp \
         WifiNetworkDetails.cpp \
         WifiNetworkDetailsColl.cpp \
-        main.cpp
+        appsettings.cpp \
+        language_model.cpp \
+        main.cpp \
+        timezone_model.cpp
 
 RESOURCES += qml.qrc
 # qml_files.files = $$files($$PWD/*.qml, true)
@@ -33,4 +36,7 @@ HEADERS += \
     ServerInfo.h \
     ServerInfoColl.h \
     WifiNetworkDetails.h \
-    WifiNetworkDetailsColl.h
+    WifiNetworkDetailsColl.h \
+    appsettings.h \
+    language_model.h \
+    timezone_model.h

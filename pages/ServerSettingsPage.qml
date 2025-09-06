@@ -23,6 +23,28 @@ BasicPage {
         }
     }
 
+    component PrefsLink: PrefsLabel {
+        id: link
+        signal clicked()
+
+        color: linkArea.pressed || linkArea.containsMouse ? Colors.accentHover : Colors.accentPrimary
+        font.underline: true
+        horizontalAlignment: Label.AlignHCenter
+        verticalAlignment: Label.AlignVCenter
+        scale: linkArea.pressed ? 0.95 : 1.0
+
+        padding: 4
+        leftPadding: 5
+        rightPadding: 5
+
+        MouseArea {
+            id: linkArea
+            anchors.fill: parent
+            hoverEnabled: true
+            onClicked: { link.clicked() }
+        }
+    }
+
     contentItem: Flickable {
         width: parent.width
         clip: true
@@ -153,6 +175,8 @@ BasicPage {
                             implicitHeight: 28
                             radius: height / 2
                             color: _control.hovered ? Colors.steelGray : "transparent"
+                            border.width: 1
+                            border.color: _control.hovered ? Colors.borderColor : "transparent"
                         }
 
                         contentItem: RowLayout {
@@ -208,28 +232,19 @@ BasicPage {
                                 contentItem:  RowLayout {
                                     spacing: 10
 
-                                    PrefsLabel {
+                                    PrefsLink {
                                         text: qsTr("Connect")
-                                        color: Colors.accentPrimary
-                                        font.underline: true
-                                        horizontalAlignment: Label.AlignHCenter
-                                        verticalAlignment: Label.AlignVCenter
+                                        onClicked: {}
                                     }
 
-                                    PrefsLabel {
+                                    PrefsLink {
                                         text: qsTr("Edit")
-                                        color: Colors.accentPrimary
-                                        font.underline: true
-                                        horizontalAlignment: Label.AlignHCenter
-                                        verticalAlignment: Label.AlignVCenter
+                                        onClicked: {}
                                     }
 
-                                    PrefsLabel {
-                                        color: Colors.accentPrimary
+                                    PrefsLink {
                                         text: qsTr("Delete")
-                                        font.underline: true
-                                        horizontalAlignment: Label.AlignHCenter
-                                        verticalAlignment: Label.AlignVCenter
+                                        onClicked: {}
                                     }
 
                                     Item {
@@ -422,7 +437,7 @@ BasicPage {
 
         background: Rectangle {
             implicitHeight: 84
-            color: Qt.rgba(45/ 255, 47/255, 47/255, 1.0)
+            color: Colors.headerColor
         }
 
         contentItem: ColumnLayout {

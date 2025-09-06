@@ -24,6 +24,13 @@ BasicPage {
 
             background: Rectangle {
                 color: Colors.steelGray
+
+                Rectangle {
+                    anchors.right: parent.right
+                    height: parent.height
+                    width: 1
+                    color: Colors.borderColor
+                }
             }
 
             ColumnLayout {

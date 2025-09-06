@@ -47,6 +47,8 @@ BasicPage {
                 background: Rectangle {
                     color: Colors.steelGray
                     radius: height /2
+                    border.width: 1
+                    border.color: Colors.borderColor
                 }
 
                 contentItem: RowLayout {
@@ -113,6 +115,8 @@ BasicPage {
                             implicitHeight: 36
                             radius: height / 2
                             color: itemDelegate.hovered ? Colors.steelGray : "transparent"
+                            border.width: 1
+                            border.color: itemDelegate.hovered ? Colors.borderColor : "transparent"
                         }
 
                         contentItem: RowLayout {
@@ -202,6 +206,8 @@ BasicPage {
                         background: Rectangle {
                             color: Colors.steelGray
                             radius: height /2
+                            border.width: 1
+                            border.color: Colors.borderColor
                         }
 
                         indicator: RowLayout {
@@ -263,10 +269,6 @@ BasicPage {
                             y: ipAddress.topPadding + (ipAddress.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(ipAddress.text)
-
-                            validator: RegExpValidator {
-                                regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                            }
                         }
                     }
 
@@ -281,9 +283,6 @@ BasicPage {
                             y: netmask.topPadding + (netmask.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(netmask.text)
-                            validator: RegExpValidator {
-                                regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                            }
                         }
                     }
 
@@ -298,9 +297,6 @@ BasicPage {
                             y: gateWay.topPadding + (gateWay.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(gateWay.text)
-                            validator: RegExpValidator {
-                                regExp:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                            }
                         }
                     }
 
@@ -361,7 +357,7 @@ BasicPage {
 
         background: Rectangle {
             implicitHeight: 84
-            color: Qt.rgba(45/ 255, 47/255, 47/255, 1.0)
+            color: Colors.headerColor
         }
 
         contentItem: ColumnLayout {

@@ -22,13 +22,14 @@ BasicPage {
         background: Rectangle {
             radius: 8
             color: Colors.steelGray
-            border.color: "#3F3F46"
             border.width: 1
+            border.color: Colors.borderColor
         }
 
         header: Control {
             implicitHeight: 52
             padding: 10
+            topPadding: 16
 
             contentItem: PrefsLabel {
                 text: qsTr("Device Reset")
@@ -63,13 +64,13 @@ BasicPage {
                 PrefsButton {
                     text: qsTr("Yes")
                     radius: height / 2
-                    highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()
                 }
 
                 PrefsButton {
                     text: qsTr("No")
+                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()

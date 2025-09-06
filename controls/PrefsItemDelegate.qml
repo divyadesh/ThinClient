@@ -15,5 +15,7 @@ ItemDelegate {
         implicitHeight: 40
         radius: 8
         color: Colors.steelGray
+        border.width: 1
+        border.color: Colors.borderColor
     }
 }
