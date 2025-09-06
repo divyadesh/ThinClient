@@ -6,10 +6,12 @@ import App.Styles 1.0
 
 import "../components"
 import "../controls"
+import "../dialogs"
 
 BasicPage {
     id: page
     padding: 20
+    StackView.visible: true
     property bool isServer: false
 
     header: PageHeader {
@@ -22,6 +24,8 @@ BasicPage {
             pageStack.pop()
         }
     }
+
+    ButtonGroup { id: radioGroup }
 
     component PrefsLink: PrefsLabel {
         id: link
@@ -163,7 +167,7 @@ BasicPage {
                     }
 
                     delegate: Control {
-                        id: _control
+                        id: _controlDelegate
                         width: ListView.view.width
                         padding: 20
                         topPadding: 12
@@ -174,9 +178,9 @@ BasicPage {
                             implicitWidth: 100
                             implicitHeight: 28
                             radius: height / 2
-                            color: _control.hovered ? Colors.steelGray : "transparent"
+                            color: _controlDelegate.hovered ? Colors.steelGray : "transparent"
                             border.width: 1
-                            border.color: _control.hovered ? Colors.borderColor : "transparent"
+                            border.color: _controlDelegate.hovered ? Colors.borderColor : "transparent"
                         }
 
                         contentItem: RowLayout {
@@ -201,12 +205,22 @@ BasicPage {
                                 Layout.preferredWidth: listView.width / 4
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
+                                RowLayout {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: ip
+                                    spacing: 20
+
+                                    PrefsLabel {
+                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        horizontalAlignment: Label.AlignLeft
+                                        verticalAlignment: Label.AlignVCenter
+                                        text: ip
+                                    }
+
+                                    PrefsBusyIndicator {
+                                        radius: 10
+                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    }
                                 }
                             }
 
@@ -215,11 +229,16 @@ BasicPage {
                                 Layout.preferredWidth: listView.width / 4
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsCheckBox {
-                                    text: qsTr("Auto-connect")
+                                RadioButton {
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
-                                    checked: false
+                                    palette.text: Colors.accentPrimary
+                                    palette.windowText: Colors.textPrimary
+                                    text: qsTr("Auto-connect")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                    spacing: 10
+                                    ButtonGroup.group: radioGroup
                                 }
                             }
 
@@ -239,12 +258,12 @@ BasicPage {
 
                                     PrefsLink {
                                         text: qsTr("Edit")
-                                        onClicked: {}
+                                        onClicked: {  }
                                     }
 
                                     PrefsLink {
                                         text: qsTr("Delete")
-                                        onClicked: {}
+                                        onClicked: { pageStack.push(deleteConnection) }
                                     }
 
                                     Item {
@@ -298,6 +317,20 @@ BasicPage {
                             }
                         }
 
+                        PrefsItemDelegate {
+                            id: deviceName
+                            Layout.fillWidth: true
+                            text: qsTr("Device Name")
+
+                            indicator: PrefsTextField {
+                                id: deviceNameField
+                                x: deviceName.width - width - deviceName.rightPadding
+                                y: deviceName.topPadding + (deviceName.availableHeight - height) / 2
+
+                                placeholderText : qsTr("Enter %1").arg(deviceName.text)
+                            }
+                        }
+
                         Item {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 5
@@ -347,24 +380,75 @@ BasicPage {
                             rightButtonText: qsTr("Auto")
                         }
 
-                        PrefsButtonDelegate {
+                        PrefsItemDelegate {
+                            id: enableDelegate
                             Layout.fillWidth: true
                             text: qsTr("Enable")
-                            leftButtonText: qsTr("Audio")
-                            rightButtonText: qsTr("Microphone")
+
+                            indicator: RowLayout {
+                                x: enableDelegate.width - width - enableDelegate.rightPadding
+                                y: enableDelegate.topPadding + (enableDelegate.availableHeight - height) / 2
+
+                                spacing: 20
+
+                                PrefsButton {
+                                    checkable: true
+                                    text: qsTr("Audio")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+
+                                PrefsButton {
+                                    checkable: true
+                                    text: qsTr("Microphone")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+                            }
                         }
 
-                        PrefsButtonDelegate {
+                        PrefsItemDelegate {
+                            id: redirectDelegate
                             Layout.fillWidth: true
                             text: qsTr("Redirect")
-                            leftButtonText: qsTr("Drive")
-                            rightButtonText: qsTr("USB Device")
+
+                            indicator: RowLayout {
+                                x: redirectDelegate.width - width - redirectDelegate.rightPadding
+                                y: redirectDelegate.topPadding + (redirectDelegate.availableHeight - height) / 2
+                                spacing: 20
+
+                                PrefsButton {
+                                    checkable: true
+                                    text: qsTr("Drive")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+
+                                PrefsButton {
+                                    checkable: true
+                                    text: qsTr("USB Device")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+                            }
                         }
 
-                        PrefsButtonDelegate {
+                        PrefsItemDelegate {
+                            id: securityDelegate
                             Layout.fillWidth: true
                             text: qsTr("Security")
-                            leftButtonText: qsTr("NLA")
+
+                            indicator: RowLayout {
+                                x: securityDelegate.width - width - securityDelegate.rightPadding
+                                y: securityDelegate.topPadding + (securityDelegate.availableHeight - height) / 2
+
+                                PrefsButton {
+                                    checkable: true
+                                    text: qsTr("NLA")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+                            }
                         }
                     }
                 }
@@ -487,5 +571,10 @@ BasicPage {
                 font.weight: Font.Normal
             }
         }
+    }
+
+    Component {
+        id: deleteConnection
+        DeleteWifiConnection {}
     }
 }

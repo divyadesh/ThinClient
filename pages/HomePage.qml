@@ -12,6 +12,8 @@ BasicPage {
         source: Qt.resolvedUrl("qrc:/assets/icons/background.jpg")
     }
 
+     ButtonGroup { id: tabGroup }
+
     Image {
         anchors.left: parent.left
         anchors.top: parent.top
@@ -22,27 +24,51 @@ BasicPage {
     }
 
     Control {
+        width: parent.width * 0.8
+        height: parent.height * 0.6
         anchors.centerIn: parent
-        padding: 40
+        padding: 120
 
-        background: Rectangle {
-            color: Colors.secondaryBackground
-            radius: 8
-        }
+        contentItem: GridView {
+            id: grid
+            anchors.fill: parent
+            cellWidth: 220; cellHeight: 220
+            clip: true
 
-        contentItem: PrefsTabBar {
-            spacing: 40
-
-            HomeTabButton {
-                text: qsTr("Windows")
-                icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
-                onClicked: pageStack.push(dashboardPage, {server : false})
+            model: ListModel {
+                ListElement { name: "Windows"; ip: "192.168.1.15" }
+                ListElement { name: "Server"; ip: "192.168.1.24:3228" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
+                ListElement { name: "Laptop"; ip: "192.168.1.50" }
             }
 
-            HomeTabButton {
-                text: qsTr("Server")
-                icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
-                onClicked: pageStack.push(dashboardPage, {server : true })
+
+            highlight: Rectangle { color: "lightsteelblue"; radius: 8 }
+            focus: true
+
+            delegate: Control {
+                padding: 20
+                implicitWidth: grid.cellWidth
+                implicitHeight: grid.cellHeight
+
+                contentItem: HomeTabButton {
+                    id: tabButton
+                    ButtonGroup.group: tabGroup
+                    text: name
+                    icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+                    onClicked: {}
+
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: tabButton.checked ? Colors.accentHover : Colors.surfaceBackground
+                        radius: 8
+                    }
+                }
             }
         }
     }
@@ -54,11 +80,35 @@ BasicPage {
         padding: 20
 
         contentItem: ColumnLayout {
+            spacing: 20
 
             Icon {
+                id: wifi
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
+                scale: 1.0
+
+                onClicked: {}
+            }
+
+            Icon {
+                id:ethernet
+                iconWidth: Theme.iconLarge
+                iconHeight: Theme.iconLarge
+                icon: Qt.resolvedUrl("qrc:/assets/icons/ethernet.png")
+                scale: 1.0
+
+                onClicked: {}
+            }
+
+            Icon {
+                id: usb
+                visible: false
+                iconWidth: Theme.iconLarge
+                iconHeight: Theme.iconLarge
+                icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
+                scale: 1.0
 
                 onClicked: {}
             }
@@ -72,7 +122,7 @@ BasicPage {
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/settings.png")
 
-                onClicked: {}
+                onClicked: { pageStack.push(dashboardPage) }
             }
         }
     }

@@ -97,20 +97,6 @@ BasicPage {
                     }
 
                     PrefsItemDelegate {
-                        id: connection
-                        Layout.fillWidth: true
-                        text: qsTr("Device Name")
-
-                        indicator: PrefsTextField {
-                            id: connectionField
-                            x: connection.width - width - connection.rightPadding
-                            y: connection.topPadding + (connection.availableHeight - height) / 2
-
-                            placeholderText : qsTr("Enter %1").arg(connection.text)
-                        }
-                    }
-
-                    PrefsItemDelegate {
                         id: timezone
                         Layout.fillWidth: true
                         text: qsTr("Time Zone")
@@ -160,6 +146,20 @@ BasicPage {
                                 var obj = languageModel.get(currentIndex)
                                 appSettings.selectedLanguage = obj.langCode
                             }
+                        }
+                    }
+
+                    PrefsItemDelegate {
+                        id: updatePwdDelegate
+                        Layout.fillWidth: true
+                        text: qsTr("Update Password")
+
+                        indicator: PrefsButton {
+                            x: updatePwdDelegate.width - width - updatePwdDelegate.rightPadding
+                            y: updatePwdDelegate.topPadding + (updatePwdDelegate.availableHeight - height) / 2
+                            implicitWidth: 260
+                            text: qsTr("Update")
+                            onClicked: pageStack.push(updatePassword)
                         }
                     }
 
@@ -227,5 +227,17 @@ BasicPage {
     Component {
         id: deviceReset
         DeviceResetDialog {}
+    }
+
+    Component {
+        id: updatePassword
+        UpdatePasswordDialog {
+            onSetPassword: pageStack.replace(setPasswordDialog)
+        }
+    }
+
+    Component {
+        id: setPasswordDialog
+        SetPassword {}
     }
 }

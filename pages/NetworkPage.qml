@@ -93,10 +93,10 @@ BasicPage {
                 ListModel {
                     id: wifiModel
 
-                    ListElement { ssid: "Home_Network" }
-                    ListElement { ssid: "CoffeeShop_Wifi" }
-                    ListElement { ssid: "Office_Network" }
-                    ListElement { ssid: "Mobile_Hotspot" }
+                    ListElement { ssid: "Home_Network"; connected: true; processing: false; strength: 0; secured: true  }
+                    ListElement { ssid: "CoffeeShop_Wifi"; connected: false; processing: false; strength: 4; secured: true  }
+                    ListElement { ssid: "Office_Network"; connected: false; processing: false; strength: 2; secured: true }
+                    ListElement { ssid: "Mobile_Hotspot"; connected: false; processing: false; strength: 3; secured: true }
                 }
 
                 contentItem: ListView {
@@ -108,7 +108,7 @@ BasicPage {
                     delegate: PrefsItemDelegate {
                         id: itemDelegate
                         width: ListView.view.width
-                        text: modelData.ssid
+                        text:ssid
                         hoverEnabled: true
 
                         background: Rectangle {
@@ -125,22 +125,44 @@ BasicPage {
                                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                 horizontalAlignment: Text.AlignLeft
                                 verticalAlignment: Text.AlignVCenter
-                                text: modelData
+                                text: ssid
                             }
 
                             Item { Layout.fillWidth: true }
 
-                            PrefsButton {
+                            RowLayout {
+                                spacing: 20
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                text: qsTr("Connect")
-                                visible: itemDelegate.hovered
-                                radius: height / 2
-                                onClicked: {}
+
+                                PrefsBusyIndicator {
+                                    radius: 10
+                                    running: processing
+                                    visible: running
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                }
+
+                                PrefsDangerButton {
+                                    id: disconnectWifi
+                                    visible: connected
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    text: qsTr("Disconnect")
+                                    onClicked: {}
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    text: qsTr("Connect")
+                                    visible: itemDelegate.hovered && !connected
+                                    radius: height / 2
+                                    onClicked: {}
+                                }
                             }
 
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                 icon: "qrc:/assets/icons/lock.svg"
+                                visible: secured
+
                                 iconWidth: 20
                                 iconHeight: 20
                                 onClicked: {}
@@ -148,7 +170,6 @@ BasicPage {
 
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                property int strength: 10
                                 iconWidth: 20
                                 iconHeight: 15
                                 icon: {
@@ -220,22 +241,22 @@ BasicPage {
                             }
 
                             RadioButton {
-                                id: manualRadio
+                                id: dhcpRadio
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                text: qsTr("DHCP")
                                 checked: true
                                 palette.text: Colors.accentPrimary
                                 palette.windowText: Colors.textPrimary
-                                text: qsTr("Manual")
                                 visible: !!text
                                 font.weight: Font.Normal
                             }
 
                             RadioButton {
-                                id: dhcpRadio
+                                id: manualRadio
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                                text: qsTr("DHCP")
                                 palette.text: Colors.accentPrimary
                                 palette.windowText: Colors.textPrimary
+                                text: qsTr("Manual")
                                 visible: !!text
                                 font.weight: Font.Normal
                             }
@@ -248,20 +269,10 @@ BasicPage {
                     }
 
                     PrefsItemDelegate {
-                        id: enableEthernet
-                        Layout.fillWidth: true
-                        text: qsTr("Enable Ethernet")
-
-                        indicator: PrefsSwitch {
-                            x: enableEthernet.width - width - enableEthernet.rightPadding
-                            y: enableEthernet.topPadding + (enableEthernet.availableHeight - height) / 2
-                        }
-                    }
-
-                    PrefsItemDelegate {
                         id: ipAddress
                         Layout.fillWidth: true
                         text: qsTr("IP Address")
+                        enabled: manualRadio.checked
 
                         indicator: PrefsTextField {
                             id: ipAddressField
@@ -276,6 +287,7 @@ BasicPage {
                         id: netmask
                         Layout.fillWidth: true
                         text: qsTr("Netmask")
+                        enabled: manualRadio.checked
 
                         indicator: PrefsTextField {
                             id: netmaskField
@@ -290,6 +302,7 @@ BasicPage {
                         id: gateWay
                         Layout.fillWidth: true
                         text: qsTr("Gateway")
+                        enabled: manualRadio.checked
 
                         indicator: PrefsTextField {
                             id: gateWayField
@@ -304,6 +317,7 @@ BasicPage {
                         id: dns
                         Layout.fillWidth: true
                         text: qsTr("DNS")
+                        enabled: manualRadio.checked
 
                         indicator: PrefsTextField {
                             id: dnsField
@@ -311,10 +325,6 @@ BasicPage {
                             y: dns.topPadding + (dns.availableHeight - height) / 2
 
                             placeholderText : qsTr("Enter %1").arg(dns.text)
-                            inputMask: "000.000.000.000;_"
-                            // validator: RegExpValidator {
-                            //     regExp: /^((25[0-5]|2[0-4][0-9]|1\d\d|[1-9]?\d)(\.|$)){4}$/
-                            // }
                         }
                     }
 
@@ -323,27 +333,11 @@ BasicPage {
                         Layout.preferredHeight: 20
                     }
 
-                    RowLayout {
+                    PrefsLabel {
+                        Layout.alignment: Qt.AlignLeft
                         Layout.fillWidth: true
-                        spacing: 20
-
-                        PrefsButton {
-                            text: qsTr("Wifi Mac")
-                            radius: height / 2
-                            highlighted: true
-                            onClicked: {
-                            }
-                        }
-
-                        PrefsButton {
-                            text: qsTr("Auto Read")
-                            radius: height / 2
-                            highlighted: true
-                            onClicked: {
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
+                        font.pixelSize: 20
+                        text: qsTr("Wi-Fi Mac Address: 0A:AA:BB:CC:DD:EE")
                     }
                 }
             }
@@ -378,28 +372,11 @@ BasicPage {
                     }
                 }
 
-                PrefsButton {
+                PrefsDangerButton {
                     id: disconnected
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     text: qsTr("Disconnect")
-                    highlighted: true
-
-                    background: Rectangle {
-                        implicitHeight: 34
-                        implicitWidth: 120
-                        radius: height / 2
-
-                        color: {
-                            if (!disconnected.enabled) {
-                                return disconnected.highlighted ? Colors.accentDisabled : Colors.btnBgDisabled;
-                            }
-                            return Colors.statusError;
-                        }
-                    }
-
-                    onClicked: {
-
-                    }
+                    onClicked: {}
                 }
             }
         }

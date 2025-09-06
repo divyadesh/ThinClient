@@ -65,5 +65,10 @@
         <file>assets/icons/logos/logo.png</file>
         <file>assets/icons/logos/G1 boot logo.png</file>
         <file>assets/icons/background.jpg</file>
+        <file>dialogs/DeleteWifiConnection.qml</file>
+        <file>controls/PrefsBusyIndicator.qml</file>
+        <file>dialogs/UpdatePasswordDialog.qml</file>
+        <file>controls/PrefsDangerButton.qml</file>
+        <file>dialogs/SetPassword.qml</file>
     </qresource>
 </RCC>
