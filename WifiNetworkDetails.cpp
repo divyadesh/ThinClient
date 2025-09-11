@@ -1,7 +1,7 @@
 #include "WifiNetworkDetails.h"
 #include "QDebug"
 
-WifiNetworkDetails::WifiNetworkDetails(QObject *parent, QString active, QString ssid, QString bars)
+WifiNetworkDetails::WifiNetworkDetails(QObject *parent, QString active, QString ssid, int bars)
     : QObject{parent} {
     setActive(active);
     setSsid(ssid);
@@ -31,11 +31,11 @@ void WifiNetworkDetails::setSsid(const QString &newSsid) {
     emit sigSsidChanged(m_ssid);
 }
 
-QString WifiNetworkDetails::bars() const {
+int WifiNetworkDetails::bars() const {
     return m_bars;
 }
 
-void WifiNetworkDetails::setBars(const QString &newBars) {
+void WifiNetworkDetails::setBars(const int &newBars) {
     if (m_bars == newBars)
         return;
     m_bars = newBars;
