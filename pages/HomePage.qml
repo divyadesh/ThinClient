@@ -7,6 +7,7 @@ import "../controls"
 import "../components"
 
 BasicPage {
+    StackView.visible: true
     background: Image {
         //width : height = 3 : 2 Aspect ratio
         source: Qt.resolvedUrl("qrc:/assets/icons/background.jpg")
@@ -122,7 +123,9 @@ BasicPage {
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/settings.png")
 
-                onClicked: { pageStack.push(dashboardPage) }
+                onClicked: {
+                    pageStack.push(loginPage)
+                }
             }
         }
     }
@@ -130,5 +133,14 @@ BasicPage {
     Component {
         id: dashboardPage
         DashboardPage {}
+    }
+
+    Component {
+        id: loginPage
+        LoginPage {
+            onLoginSuccess: {
+                pageStack.replace(dashboardPage)
+            }
+        }
     }
 }

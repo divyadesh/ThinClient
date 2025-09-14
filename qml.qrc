@@ -70,5 +70,6 @@
         <file>dialogs/UpdatePasswordDialog.qml</file>
         <file>controls/PrefsDangerButton.qml</file>
         <file>dialogs/SetPassword.qml</file>
+        <file>pages/LoginPage.qml</file>
     </qresource>
 </RCC>

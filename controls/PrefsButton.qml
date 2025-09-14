@@ -10,7 +10,7 @@ Button {
     leftPadding: 8
     rightPadding: 8
     scale: control.pressed ? 0.98 : 1.0
-    palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
+    palette.buttonText: enabled ? Colors.textPrimary : Colors.textSecondary
 
     background: Rectangle {
         implicitHeight: 34
