@@ -67,6 +67,7 @@ BasicPage {
                     }
 
                     PrefsTextField {
+                        id: passwordId
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                         horizontalAlignment: TextField.AlignLeft
@@ -87,6 +88,7 @@ BasicPage {
                     }
 
                     PrefsTextField {
+                        id: confirmPasswordId
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                         horizontalAlignment: TextField.AlignLeft
@@ -118,7 +120,12 @@ BasicPage {
                     highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+                    onClicked: {
+                        if(passwordId.text === confirmPasswordId.text) {
+                            persistData.saveData("Password", passwordId.text)
+                            pageStack.pop()
+                        }
+                    }
                 }
 
                 Item {

@@ -90,7 +90,10 @@ BasicPage {
                     text: qsTr("Remove Password")
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+                    onClicked: {
+                        persistData.saveData("Password", "")
+                        pageStack.pop()
+                    }
                 }
 
                 Item {
