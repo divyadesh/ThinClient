@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <deque>
+#include <memory>
 #include "qabstractitemmodel.h"
 
 class ServerInfo;

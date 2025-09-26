@@ -1,6 +1,7 @@
 #include "ServerInfoColl.h"
 #include "ServerInfo.h"
 #include <QQmlEngine>
+#include <memory>
 
 ServerInfoColl::ServerInfoColl(QObject *parent)
     : QAbstractListModel{parent}

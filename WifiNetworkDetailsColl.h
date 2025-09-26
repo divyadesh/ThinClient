@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QProcess>
 #include <deque>
+#include <memory>
 #include "qabstractitemmodel.h"
 
 class WifiNetworkDetails;
