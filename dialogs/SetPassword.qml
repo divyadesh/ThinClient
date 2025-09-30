@@ -38,7 +38,7 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Update Password")
+                text: passwordManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -60,16 +60,18 @@ BasicPage {
                     PrefsLabel {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                        text: qsTr("Enter Password")
+                        text: passwordManager.hasPassword ? qsTr("Enter Old Password") : qsTr("Enter Password")
                         font.pixelSize: 16
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     PrefsTextField {
+                        id: enterPasswordField
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                         horizontalAlignment: TextField.AlignLeft
+                        onTextChanged: errorText.text = ''
                     }
                 }
 
@@ -80,17 +82,30 @@ BasicPage {
                     PrefsLabel {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                        text: qsTr("Confirm Password")
+                        text: passwordManager.hasPassword ? qsTr("Enter New Password") : qsTr("Confirm Password")
                         font.pixelSize: 16
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     PrefsTextField {
+                        id: confirmPasswordField
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                         horizontalAlignment: TextField.AlignLeft
+                        onTextChanged: errorText.text = ''
                     }
+                }
+
+                PrefsLabel {
+                    id: errorText
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                    font.pixelSize: 12
+                    visible: !!text
+                    color: Colors.statusError
+                    horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
@@ -114,11 +129,63 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Save")
+                    text: passwordManager.hasPassword ? qsTr("Update") : qsTr("Save")
                     highlighted: true
                     radius: height / 2
+                    enabled: enterPasswordField.text.length > 0 && confirmPasswordField.text.length > 0
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+
+                    onClicked: {
+                        if(passwordManager.hasPassword) {
+                            changePassword()
+                        }else {
+                            setPassword()
+                        }
+                    }
+
+                    function changePassword() {
+                        //changePassword(old, new)
+                        if(enterPasswordField.text.length ===0 || confirmPasswordField.text.length ===0) {
+                            errorText.text = "Field Should not be empty."
+                            console.log(errorText.text)
+                            return;
+                        }
+
+                        if(enterPasswordField.text === confirmPasswordField.text) {
+                            pageStack.pop()
+                            return;
+                        }
+
+                        if (passwordManager.changePassword(confirmPasswordField.text, enterPasswordField.text)) {
+                            console.log("Password change successfully")
+                            pageStack.pop()
+                        }else {
+                            errorText.text = "Failed to change password."
+                            console.log(errorText.text)
+                        }
+                    }
+
+                    function setPassword() {
+                        if(enterPasswordField.text.length ===0 || confirmPasswordField.text.length ===0) {
+                            errorText.text = "Field Should not be empty."
+                            console.log(errorText.text)
+                            return;
+                        }
+
+                        if(enterPasswordField.text !== confirmPasswordField.text) {
+                            errorText.text = "Enter Password and confirm password should be same."
+                            console.log(errorText.text)
+                            return;
+                        }
+
+                        if (passwordManager.setPassword(enterPasswordField.text)) {
+                            console.log("Password set successfully")
+                            pageStack.pop()
+                        }else {
+                            errorText.text = "Failed to set password (already exists?)"
+                            console.log(errorText.text)
+                        }
+                    }
                 }
 
                 Item {

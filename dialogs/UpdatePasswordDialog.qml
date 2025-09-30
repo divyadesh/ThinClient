@@ -17,6 +17,7 @@ import "../controls"
 BasicPage {
     id: control
     signal setPassword()
+    signal removePassword()
 
     background: Rectangle {
         color: "#000000"
@@ -77,7 +78,7 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Set Password")
+                    text: passwordManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
                     radius: height / 2
                     highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
@@ -87,10 +88,12 @@ BasicPage {
                 }
 
                 PrefsDangerButton {
+                    visible: passwordManager.hasPassword
                     text: qsTr("Remove Password")
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+
+                    onClicked: {removePassword()}
                 }
 
                 Item {

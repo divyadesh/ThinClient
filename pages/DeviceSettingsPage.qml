@@ -233,11 +233,17 @@ BasicPage {
         id: updatePassword
         UpdatePasswordDialog {
             onSetPassword: pageStack.replace(setPasswordDialog)
+            onRemovePassword: pageStack.replace(removePasswordDailog)
         }
     }
 
     Component {
         id: setPasswordDialog
         SetPassword {}
+    }
+
+    Component {
+        id: removePasswordDailog
+        RemovePassword {}
     }
 }

@@ -124,7 +124,11 @@ BasicPage {
                 icon: Qt.resolvedUrl("qrc:/assets/icons/settings.png")
 
                 onClicked: {
-                    pageStack.push(loginPage)
+                    if(passwordManager.hasPassword) {
+                        pageStack.push(loginPage)
+                    }else {
+                        pageStack.push(dashboardPage)
+                    }
                 }
             }
         }

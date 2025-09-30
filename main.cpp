@@ -10,6 +10,7 @@
 
 #include "appsettings.h"
 #include "language_model.h"
+#include "passwordmanager.h"
 #include "timezone_model.h"
 
 int main(int argc, char *argv[])
@@ -65,6 +66,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("wifiNetworkDetails", &wifiNetworkDetailsColl);
     engine.rootContext()->setContextProperty("deviceInfo", &deviceInfo);
     engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
+
+    PasswordManager passwordManager;
+    engine.rootContext()->setContextProperty("passwordManager", &passwordManager);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(

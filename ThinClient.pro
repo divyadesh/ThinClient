@@ -13,6 +13,7 @@ SOURCES += \
         appsettings.cpp \
         language_model.cpp \
         main.cpp \
+        passwordmanager.cpp \
         timezone_model.cpp
 
 RESOURCES += qml.qrc
@@ -39,4 +40,5 @@ HEADERS += \
     WifiNetworkDetailsColl.h \
     appsettings.h \
     language_model.h \
+    passwordmanager.h \
     timezone_model.h
