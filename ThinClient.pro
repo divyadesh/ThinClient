@@ -11,6 +11,7 @@ SOURCES += \
         WifiNetworkDetails.cpp \
         WifiNetworkDetailsColl.cpp \
         appsettings.cpp \
+        deviceinfosettings.cpp \
         language_model.cpp \
         main.cpp \
         passwordmanager.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
     WifiNetworkDetails.h \
     WifiNetworkDetailsColl.h \
     appsettings.h \
+    deviceinfosettings.h \
     language_model.h \
     passwordmanager.h \
     timezone_model.h

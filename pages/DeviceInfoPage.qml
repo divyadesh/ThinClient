@@ -6,6 +6,17 @@ import App.Styles 1.0
 import "../controls"
 import "../components"
 
+/*
+        Text { text: "Developed By: " + deviceInfoSettings.developedBy }
+        Text { text: "Model: " + deviceInfoSettings.model }
+        Text { text: "CPU: " + deviceInfoSettings.cpu }
+        Text { text: "RAM: " + deviceInfoSettings.ram }
+        Text { text: "GPU: " + deviceInfoSettings.gpu }
+        Text { text: "Ethernet: " + deviceInfoSettings.ethernet }
+        Text { text: "Wifi: " + deviceInfoSettings.wifi }
+        Text { text: "Firmware version: " + deviceInfoSettings.firmwareVersion }
+        Text { text: "Made in " + deviceInfoSettings.madeIn }
+*/
 BasicPage {
     id: page
     padding: 20
@@ -56,7 +67,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "G1 Thin Client Pc"
+                    text: deviceInfoSettings.developedBy
                 }
             }
 
@@ -73,7 +84,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "G1 Rd Client"
+                    text: deviceInfoSettings.model
                 }
             }
         }
@@ -94,7 +105,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "ARM Quad-core @ 1.5 Ghz"
+                    text: deviceInfoSettings.cpu
                 }
             }
 
@@ -111,7 +122,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "2 GB"
+                    text: deviceInfoSettings.ram
                 }
             }
 
@@ -128,7 +139,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "Mali 450 | H264/AVC444 Decoding"
+                    text: deviceInfoSettings.gpu
                 }
             }
         }
@@ -149,7 +160,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "1 Gbps"
+                    text: deviceInfoSettings.ethernet
                 }
             }
 
@@ -166,7 +177,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "Built in 2.4 GHz"
+                    text: deviceInfoSettings.wifi
                 }
             }
         }
@@ -187,13 +198,13 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "G1RD250105"
+                    text: deviceInfoSettings.firmwareVersion
                 }
             }
 
             PrefsControlLabel {
                 Layout.fillWidth: true
-                text: "Made in Bharat"
+                text: "Made in %1".arg(deviceInfoSettings.madeIn)
             }
         }
 

@@ -1,0 +1,12 @@
+{
+  "developedBy": "G1 Thin Client Pc",
+  "model": "G1 Rd Client",
+  "cpu": "ARM Quad-core @ 1.5 Ghz",
+  "ram": "2 GB",
+  "gpu": "Mali 450 | H264/AVC444 Decoding",
+  "ethernet": "1 Gbps",
+  "wifi": "Built in 2.4 GHz",
+  "firmwareVersion": "G1RD250105",
+  "madeIn": "Bharat"
+}
+

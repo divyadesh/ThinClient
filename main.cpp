@@ -8,6 +8,7 @@
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
 
+#include "DeviceInfoSettings.h"
 #include "appsettings.h"
 #include "language_model.h"
 #include "passwordmanager.h"
@@ -69,6 +70,12 @@ int main(int argc, char *argv[])
 
     PasswordManager passwordManager;
     engine.rootContext()->setContextProperty("passwordManager", &passwordManager);
+
+    DeviceInfoSettings deviceInfoSettings;
+    deviceInfoSettings.loadFromFile(
+        "/Users/adesh/ThinClient/deviceinfo.json"); // or "deviceinfo.json"
+
+    engine.rootContext()->setContextProperty("deviceInfoSettings", &deviceInfoSettings);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(
