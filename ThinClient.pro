@@ -15,6 +15,7 @@ SOURCES += \
         language_model.cpp \
         main.cpp \
         passwordmanager.cpp \
+        systemresetmanager.cpp \
         timezone_model.cpp
 
 RESOURCES += qml.qrc
@@ -43,4 +44,5 @@ HEADERS += \
     deviceinfosettings.h \
     language_model.h \
     passwordmanager.h \
+    systemresetmanager.h \
     timezone_model.h

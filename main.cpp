@@ -9,6 +9,7 @@
 #include "WifiNetworkDetailsColl.h"
 
 #include "DeviceInfoSettings.h"
+#include "SystemResetManager.h"
 #include "appsettings.h"
 #include "language_model.h"
 #include "passwordmanager.h"
@@ -76,6 +77,9 @@ int main(int argc, char *argv[])
         "/Users/adesh/ThinClient/deviceinfo.json"); // or "deviceinfo.json"
 
     engine.rootContext()->setContextProperty("deviceInfoSettings", &deviceInfoSettings);
+
+    SystemResetManager resetManager;
+    engine.rootContext()->setContextProperty("resetManager", &resetManager);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(

@@ -8,6 +8,12 @@ import "../pages"
 import "../components"
 import "../controls"
 
+/*
+  resetManager.reboot()
+  resetManager.shutdown()
+  resetManager.factoryReset("/usr/bin/factory_reset.sh")
+*/
+
 BasicPage {
     id: control
     background: Rectangle {
@@ -65,7 +71,14 @@ BasicPage {
                     text: qsTr("Yes")
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+                    onClicked: {
+                        if (resetManager.reboot()) {
+                            console.log("Reboot command executed")
+                            pageStack.pop()
+                        }else {
+                            console.log("Failed to reboot")
+                        }
+                    }
                 }
 
                 PrefsButton {
@@ -74,6 +87,38 @@ BasicPage {
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()
+                }
+
+                PrefsButton {
+                    visible: false
+                    text: qsTr("Shutdown Device")
+                    highlighted: true
+                    radius: height / 2
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    onClicked: {
+                        if (resetManager.shutdown()) {
+                            console.log("Shutdown command executed")
+                            pageStack.pop()
+                        }else {
+                            console.log("Failed to shutdown")
+                        }
+                    }
+                }
+
+                PrefsButton {
+                    text: qsTr("Factory Reset")
+                    visible: false
+                    highlighted: true
+                    radius: height / 2
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    onClicked: {
+                        if (resetManager.factoryReset("/usr/bin/factory_reset.sh")) {
+                            console.log("Factory reset executed")
+                            pageStack.pop()
+                        }else {
+                            console.log("Factory reset failed")
+                        }
+                    }
                 }
 
                 Item {
