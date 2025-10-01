@@ -72,5 +72,6 @@
         <file>dialogs/SetPassword.qml</file>
         <file>pages/LoginPage.qml</file>
         <file>dialogs/RemovePassword.qml</file>
+        <file>dialogs/SoftwareUpdater.qml</file>
     </qresource>
 </RCC>

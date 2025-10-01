@@ -9,6 +9,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import AppSecurity 1.0
 
 import "../pages"
 import "../components"
@@ -19,6 +20,10 @@ BasicPage {
     background: Rectangle {
         color: "#000000"
         opacity: 0.3
+    }
+
+    UnlockManager {
+        id: unlockManager
     }
 
     Page {
@@ -113,7 +118,7 @@ BasicPage {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
                     onClicked: {
-                        if (passwordManager.removePassword(oldPass.text)) {
+                        if (unlockManager.clearPassword(oldPass.text)) {
                             console.log("Password removed")
                             pageStack.pop()
                         }else {

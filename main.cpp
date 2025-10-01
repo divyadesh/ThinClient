@@ -9,10 +9,11 @@
 #include "WifiNetworkDetailsColl.h"
 
 #include "DeviceInfoSettings.h"
+#include "ImageUpdater.h"
 #include "SystemResetManager.h"
 #include "appsettings.h"
+#include "appunlockmanager.h"
 #include "language_model.h"
-#include "passwordmanager.h"
 #include "timezone_model.h"
 
 int main(int argc, char *argv[])
@@ -52,6 +53,9 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
     engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
 
+    qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
+    qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
+
     WifiNetworkDetailsColl wifiNetworkDetailsColl;
     DeviceInfo deviceInfo;
     ServerInfoColl serverInfoColl;
@@ -68,9 +72,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("wifiNetworkDetails", &wifiNetworkDetailsColl);
     engine.rootContext()->setContextProperty("deviceInfo", &deviceInfo);
     engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
-
-    PasswordManager passwordManager;
-    engine.rootContext()->setContextProperty("passwordManager", &passwordManager);
 
     DeviceInfoSettings deviceInfoSettings;
     deviceInfoSettings.loadFromFile(

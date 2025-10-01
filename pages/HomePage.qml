@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
+import AppSecurity 1.0
 
 import "../controls"
 import "../components"
@@ -13,7 +14,11 @@ BasicPage {
         source: Qt.resolvedUrl("qrc:/assets/icons/background.jpg")
     }
 
-     ButtonGroup { id: tabGroup }
+    UnlockManager {
+        id: unlockManager
+    }
+
+    ButtonGroup { id: tabGroup }
 
     Image {
         anchors.left: parent.left
@@ -124,7 +129,7 @@ BasicPage {
                 icon: Qt.resolvedUrl("qrc:/assets/icons/settings.png")
 
                 onClicked: {
-                    if(passwordManager.hasPassword) {
+                    if(unlockManager.hasPassword) {
                         pageStack.push(loginPage)
                     }else {
                         pageStack.push(dashboardPage)

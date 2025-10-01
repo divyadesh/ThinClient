@@ -9,6 +9,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import AppSecurity 1.0
 
 import "../pages"
 import "../components"
@@ -19,6 +20,10 @@ BasicPage {
     background: Rectangle {
         color: "#000000"
         opacity: 0.3
+    }
+
+    UnlockManager {
+        id: unlockManager
     }
 
     Page {
@@ -38,7 +43,7 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: passwordManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
+                text: unlockManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -60,7 +65,7 @@ BasicPage {
                     PrefsLabel {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                        text: passwordManager.hasPassword ? qsTr("Enter Old Password") : qsTr("Enter Password")
+                        text: unlockManager.hasPassword ? qsTr("Enter Old Password") : qsTr("Enter Password")
                         font.pixelSize: 16
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
@@ -82,7 +87,7 @@ BasicPage {
                     PrefsLabel {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                        text: passwordManager.hasPassword ? qsTr("Enter New Password") : qsTr("Confirm Password")
+                        text: unlockManager.hasPassword ? qsTr("Enter New Password") : qsTr("Confirm Password")
                         font.pixelSize: 16
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
@@ -129,14 +134,14 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: passwordManager.hasPassword ? qsTr("Update") : qsTr("Save")
+                    text: unlockManager.hasPassword ? qsTr("Update") : qsTr("Save")
                     highlighted: true
                     radius: height / 2
                     enabled: enterPasswordField.text.length > 0 && confirmPasswordField.text.length > 0
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
 
                     onClicked: {
-                        if(passwordManager.hasPassword) {
+                        if(unlockManager.hasPassword) {
                             changePassword()
                         }else {
                             setPassword()
@@ -156,7 +161,8 @@ BasicPage {
                             return;
                         }
 
-                        if (passwordManager.changePassword(confirmPasswordField.text, enterPasswordField.text)) {
+                        var result = unlockManager.loadUnlockToken(enterPasswordField.text.trim())
+                        if (result === "UNLOCK_OK" && unlockManager.storeUnlockToken(confirmPasswordField.text.trim(), "UNLOCK_OK")) {
                             console.log("Password change successfully")
                             pageStack.pop()
                         }else {
@@ -168,22 +174,22 @@ BasicPage {
                     function setPassword() {
                         if(enterPasswordField.text.length ===0 || confirmPasswordField.text.length ===0) {
                             errorText.text = "Field Should not be empty."
-                            console.log(errorText.text)
+                            console.log(errorText.text.trim())
                             return;
                         }
 
-                        if(enterPasswordField.text !== confirmPasswordField.text) {
+                        if(enterPasswordField.text.trim() !== confirmPasswordField.text.trim()) {
                             errorText.text = "Enter Password and confirm password should be same."
                             console.log(errorText.text)
                             return;
                         }
 
-                        if (passwordManager.setPassword(enterPasswordField.text)) {
+                        if (unlockManager.storeUnlockToken(enterPasswordField.text.trim(), "UNLOCK_OK")) {
                             console.log("Password set successfully")
                             pageStack.pop()
                         }else {
                             errorText.text = "Failed to set password (already exists?)"
-                            console.log(errorText.text)
+                            console.log(errorText.text.trim())
                         }
                     }
                 }

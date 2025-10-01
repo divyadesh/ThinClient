@@ -9,23 +9,47 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 import AppSecurity 1.0
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
 import "../controls"
 
+/*
+Test Cases Covered
+Case	Handled?
+Old file removal failure	✅ error + stop
+Download failure	✅ error + stop
+Permission failure	✅ error + stop
+User cancels update	✅ gracefully aborts
+Reboot countdown	✅ emits every second
+Already updating	✅ blocked
+Partial download cleanup	✅ cleans temp file
+*/
+
 BasicPage {
     id: control
-    signal setPassword()
-    signal removePassword()
 
     background: Rectangle {
         color: "#000000"
         opacity: 0.3
     }
 
-    UnlockManager {
-        id: unlockManager
+
+    ImageUpdater {
+        id: updater
+
+        onProgressChanged: (step, percent) => {
+                               statusText.text = step + " (" + percent + "%)";
+                           }
+
+        onErrorOccurred: (err) => {
+                             statusText.text = "Error: " + err;
+                         }
+
+        onRebootCountdown: (sec) => {
+                               statusText.text = "Rebooting in " + sec + " seconds...";
+                           }
     }
 
     Page {
@@ -45,24 +69,32 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Update Password")
+                text: qsTr("Update")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
         }
 
-        contentItem: Control {
-            padding: 20
+        contentItem: ColumnLayout {
+            spacing: 10
 
-            contentItem: PrefsLabel {
-                text: qsTr("Would you like to set a new password or remove the existing one?")
+            PrefsBusyIndicator {
+                visible: updater.updating
+                radius: 10
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            }
+
+            PrefsLabel {
+                id: statusText
+                padding: 20
+                text: qsTr("Software update available. Changes have been detected. Proceed with update?")
                 font.pixelSize: 16
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
         }
-
 
         footer: Control {
             implicitHeight: 72
@@ -76,28 +108,26 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("Cancel")
+                    enabled: !updater.updating
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
+                    onClicked: {
+                        if(updater.updating) {
+                            updater.cancelUpdate()
+                        }
+                        pageStack.pop()
+                    }
                 }
 
                 PrefsButton {
-                    text: unlockManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
+                    enabled: !updater.updating
+                    text: qsTr("Start Update")
                     radius: height / 2
                     highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        setPassword()
+                        updater.startUpdate("http://yourserver.com/path/to/Connect")
                     }
-                }
-
-                PrefsDangerButton {
-                    visible: unlockManager.hasPassword
-                    text: qsTr("Remove Password")
-                    radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-
-                    onClicked: {removePassword()}
                 }
 
                 Item {

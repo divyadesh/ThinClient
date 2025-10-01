@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import App.Styles 1.0
+import AppSecurity 1.0
 
 import "../controls"
 import "../components"
@@ -13,6 +14,10 @@ BasicPage {
     background: Rectangle {
         color: "#000000"
         opacity: 0.3
+    }
+
+    UnlockManager {
+        id: unlockManager
     }
 
     Page {
@@ -135,9 +140,12 @@ BasicPage {
     }
 
     function validate() {
-        if(passwordField.text === "1234") {
+        var result = unlockManager.loadUnlockToken(passwordField.text.trim())
+        if (result === "UNLOCK_OK") {
+            console.log("✅ Access granted")
             loginSuccess()
-        }else {
+        } else {
+            console.log("❌ Access denied")
             errorText.text = qsTr("The password you entered is incorrect. Please try again.")
         }
     }

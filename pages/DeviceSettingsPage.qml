@@ -210,6 +210,7 @@ BasicPage {
                             Layout.fillWidth: true
                             radius: height / 2
                             text: qsTr("Update")
+                            onClicked: pageStack.push(updateDialog)
                         }
 
                         PrefsButton {
@@ -245,5 +246,10 @@ BasicPage {
     Component {
         id: removePasswordDailog
         RemovePassword {}
+    }
+
+    Component {
+        id: updateDialog
+        SoftwareUpdater {}
     }
 }

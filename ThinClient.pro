@@ -11,10 +11,11 @@ SOURCES += \
         WifiNetworkDetails.cpp \
         WifiNetworkDetailsColl.cpp \
         appsettings.cpp \
+        appunlockmanager.cpp \
         deviceinfosettings.cpp \
+        imageupdater.cpp \
         language_model.cpp \
         main.cpp \
-        passwordmanager.cpp \
         systemresetmanager.cpp \
         timezone_model.cpp
 
@@ -41,8 +42,9 @@ HEADERS += \
     WifiNetworkDetails.h \
     WifiNetworkDetailsColl.h \
     appsettings.h \
+    appunlockmanager.h \
     deviceinfosettings.h \
+    imageupdater.h \
     language_model.h \
-    passwordmanager.h \
     systemresetmanager.h \
     timezone_model.h
