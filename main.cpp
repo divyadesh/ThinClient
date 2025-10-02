@@ -4,9 +4,12 @@
 #include <QQuickStyle>
 #include <QStyleHints>
 
+#include "DeviceSettings.h"
 #include "DeviceInfo.h"
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
+#include "Database.h"
+#include "PersistData.h"
 
 #include "DeviceInfoSettings.h"
 #include "ImageUpdater.h"
@@ -56,22 +59,26 @@ int main(int argc, char *argv[])
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
     qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
 
+    PersistData persistData;
     WifiNetworkDetailsColl wifiNetworkDetailsColl;
     DeviceInfo deviceInfo;
     ServerInfoColl serverInfoColl;
-    serverInfoColl.setServerInfo("Server1", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server2", "192.168.1.2");
-    serverInfoColl.setServerInfo("Server3", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server4", "192.168.1.2");
-    serverInfoColl.setServerInfo("Server5", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server6", "192.168.1.2");
-    serverInfoColl.setServerInfo("Server7", "192.168.1.1");
-    serverInfoColl.setServerInfo("Server8", "192.168.1.2");
+    auto & dbInstance  = DataBase::getInstance(nullptr);
+    if(!dbInstance.open()) {
+        qDebug()<<"Error: Unable to open database" ;
+    }
+    dbInstance.createTable();
+    dbInstance.getServerList(serverInfoColl);
+
     deviceInfo.getDeviceInfoDetails();
     wifiNetworkDetailsColl.getWifiDetails();
+    qmlRegisterUncreatableType<WifiNetworkDetailsColl>("App.Enums", 1, 0, "WifiNetworkDetailsColl", "Access to enums only");
+    qmlRegisterUncreatableType<DeviceSettings>("App.Enums", 1, 0, "Audio", "Access to enums only");
     engine.rootContext()->setContextProperty("wifiNetworkDetails", &wifiNetworkDetailsColl);
     engine.rootContext()->setContextProperty("deviceInfo", &deviceInfo);
     engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
+    engine.rootContext()->setContextProperty("dataBase", &dbInstance);
+    engine.rootContext()->setContextProperty("persistData", &persistData);
 
     DeviceInfoSettings deviceInfoSettings;
     deviceInfoSettings.loadFromFile(

@@ -61,4 +61,38 @@ void DeviceInfo::getDeviceInfoDetails() {
             setRamSize(ramSize);
         }
     }
+
+
+    m_process.start("bash", QStringList() << "-c" << "lspci | grep -i vga");
+    m_process.waitForFinished();
+
+    output = m_process.readAllStandardOutput();
+    lines = output.split('\n', Qt::SkipEmptyParts);
+
+    if (!output.isEmpty()) {
+        // Split into lines
+        QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+
+        for (const QString &line : lines) {
+            // Split each line by ":"
+            QStringList parts = line.split(':', Qt::SkipEmptyParts);
+            if (parts.size() >= 2) {
+                qDebug()<<"::::> HELLO displayText="<<parts[2].trimmed();
+                setGpuDetails(parts[2].trimmed());
+            }
+        }
+    }
+}
+
+QString DeviceInfo::gpuDetails() const
+{
+    return m_gpuDetails;
+}
+
+void DeviceInfo::setGpuDetails(const QString &newGpuDetails)
+{
+    if (m_gpuDetails == newGpuDetails)
+        return;
+    m_gpuDetails = newGpuDetails;
+    emit sigGpuDetailsChanged();
 }

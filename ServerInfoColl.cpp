@@ -28,6 +28,16 @@ QVariant ServerInfoColl::data(const QModelIndex &index, int role) const {
     return QVariant {};
 }
 
+int ServerInfoColl::getIndexToBeRemoved(QString connectionName, QString serverIp) {
+    int index = -1;
+    for(const auto& spServerInfo: m_ServerInfoColl) {
+        ++index;
+        if(spServerInfo->connectionName() == connectionName && spServerInfo->serverIp() == serverIp)
+            return index;
+    }
+    return -1;
+}
+
 void ServerInfoColl::setServerInfo(QString connectionName, QString serverIp) {
     beginInsertRows(QModelIndex{}, static_cast<int>(m_ServerInfoColl.size()), static_cast<int>(m_ServerInfoColl.size()));
     std::shared_ptr<ServerInfo> spServerInfo = std::make_shared<ServerInfo>(this, connectionName, serverIp);
@@ -36,4 +46,14 @@ void ServerInfoColl::setServerInfo(QString connectionName, QString serverIp) {
         m_ServerInfoColl.emplace_back(spServerInfo);
     }
     endInsertRows();
+}
+
+void ServerInfoColl::removeConnection(QString connectionName, QString serverIp) {
+    int index = getIndexToBeRemoved(connectionName, serverIp);
+    if (index < 0 || index >= static_cast<int>(m_ServerInfoColl.size()))
+        return;
+
+    beginRemoveRows(QModelIndex(), index, index);
+    m_ServerInfoColl.erase(m_ServerInfoColl.begin() + index);
+    endRemoveRows();
 }

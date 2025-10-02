@@ -41,18 +41,7 @@ BasicPage {
             cellWidth: 220; cellHeight: 220
             clip: true
 
-            model: ListModel {
-                ListElement { name: "Windows"; ip: "192.168.1.15" }
-                ListElement { name: "Server"; ip: "192.168.1.24:3228" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                ListElement { name: "Laptop"; ip: "192.168.1.50" }
-            }
-
+            model: serverInfo
 
             highlight: Rectangle { color: "lightsteelblue"; radius: 8 }
             focus: true
@@ -65,7 +54,7 @@ BasicPage {
                 contentItem: HomeTabButton {
                     id: tabButton
                     ButtonGroup.group: tabGroup
-                    text: name
+                    text: serverInformation.connectionName
                     icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
                     onClicked: {}
 

@@ -15,6 +15,8 @@ BasicPage {
         opacity: 0.3
     }
 
+    signal sigDelete()
+
     Page {
         anchors.centerIn: parent
         width: 480
@@ -78,6 +80,7 @@ BasicPage {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
                         // TODO: implement deletion
+                        sigDelete()
                         pageStack.pop()
                     }
                 }
