@@ -13,11 +13,17 @@ SOURCES += \
         appsettings.cpp \
         appunlockmanager.cpp \
         deviceinfosettings.cpp \
+        ethernetmonitor.cpp \
+        ethernetworker.cpp \
         imageupdater.cpp \
         language_model.cpp \
+        logoloader.cpp \
         main.cpp \
+        qmlregistrar.cpp \
         systemresetmanager.cpp \
-        timezone_model.cpp
+        timezone_model.cpp \
+        wifimonitor.cpp \
+        wifiworker.cpp
 
 RESOURCES += qml.qrc
 # qml_files.files = $$files($$PWD/*.qml, true)
@@ -44,7 +50,13 @@ HEADERS += \
     appsettings.h \
     appunlockmanager.h \
     deviceinfosettings.h \
+    ethernetmonitor.h \
+    ethernetworker.h \
     imageupdater.h \
     language_model.h \
+    logoloader.h \
+    qmlregistrar.h \
     systemresetmanager.h \
-    timezone_model.h
+    timezone_model.h \
+    wifimonitor.h \
+    wifiworker.h

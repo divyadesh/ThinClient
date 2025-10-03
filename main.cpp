@@ -15,6 +15,7 @@
 #include "appunlockmanager.h"
 #include "language_model.h"
 #include "timezone_model.h"
+#include "qmlregistrar.h"
 
 int main(int argc, char *argv[])
 {
@@ -55,6 +56,10 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
     qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
+
+    // Register types and set context properties
+    QmlRegistrar registrar(&engine);
+    registrar.registerTypesAndContext();
 
     WifiNetworkDetailsColl wifiNetworkDetailsColl;
     DeviceInfo deviceInfo;

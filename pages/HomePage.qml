@@ -26,7 +26,7 @@ BasicPage {
         anchors.leftMargin: -40
         anchors.topMargin: -40
         sourceSize: Qt.size(600, 210)
-        source: Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
+        source: logoLoader.logo ? logoLoader.logo : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
     Control {
@@ -90,6 +90,7 @@ BasicPage {
 
             Icon {
                 id: wifi
+                visible: wifiMonitor.connected
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
@@ -100,6 +101,7 @@ BasicPage {
 
             Icon {
                 id:ethernet
+                visible: ethernetMonitor.connected
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/ethernet.png")
