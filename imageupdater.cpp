@@ -1,4 +1,4 @@
-#include "ImageUpdater.h"
+#include "imageupdater.h"
 #include <QDebug>
 #include <QFileInfo>
 #include <QProcess>

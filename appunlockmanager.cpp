@@ -1,4 +1,4 @@
-#include "AppUnlockManager.h"
+#include "appunlockmanager.h"
 #include <QCryptographicHash>
 #include <QDebug>
 #include <QDir>

@@ -1,4 +1,4 @@
-#include "DeviceInfoSettings.h"
+#include "deviceinfosettings.h"
 
 DeviceInfoSettings::DeviceInfoSettings(QObject *parent)
     : QObject(parent)

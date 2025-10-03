@@ -8,9 +8,9 @@
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
 
-#include "DeviceInfoSettings.h"
-#include "ImageUpdater.h"
-#include "SystemResetManager.h"
+#include "deviceinfosettings.h"
+#include "imageupdater.h"
+#include "systemresetmanager.h"
 #include "appsettings.h"
 #include "appunlockmanager.h"
 #include "language_model.h"
