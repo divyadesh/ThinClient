@@ -74,8 +74,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
 
     DeviceInfoSettings deviceInfoSettings;
-    deviceInfoSettings.loadFromFile(
-        "/Users/adesh/ThinClient/deviceinfo.json"); // or "deviceinfo.json"
+    deviceInfoSettings.loadFromFile("/usr/share/thinclient/deviceinfo.json"); // or "deviceinfo.json"
 
     engine.rootContext()->setContextProperty("deviceInfoSettings", &deviceInfoSettings);
 
