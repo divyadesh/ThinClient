@@ -91,6 +91,7 @@ BasicPage {
                 text: qsTr("Software update available. Changes have been detected. Proceed with update?")
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
