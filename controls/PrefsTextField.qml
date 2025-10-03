@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
-import QtGraphicalEffects 1.15
+// import QtGraphicalEffects 1.15
 
 TextField {
     id: control
@@ -36,14 +36,14 @@ TextField {
         }
 
         // subtle inner shadow
-        DropShadow {
-            anchors.fill: bg
-            source: bg
-            radius: 8
-            samples: 16
-            horizontalOffset: 0
-            verticalOffset: 1
-            color: Qt.rgba(0,0,0,0.4)
-        }
+        // DropShadow {
+        //     anchors.fill: bg
+        //     source: bg
+        //     radius: 8
+        //     samples: 16
+        //     horizontalOffset: 0
+        //     verticalOffset: 1
+        //     color: Qt.rgba(0,0,0,0.4)
+        // }
     }
 }

@@ -41,10 +41,10 @@ void ImageUpdater::startUpdate(const QString &url)
 
     connect(m_reply, &QNetworkReply::finished, this, &ImageUpdater::handleDownloadFinished);
 
-    connect(m_reply,
-            QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
-            this,
-            &ImageUpdater::handleDownloadError);
+    // connect(m_reply,
+    //         QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
+    //         this,
+    //         &ImageUpdater::handleDownloadError);
 
     m_file.setFileName(m_targetPath);
     if (!m_file.open(QIODevice::WriteOnly)) {
