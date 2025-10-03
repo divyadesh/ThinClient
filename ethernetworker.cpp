@@ -1,16 +1,21 @@
 #include "ethernetworker.h"
-
+#include <QFile>
+#include <QTextStream>
 EthernetWorker::EthernetWorker(QObject *parent)
     : QObject(parent)
 {}
 
 void EthernetWorker::checkConnection()
 {
-    QProcess process;
-    process.start("nmcli -t -f TYPE,STATE con show --active");
-    process.waitForFinished(1000);
+    bool connected = false;
+    QFile carrierFile("/sys/class/net/eth0/carrier");
 
-    QString output = process.readAllStandardOutput().trimmed();
-    bool connected = output.contains("ethernet:activated");
+    if (carrierFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&carrierFile);
+        QString line = in.readLine().trimmed();
+        connected = (line == "1");
+        carrierFile.close();
+    }
+
     emit connectedChanged(connected);
 }
