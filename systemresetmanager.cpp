@@ -1,4 +1,4 @@
-#include "SystemResetManager.h"
+#include "systemresetmanager.h"
 #include <QDebug>
 
 SystemResetManager::SystemResetManager(QObject *parent)
