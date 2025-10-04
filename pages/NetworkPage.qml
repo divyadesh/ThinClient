@@ -446,7 +446,6 @@ BasicPage {
                     highlighted: true
                     onClicked: {
                         if(manualRadio.checked) {
-                            ethernetNetworkController.disconnectClicked()
                             ethernetNetworkController.setManualConfig(ipAddressField.text, netmaskField.text, gateWayField.text, dnsField.text)
                         }
                     }
@@ -455,6 +454,7 @@ BasicPage {
                 PrefsDangerButton {
                     id: disconnected
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    visible: manualRadio.checked
                     text: qsTr("Disconnect")
                     onClicked: {
                         if(dhcpRadio.checked) {

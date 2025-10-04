@@ -28,7 +28,7 @@ public:
 
     explicit ServerInfoColl(QObject *parent = nullptr);
 
-    Q_INVOKABLE void setServerInfo(QString connectionName, QString serverIp);
+    Q_INVOKABLE void setServerInfo(QString connectionName, QString serverIp, bool autoEnable = false);
     Q_INVOKABLE void removeConnection(QString connectionName, QString serverIp);
     Q_INVOKABLE void resetAutoConnect();
     Q_INVOKABLE void connectRdServer(const QString &server, const QString &username, const QString &password);

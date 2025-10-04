@@ -16,6 +16,7 @@ BasicPage {
     property bool editConnection: false
     property string connectionName: ""
     property string ipAddr: ""
+    property bool autoConnectRadioButtn: false
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -223,6 +224,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
                                 RadioButton {
+                                    id: autoConnectRadioButton
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     palette.text: Colors.accentPrimary
@@ -254,7 +256,12 @@ BasicPage {
                                     PrefsLink {
                                         text: qsTr("Connect")
                                         onClicked: {
-                                            serverInfo.connectRdServer("183.83.196.74:5566", "u1","g1@123")
+                                            dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
+                                            if (dataBase.queryResultList.length > 0) {
+                                                let ipAddr = dataBase.queryResultList[1]
+                                                ipAddr += ":5566"
+                                                serverInfo.connectRdServer(ipAddr, dataBase.queryResultList[3], dataBase.queryResultList[4])
+                                            }
                                         }
                                     }
 
@@ -264,9 +271,10 @@ BasicPage {
                                             dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
 
                                             if (dataBase.queryResultList.length > 0) {
-                                                page.editConnection  = true
-                                                page.connectionName  = dataBase.queryResultList[0]
-                                                page.ipAddr          = dataBase.queryResultList[1]
+                                                page.editConnection        = true
+                                                page.connectionName        = dataBase.queryResultList[0]
+                                                page.ipAddr                = dataBase.queryResultList[1]
+                                                page.autoConnectRadioButtn = autoConnectRadioButton.checked
 
                                                 populateConnectionFields(dataBase.queryResultList)
                                             }
@@ -622,7 +630,7 @@ BasicPage {
                             page.editConnection = false
                             dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
                             serverInfo.removeConnection(page.connectionName, page.ipAddr)
-                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+                            serverInfo.setServerInfo(connectionField.text, serverIpField.text, page.autoConnectRadioButtn)
                         }
 
                         clearEntryFields()
