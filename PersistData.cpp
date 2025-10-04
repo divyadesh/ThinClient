@@ -1,5 +1,5 @@
 #include "PersistData.h"
-
+#include <QDebug>
 PersistData::PersistData(QObject *parent)
     : QObject{parent} {
 }

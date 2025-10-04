@@ -7,6 +7,7 @@
 #include "logoloader.h"
 #include "wifiworker.h"
 #include "ethernetworker.h"
+#include "dnsnetworkinfo.h"
 
 class QmlRegistrar : public QObject
 {
@@ -28,6 +29,7 @@ private:
     // Workers (background threads)
     WifiWorker *m_wifiWorker;
     EthernetWorker *m_ethWorker;
+    DNSNetworkInfo *m_dnsNetworkInfo;
 
     QThread *m_wifiThread;
     QThread *m_ethThread;

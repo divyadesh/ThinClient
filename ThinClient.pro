@@ -15,6 +15,7 @@ SOURCES += \
         appsettings.cpp \
         appunlockmanager.cpp \
         deviceinfosettings.cpp \
+        dnsnetworkinfo.cpp \
         ethernetmonitor.cpp \
         ethernetworker.cpp \
         ethernetNetworkConroller.cpp \
@@ -56,6 +57,7 @@ HEADERS += \
     appsettings.h \
     appunlockmanager.h \
     deviceinfosettings.h \
+    dnsnetworkinfo.h \
     ethernetmonitor.h \
     ethernetworker.h \
     ethernetNetworkConroller.h \

@@ -7,6 +7,8 @@ QmlRegistrar::QmlRegistrar(QQmlApplicationEngine *engine, QObject *parent)
 {
     setupNetworkMonitors();
     setupLogoLoader();
+
+    m_dnsNetworkInfo = new DNSNetworkInfo();
 }
 
 QmlRegistrar::~QmlRegistrar()
@@ -59,4 +61,5 @@ void QmlRegistrar::registerTypesAndContext()
     m_engine->rootContext()->setContextProperty("wifiMonitor", m_wifiMonitor);
     m_engine->rootContext()->setContextProperty("ethernetMonitor", m_ethMonitor);
     m_engine->rootContext()->setContextProperty("logoLoader", m_logoLoader);
+    m_engine->rootContext()->setContextProperty("dnsNetworkInfo", m_dnsNetworkInfo);
 }

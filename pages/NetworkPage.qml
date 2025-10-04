@@ -289,9 +289,16 @@ BasicPage {
                                 font.weight: Font.Normal
                                 onCheckedChanged: {
                                     if(checked) {
-                                        if(persistData)
+                                        if(persistData) {
                                             persistData.saveData("Ethernet", dhcpRadio.text)
-                                        ethernetNetworkController.connectClicked()
+                                        }
+                                        dnsNetworkInfo.updateInfo()
+                                    }
+                                }
+
+                                onVisibleChanged: {
+                                    if(visible && checked) {
+                                        dnsNetworkInfo.updateInfo()
                                     }
                                 }
                             }
@@ -333,7 +340,7 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(ipAddress.text)
 
-                            text: (dhcpRadio.checked && ethernetNetworkController && ethernetNetworkController.ipAddress.length) ? ethernetNetworkController.ipAddress : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.ipAddress : ""
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -353,7 +360,7 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(netmask.text)
 
-                            text: (dhcpRadio.checked && ethernetNetworkController && ethernetNetworkController.subnetMask.length) ? ethernetNetworkController.subnetMask : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.netmask : ""
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -373,7 +380,7 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(gateWay.text)
 
-                            text: (dhcpRadio.checked && ethernetNetworkController && ethernetNetworkController.gateway.length) ? ethernetNetworkController.gateway : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.gateway : ""
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -391,7 +398,7 @@ BasicPage {
                             x: dns.width - width - dns.rightPadding
                             y: dns.topPadding + (dns.availableHeight - height) / 2
 
-                            text: (dhcpRadio.checked && ethernetNetworkController && ethernetNetworkController.dns.length) ? ethernetNetworkController.dns : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.dnsServers : ""
                             placeholderText : qsTr("Enter %1").arg(dns.text)
                         }
                     }
