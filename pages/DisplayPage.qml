@@ -53,8 +53,11 @@ BasicPage {
                         text: qsTr("Resolution")
 
                         indicator: PrefsComboBox {
+                            id: resolutionComboBox
                             x: resolution.width - width - resolution.rightPadding
                             y: resolution.topPadding + (resolution.availableHeight - height) / 2
+
+                            property bool initialized: true
 
                             model: [
                                 "Auto",
@@ -78,6 +81,19 @@ BasicPage {
                                 "3840 x 1600",   // UltraWide 4K-ish
                                 "3840 x 2160"    // 4K UHD
                             ]
+                            onCurrentIndexChanged: {
+                                if(currentIndex > 0) {
+                                    persistData.saveData("Resolution", model[currentIndex])
+                                }
+                            }
+                            Component.onCompleted: {
+                                let savedResolution = persistData.getData("Resolution")
+                                if(savedResolution !== undefined) {
+                                    let index = resolutionComboBox.find(savedResolution)
+                                    if(index > 0)
+                                        resolutionComboBox.currentIndex = index
+                                }
+                            }
                         }
                     }
 
@@ -87,6 +103,7 @@ BasicPage {
                         text: qsTr("Orientation")
 
                         indicator: PrefsComboBox {
+                            id: orientationComboBox
                             x: orientation.width - width - orientation.rightPadding
                             y: orientation.topPadding + (orientation.availableHeight - height) / 2
 
@@ -97,6 +114,19 @@ BasicPage {
                                 "Landscape (Flipped)",
                                 "Portrait (Flipped)"
                             ]
+                            onCurrentIndexChanged: {
+                                if(currentIndex > 0) {
+                                    persistData.saveData("Orientation", model[currentIndex])
+                                }
+                            }
+                            Component.onCompleted: {
+                                let savedOrientation = persistData.getData("Orientation")
+                                if(savedOrientation !== undefined) {
+                                    let index = orientationComboBox.find(savedOrientation)
+                                    if(index > 0)
+                                        orientationComboBox.currentIndex = index
+                                }
+                            }
                         }
                     }
 
@@ -116,6 +146,7 @@ BasicPage {
                                 }
 
                                 PrefsComboBox {
+                                    id: displayOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     model: [
                                         "None",
@@ -134,6 +165,17 @@ BasicPage {
                                         case 2: console.log("Display Off: 30 min"); break;
                                         case 3: console.log("Display Off: 60 min"); break;
                                         }
+                                        if(currentIndex > 0) {
+                                            persistData.saveData("DisplayOff", model[currentIndex])
+                                        }
+                                    }
+                                    Component.onCompleted: {
+                                        let savedDisplayOff = persistData.getData("DisplayOff")
+                                        if(savedDisplayOff !== undefined) {
+                                            let index = displayOffComboBox.find(savedDisplayOff)
+                                            if(index > 0)
+                                                displayOffComboBox.currentIndex = index
+                                        }
                                     }
                                 }
                             }
@@ -141,10 +183,11 @@ BasicPage {
                             ColumnLayout {
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                 PrefsLabel {
-                                    text: qsTr("Display Off")
+                                    text: qsTr("Device Off")
                                 }
 
                                 PrefsComboBox {
+                                    id: deviceOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     model: [
                                         "None",
@@ -165,6 +208,17 @@ BasicPage {
                                         case 3: console.log("Device Off: 10 hours"); break;
                                         case 4: console.log("Device Off: 24 hours"); break;
                                         case 5: console.log("Device Off: 48 hours"); break;
+                                        }
+                                        if(currentIndex > 0) {
+                                            persistData.saveData("DeviceOff", model[currentIndex])
+                                        }
+                                    }
+                                    Component.onCompleted: {
+                                        let savedDeviceOff = persistData.getData("DeviceOff")
+                                        if(savedDeviceOff !== undefined) {
+                                            let index = deviceOffComboBox.find(savedDeviceOff)
+                                            if(index > 0)
+                                                deviceOffComboBox.currentIndex = index
                                         }
                                     }
                                 }

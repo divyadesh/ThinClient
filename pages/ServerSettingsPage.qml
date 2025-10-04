@@ -13,11 +13,14 @@ BasicPage {
     padding: 20
     StackView.visible: true
     property bool isServer: false
+    property bool editConnection: false
+    property string connectionName: ""
+    property string ipAddr: ""
 
     header: PageHeader {
         pageTitle: page.pageTitle
         onBackPressed: {
-            if(pageStack.depth == 1) {
+            if(pageStack.depth === 1) {
                 backToHome()
                 return
             }
@@ -89,18 +92,7 @@ BasicPage {
                     }
                     ScrollIndicator.vertical: ScrollIndicator { }
 
-                    model: ListModel {
-                        ListElement { name: "Windows"; ip: "192.168.1.15" }
-                        ListElement { name: "Server"; ip: "192.168.1.24:3228" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                        ListElement { name: "Laptop"; ip: "192.168.1.50" }
-                    }
-
+                    model: serverInfo
                     header: Control {
                         width: listView.width
                         padding: 20
@@ -196,7 +188,7 @@ BasicPage {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
-                                    text: name
+                                    text: serverInformation.connectionName
                                 }
                             }
 
@@ -214,7 +206,7 @@ BasicPage {
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                         horizontalAlignment: Label.AlignLeft
                                         verticalAlignment: Label.AlignVCenter
-                                        text: ip
+                                        text: serverInformation.serverIp
                                     }
 
                                     PrefsBusyIndicator {
@@ -239,6 +231,13 @@ BasicPage {
                                     font.weight: Font.Normal
                                     spacing: 10
                                     ButtonGroup.group: radioGroup
+                                    checked: serverInformation.autoEnable
+                                    onToggled: {
+                                        serverInfo.resetAutoConnect()
+                                        serverInformation.autoEnable = checked
+                                        persistData.saveData("AutoConnectIpAddress", serverInformation.serverIp)
+                                        persistData.saveData("AutoConnectConnectionName", serverInformation.connectionName)
+                                    }
                                 }
                             }
 
@@ -258,12 +257,39 @@ BasicPage {
 
                                     PrefsLink {
                                         text: qsTr("Edit")
-                                        onClicked: {  }
+                                        onClicked: {
+                                            dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
+                                            if(dataBase.queryResultList.length > 0) {
+                                                page.editConnection = true
+                                                page.connectionName = dataBase.queryResultList[0]
+                                                page.ipAddr         = dataBase.queryResultList[1]
+                                                connectionField.text                        = dataBase.queryResultList[0]
+                                                serverIpField.text                          = dataBase.queryResultList[1]
+                                                deviceNameField.text                        = dataBase.queryResultList[2]
+                                                usernameField.text                          = dataBase.queryResultList[3]
+                                                passwordField.text                          = dataBase.queryResultList[4]
+                                                performanceRadioButton.leftButton.checked   = (dataBase.queryResultList[5] === "Best")
+                                                performanceRadioButton.rightButton.checked  = (dataBase.queryResultList[5] === "Auto")
+                                                audioButton.checked                         = (dataBase.queryResultList[6] === "true")
+                                                microphoneButton.checked                    = (dataBase.queryResultList[7] === "true")
+                                                driveButton.checked                         = (dataBase.queryResultList[8] === "true")
+                                                usbDeviceButton.checked                     = (dataBase.queryResultList[9] === "true")
+                                                securityButton.checked                      = (dataBase.queryResultList[10] === "true")
+                                                rdGateWay.checked                           = (dataBase.queryResultList[11] === "true")
+                                                gatewayIp.text                              = dataBase.queryResultList[12]
+                                                gatewayUserName.text                        = dataBase.queryResultList[13]
+                                                gatewayPassword.text                        = dataBase.queryResultList[14]
+                                            }
+                                        }
                                     }
 
                                     PrefsLink {
                                         text: qsTr("Delete")
-                                        onClicked: { pageStack.push(deleteConnection) }
+                                        onClicked: {
+                                            page.connectionName = serverInformation.connectionName
+                                            page.ipAddr = serverInformation.serverIp
+                                            pageStack.push(deleteConnection)
+                                        }
                                     }
 
                                     Item {
@@ -312,6 +338,10 @@ BasicPage {
                                 id: serverIpField
                                 x: serverIp.width - width - serverIp.rightPadding
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
+
+                                validator: RegularExpressionValidator {
+                                    regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                }
 
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
                             }
@@ -374,6 +404,7 @@ BasicPage {
                         spacing: 10
 
                         PrefsButtonDelegate {
+                            id: performanceRadioButton
                             Layout.fillWidth: true
                             text: qsTr("Performance")
                             leftButtonText: qsTr("Best")
@@ -392,6 +423,7 @@ BasicPage {
                                 spacing: 20
 
                                 PrefsButton {
+                                    id: audioButton
                                     checkable: true
                                     text: qsTr("Audio")
                                     visible: !!text
@@ -399,6 +431,7 @@ BasicPage {
                                 }
 
                                 PrefsButton {
+                                    id: microphoneButton
                                     checkable: true
                                     text: qsTr("Microphone")
                                     visible: !!text
@@ -418,6 +451,7 @@ BasicPage {
                                 spacing: 20
 
                                 PrefsButton {
+                                    id: driveButton
                                     checkable: true
                                     text: qsTr("Drive")
                                     visible: !!text
@@ -425,6 +459,7 @@ BasicPage {
                                 }
 
                                 PrefsButton {
+                                    id: usbDeviceButton
                                     checkable: true
                                     text: qsTr("USB Device")
                                     visible: !!text
@@ -443,6 +478,7 @@ BasicPage {
                                 y: securityDelegate.topPadding + (securityDelegate.availableHeight - height) / 2
 
                                 PrefsButton {
+                                    id: securityButton
                                     checkable: true
                                     text: qsTr("NLA")
                                     visible: !!text
@@ -484,9 +520,13 @@ BasicPage {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
                                 PrefsTextField {
+                                    id: gatewayIp
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
+                                    validator: RegularExpressionValidator {
+                                        regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                    }
                                 }
 
                                 RowLayout {
@@ -495,11 +535,13 @@ BasicPage {
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
                                     PrefsTextField {
+                                        id: gatewayUserName
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Username")
                                     }
 
                                     PrefsTextField {
+                                        id: gatewayPassword
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Password")
                                         echoMode: TextInput.Password
@@ -536,6 +578,27 @@ BasicPage {
                     text: qsTr("Save")
                     highlighted: true
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    onClicked: {
+                        let newList = [connectionField.text, serverIpField.text, deviceNameField.text, usernameField.text, passwordField.text,
+                                       performanceRadioButton.tabGroup.checkedButton.text,
+                                       audioButton.checked, microphoneButton.checked, driveButton.checked, usbDeviceButton.checked, securityButton.checked,
+                                       rdGateWay.checked, gatewayIp.text, gatewayUserName.text, gatewayPassword.text]
+                        dataBase.insertIntoValues = newList
+                        if(!page.editConnection) {
+                            dataBase.qmlInsertServerData()
+                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+                        }
+                        else {
+                            page.editConnection = false
+                            dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
+                            serverInfo.removeConnection(page.connectionName, page.ipAddr)
+                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+
+                            connectionField.text = ""; serverIpField.text = ""; deviceNameField.text = ""; usernameField.text = ""; passwordField.text = "";
+                            audioButton.checked = false; microphoneButton.checked = false; driveButton.checked = false; usbDeviceButton.checked = false;
+                            securityButton.checked = false; rdGateWay.checked = false; gatewayIp.text = ""; gatewayUserName.text = ""; gatewayPassword.text = "";
+                        }
+                    }
                 }
             }
         }
@@ -545,6 +608,9 @@ BasicPage {
         id: _control
         property string leftButtonText: ""
         property string rightButtonText: ""
+        property alias tabGroup: tabGroup
+        property alias leftButton: leftButton
+        property alias rightButton: rightButton
 
         ButtonGroup { id: tabGroup }
 
@@ -555,6 +621,8 @@ BasicPage {
             spacing: 20
 
             PrefsTabButton {
+                id: leftButton
+                objectName: "leftButton"
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                 ButtonGroup.group: tabGroup
                 checked: true
@@ -564,6 +632,8 @@ BasicPage {
             }
 
             PrefsTabButton {
+                id: rightButton
+                objectName: "rightButton"
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                 ButtonGroup.group: tabGroup
                 text: _control.rightButtonText
@@ -575,6 +645,13 @@ BasicPage {
 
     Component {
         id: deleteConnection
-        DeleteWifiConnection {}
+        DeleteWifiConnection {
+            onSigDelete: {
+                dataBase.removeServer(page.connectionName, page.ipAddr)
+                serverInfo.removeConnection(page.connectionName, page.ipAddr)
+                page.connectionName = ""
+                page.ipAddr = ""
+            }
+        }
     }
 }

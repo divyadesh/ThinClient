@@ -1,11 +1,15 @@
 #include "WifiNetworkDetails.h"
 #include "QDebug"
 
-WifiNetworkDetails::WifiNetworkDetails(QObject *parent, QString active, QString ssid, QString bars)
+WifiNetworkDetails::WifiNetworkDetails(QObject *parent, QString active, QString ssid, int bars, bool security, QString bssid, int chan, QString rate)
     : QObject{parent} {
     setActive(active);
     setSsid(ssid);
     setBars(bars);
+    setSecurity(security);
+    setBssid(bssid);
+    setChan(chan);
+    setRate(rate);
 }
 
 
@@ -31,13 +35,57 @@ void WifiNetworkDetails::setSsid(const QString &newSsid) {
     emit sigSsidChanged(m_ssid);
 }
 
-QString WifiNetworkDetails::bars() const {
+int WifiNetworkDetails::bars() const {
     return m_bars;
 }
 
-void WifiNetworkDetails::setBars(const QString &newBars) {
+void WifiNetworkDetails::setBars(const int &newBars) {
     if (m_bars == newBars)
         return;
     m_bars = newBars;
     emit sigBarsChanged(m_bars);
+}
+
+bool WifiNetworkDetails::security() const {
+    return m_security;
+}
+
+void WifiNetworkDetails::setSecurity(bool newSecurity) {
+    if (m_security == newSecurity)
+        return;
+    m_security = newSecurity;
+    emit sigSecurityChanged();
+}
+
+QString WifiNetworkDetails::bssid() const {
+    return m_bssid;
+}
+
+void WifiNetworkDetails::setBssid(const QString &newBssid) {
+    if (m_bssid == newBssid)
+        return;
+    m_bssid = newBssid;
+    emit sigBssidChanged();
+}
+
+int WifiNetworkDetails::chan() const {
+    return m_chan;
+}
+
+void WifiNetworkDetails::setChan(int newChan) {
+    if (m_chan == newChan)
+        return;
+    m_chan = newChan;
+    emit sigChanChanged();
+}
+
+QString WifiNetworkDetails::rate() const {
+    return m_rate;
+}
+
+void WifiNetworkDetails::setRate(const QString &newRate) {
+    if (m_rate == newRate)
+        return;
+    m_rate = newRate;
+    emit sigRateChanged();
 }

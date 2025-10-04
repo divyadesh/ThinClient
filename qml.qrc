@@ -73,5 +73,6 @@
         <file>pages/LoginPage.qml</file>
         <file>dialogs/RemovePassword.qml</file>
         <file>dialogs/SoftwareUpdater.qml</file>
+        <file>dialogs/WifiDetails.qml</file>
     </qresource>
 </RCC>
