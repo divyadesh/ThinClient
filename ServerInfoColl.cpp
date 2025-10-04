@@ -60,9 +60,9 @@ std::pair<QString, QString> ServerInfoColl::checkAutoConnect() {
     return {"", ""};
 }
 
-void ServerInfoColl::setServerInfo(QString connectionName, QString serverIp) {
+void ServerInfoColl::setServerInfo(QString connectionName, QString serverIp, bool autoEnable) {
     beginInsertRows(QModelIndex{}, static_cast<int>(m_ServerInfoColl.size()), static_cast<int>(m_ServerInfoColl.size()));
-    std::shared_ptr<ServerInfo> spServerInfo = std::make_shared<ServerInfo>(this, connectionName, serverIp);
+    std::shared_ptr<ServerInfo> spServerInfo = std::make_shared<ServerInfo>(this, connectionName, serverIp, autoEnable);
     if(spServerInfo) {
         QQmlEngine::setObjectOwnership(spServerInfo.get(), QQmlEngine::CppOwnership);
         m_ServerInfoColl.emplace_back(spServerInfo);
@@ -82,6 +82,7 @@ void ServerInfoColl::removeConnection(QString connectionName, QString serverIp) 
 
 void ServerInfoColl::launchRDPSequence(const QString &server, const QString &username, const QString &password)
 {
+    emit sigConnectionStarted();
     // 1. Setup runtime dir
     QStringList mkdirArgs = {"-p", "/run/user/0"};
     QProcess mkdirProcess;
@@ -99,6 +100,7 @@ void ServerInfoColl::launchRDPSequence(const QString &server, const QString &use
     westonProcess.start("weston", {"--tty=1"});
     if (!westonProcess.waitForStarted(5000)) {
         qWarning() << "Failed to start Weston!";
+        emit sigConnectionCompleted();
         return;
     }
 
@@ -124,6 +126,7 @@ void ServerInfoColl::launchRDPSequence(const QString &server, const QString &use
     if (!rdpProcess.waitForFinished(-1)) { // wait indefinitely until session ends
         qWarning() << "RDP process failed!";
     }
+    emit sigConnectionCompleted();
 }
 
 
@@ -140,7 +143,7 @@ void ServerInfoColl::connectRdServer(const QString &server, const QString &usern
     // QString password = "g1@123";
 
     // Launch the RDP sequence in the background
-    QtConcurrent::run([this, server, username, password]() {
+    auto ret = QtConcurrent::run([this, server, username, password]() {
         launchRDPSequence(server, username, password);
     });
 }
