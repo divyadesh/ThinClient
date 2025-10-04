@@ -48,11 +48,11 @@ DNSNetworkInfo::NetData DNSNetworkInfo::collectInfo()
     if (matchGw.hasMatch())
         data.gateway = matchGw.captured(1);
 
-    // --- Get DNS ---
+    // --- Get DNS ---10.42
     // --- Get DNS ---
     QString dnsOutput = runCommand("systemd-resolve --status");
     if (dnsOutput.isEmpty()) {
-        // fallback if systemd-resolve not available
+        // fallback if systemd-resolve no10t available
         dnsOutput = runCommand("cat /etc/resolv.conf | grep nameserver");
     }
 

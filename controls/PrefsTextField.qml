@@ -9,6 +9,7 @@ TextField {
     placeholderTextColor: Colors.textSecondary
     selectedTextColor: Colors.textSecondary
     selectionColor: Colors.accentPrimary
+    color: Colors.textPrimary
 
     horizontalAlignment: TextField.AlignHCenter
     verticalAlignment: TextField.AlignVCenter

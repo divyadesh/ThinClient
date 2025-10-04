@@ -10,6 +10,7 @@ ComboBox {
     width: 260
     property int radius: 6
     hoverEnabled: true
+    leftPadding: 8
 
     // Text color
     palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray
