@@ -89,10 +89,12 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("dataBase", &dbInstance);
     engine.rootContext()->setContextProperty("persistData", &persistData);
 
-    QTimer::singleShot(5000, [&serverInfoColl]{
+    QTimer::singleShot(5000, [&serverInfoColl, &dbInstance]{
         auto ret = serverInfoColl.checkAutoConnect();
         if(ret.first != "") {
-
+            dbInstance.qmlQueryServerTable(ret.first, ret.second);
+            const QStringList & queryResult = dbInstance.queryResultList();
+            serverInfoColl.connectRdServer(queryResult[1]+":5566", queryResult[3],queryResult[4]);
         }
     });
 

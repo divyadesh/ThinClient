@@ -26,7 +26,7 @@ BasicPage {
         anchors.leftMargin: -40
         anchors.topMargin: -40
         sourceSize: Qt.size(600, 210)
-        source: logoLoader.logo ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
+        source: (logoLoader && logoLoader.logo) ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
     Control {
@@ -56,7 +56,13 @@ BasicPage {
                     ButtonGroup.group: tabGroup
                     text: serverInformation.connectionName
                     icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
-                    onClicked: {serverInfo.connectRdServer("183.83.196.74:5566", "u1","g1@123")}
+                    onClicked: {
+                        dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
+                        if (dataBase.queryResultList.length > 0) {
+                            let ipAddr = dataBase.queryResultList[1]
+                            serverInfo.connectRdServer(ipAddr, dataBase.queryResultList[3], dataBase.queryResultList[4])
+                        }
+                    }
 
                     background: Rectangle {
                         anchors.fill: parent

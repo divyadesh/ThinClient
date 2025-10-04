@@ -16,7 +16,13 @@ BasicPage {
     property bool editConnection: false
     property string connectionName: ""
     property string ipAddr: ""
-
+    property bool autoConnectRadioButtn: false
+    property int currentIndex: -1
+    property bool connName: false
+    property bool ipAddress: false
+    property bool devName: false
+    property bool userName: false
+    property bool passwd: false
     header: PageHeader {
         pageTitle: page.pageTitle
         onBackPressed: {
@@ -210,9 +216,24 @@ BasicPage {
                                     }
 
                                     PrefsBusyIndicator {
+                                        id: busyIndicator
                                         radius: 10
-                                        visible: false
+                                        running: false
+                                        visible: running
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    }
+                                    Connections {
+                                        target: serverInfo
+                                        function onSigConnectionStarted() {
+                                            if(index === page.currentIndex) {
+                                                busyIndicator.running = true
+                                            }
+                                        }
+                                        function onSigConnectionCompleted() {
+                                            if(index === page.currentIndex) {
+                                                busyIndicator.running = false
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -223,6 +244,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
                                 RadioButton {
+                                    id: autoConnectRadioButton
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     palette.text: Colors.accentPrimary
@@ -254,7 +276,12 @@ BasicPage {
                                     PrefsLink {
                                         text: qsTr("Connect")
                                         onClicked: {
-                                            serverInfo.connectRdServer("183.83.196.74:5566", "u1","g1@123")
+                                            dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
+                                            if (dataBase.queryResultList.length > 0) {
+                                                let ipAddr = dataBase.queryResultList[1]
+                                                serverInfo.connectRdServer(ipAddr, dataBase.queryResultList[3], dataBase.queryResultList[4])
+                                                page.currentIndex = index
+                                            }
                                         }
                                     }
 
@@ -264,9 +291,10 @@ BasicPage {
                                             dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
 
                                             if (dataBase.queryResultList.length > 0) {
-                                                page.editConnection  = true
-                                                page.connectionName  = dataBase.queryResultList[0]
-                                                page.ipAddr          = dataBase.queryResultList[1]
+                                                page.editConnection        = true
+                                                page.connectionName        = dataBase.queryResultList[0]
+                                                page.ipAddr                = dataBase.queryResultList[1]
+                                                page.autoConnectRadioButtn = autoConnectRadioButton.checked
 
                                                 populateConnectionFields(dataBase.queryResultList)
                                             }
@@ -342,6 +370,13 @@ BasicPage {
                                 x: connection.width - width - connection.rightPadding
                                 y: connection.topPadding + (connection.availableHeight - height) / 2
 
+                                onTextChanged: {
+                                    if(text==="")
+                                        connName = false
+                                    else
+                                        connName = true
+                                }
+
                                 placeholderText : qsTr("Enter %1").arg(connection.text)
                             }
                         }
@@ -356,7 +391,14 @@ BasicPage {
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
 
                                 validator: RegularExpressionValidator {
-                                    regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                    regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])::([0-9]{1,5})$/
+                                }
+
+                                onTextChanged: {
+                                    if(text==="")
+                                        ipAddress = false
+                                    else
+                                        ipAddress = true
                                 }
 
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
@@ -372,6 +414,13 @@ BasicPage {
                                 id: deviceNameField
                                 x: deviceName.width - width - deviceName.rightPadding
                                 y: deviceName.topPadding + (deviceName.availableHeight - height) / 2
+
+                                onTextChanged: {
+                                    if(text==="")
+                                        devName = false
+                                    else
+                                        devName = true
+                                }
 
                                 placeholderText : qsTr("Enter %1").arg(deviceName.text)
                             }
@@ -392,6 +441,13 @@ BasicPage {
                                 x: username.width - width - username.rightPadding
                                 y: username.topPadding + (username.availableHeight - height) / 2
 
+                                onTextChanged: {
+                                    if(text==="")
+                                        userName = false
+                                    else
+                                        userName = true
+                                }
+
                                 placeholderText : qsTr("Enter %1").arg(username.text)
                             }
                         }
@@ -405,6 +461,13 @@ BasicPage {
                                 id: passwordField
                                 x: password.width - width - password.rightPadding
                                 y: password.topPadding + (password.availableHeight - height) / 2
+
+                                onTextChanged: {
+                                    if(text==="")
+                                        passwd = false
+                                    else
+                                        passwd = true
+                                }
 
                                 placeholderText : qsTr("Enter %1").arg(password.text)
                                 echoMode: TextInput.Password
@@ -593,6 +656,7 @@ BasicPage {
                 PrefsButton {
                     text: qsTr("Save")
                     highlighted: true
+                    enabled: connName && ipAddress && devName && userName && passwd
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     onClicked: {
                         let newList = [
@@ -622,7 +686,7 @@ BasicPage {
                             page.editConnection = false
                             dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
                             serverInfo.removeConnection(page.connectionName, page.ipAddr)
-                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+                            serverInfo.setServerInfo(connectionField.text, serverIpField.text, page.autoConnectRadioButtn)
                         }
 
                         clearEntryFields()
