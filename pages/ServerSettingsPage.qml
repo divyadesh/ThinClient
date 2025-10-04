@@ -211,6 +211,7 @@ BasicPage {
 
                                     PrefsBusyIndicator {
                                         radius: 10
+                                        visible: false
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     }
                                 }
@@ -259,27 +260,40 @@ BasicPage {
                                         text: qsTr("Edit")
                                         onClicked: {
                                             dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
-                                            if(dataBase.queryResultList.length > 0) {
-                                                page.editConnection = true
-                                                page.connectionName = dataBase.queryResultList[0]
-                                                page.ipAddr         = dataBase.queryResultList[1]
-                                                connectionField.text                        = dataBase.queryResultList[0]
-                                                serverIpField.text                          = dataBase.queryResultList[1]
-                                                deviceNameField.text                        = dataBase.queryResultList[2]
-                                                usernameField.text                          = dataBase.queryResultList[3]
-                                                passwordField.text                          = dataBase.queryResultList[4]
-                                                performanceRadioButton.leftButton.checked   = (dataBase.queryResultList[5] === "Best")
-                                                performanceRadioButton.rightButton.checked  = (dataBase.queryResultList[5] === "Auto")
-                                                audioButton.checked                         = (dataBase.queryResultList[6] === "true")
-                                                microphoneButton.checked                    = (dataBase.queryResultList[7] === "true")
-                                                driveButton.checked                         = (dataBase.queryResultList[8] === "true")
-                                                usbDeviceButton.checked                     = (dataBase.queryResultList[9] === "true")
-                                                securityButton.checked                      = (dataBase.queryResultList[10] === "true")
-                                                rdGateWay.checked                           = (dataBase.queryResultList[11] === "true")
-                                                gatewayIp.text                              = dataBase.queryResultList[12]
-                                                gatewayUserName.text                        = dataBase.queryResultList[13]
-                                                gatewayPassword.text                        = dataBase.queryResultList[14]
+
+                                            if (dataBase.queryResultList.length > 0) {
+                                                page.editConnection  = true
+                                                page.connectionName  = dataBase.queryResultList[0]
+                                                page.ipAddr          = dataBase.queryResultList[1]
+
+                                                populateConnectionFields(dataBase.queryResultList)
                                             }
+                                        }
+
+                                        function populateConnectionFields(values) {
+                                            connectionField.text   = values[0]
+                                            serverIpField.text     = values[1]
+                                            deviceNameField.text   = values[2]
+                                            usernameField.text     = values[3]
+                                            passwordField.text     = values[4]
+
+                                            performanceRadioButton.leftButton.checked  = (values[5] === "Best")
+                                            performanceRadioButton.rightButton.checked = (values[5] === "Auto")
+
+                                            audioButton.checked        = isTrue(values[6])
+                                            microphoneButton.checked   = isTrue(values[7])
+                                            driveButton.checked        = isTrue(values[8])
+                                            usbDeviceButton.checked    = isTrue(values[9])
+                                            securityButton.checked     = isTrue(values[10])
+                                            rdGateWay.checked          = isTrue(values[11])
+
+                                            gatewayIp.text        = values[12]
+                                            gatewayUserName.text  = values[13]
+                                            gatewayPassword.text  = values[14]
+                                        }
+
+                                        function isTrue(value) {
+                                            return value === "true" || value === true
                                         }
                                     }
 
@@ -579,25 +593,56 @@ BasicPage {
                     highlighted: true
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     onClicked: {
-                        let newList = [connectionField.text, serverIpField.text, deviceNameField.text, usernameField.text, passwordField.text,
-                                       performanceRadioButton.tabGroup.checkedButton.text,
-                                       audioButton.checked, microphoneButton.checked, driveButton.checked, usbDeviceButton.checked, securityButton.checked,
-                                       rdGateWay.checked, gatewayIp.text, gatewayUserName.text, gatewayPassword.text]
+                        let newList = [
+                            connectionField.text,
+                            serverIpField.text,
+                            deviceNameField.text,
+                            usernameField.text,
+                            passwordField.text,
+                            performanceRadioButton.tabGroup.checkedButton.text,
+                            audioButton.checked,
+                            microphoneButton.checked,
+                            driveButton.checked,
+                            usbDeviceButton.checked,
+                            securityButton.checked,
+                            rdGateWay.checked,
+                            gatewayIp.text,
+                            gatewayUserName.text,
+                            gatewayPassword.text
+                        ]
+
                         dataBase.insertIntoValues = newList
-                        if(!page.editConnection) {
+
+                        if (!page.editConnection) {
                             dataBase.qmlInsertServerData()
                             serverInfo.setServerInfo(connectionField.text, serverIpField.text)
-                        }
-                        else {
+                        } else {
                             page.editConnection = false
                             dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
                             serverInfo.removeConnection(page.connectionName, page.ipAddr)
                             serverInfo.setServerInfo(connectionField.text, serverIpField.text)
-
-                            connectionField.text = ""; serverIpField.text = ""; deviceNameField.text = ""; usernameField.text = ""; passwordField.text = "";
-                            audioButton.checked = false; microphoneButton.checked = false; driveButton.checked = false; usbDeviceButton.checked = false;
-                            securityButton.checked = false; rdGateWay.checked = false; gatewayIp.text = ""; gatewayUserName.text = ""; gatewayPassword.text = "";
                         }
+
+                        clearEntryFields()
+                    }
+
+                    function clearEntryFields() {
+                        connectionField.text = ""
+                        serverIpField.text = ""
+                        deviceNameField.text = ""
+                        usernameField.text = ""
+                        passwordField.text = ""
+
+                        audioButton.checked = false
+                        microphoneButton.checked = false
+                        driveButton.checked = false
+                        usbDeviceButton.checked = false
+                        securityButton.checked = false
+
+                        rdGateWay.checked = false
+                        gatewayIp.text = ""
+                        gatewayUserName.text = ""
+                        gatewayPassword.text = ""
                     }
                 }
             }

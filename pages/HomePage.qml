@@ -43,7 +43,7 @@ BasicPage {
 
             model: serverInfo
 
-            highlight: Rectangle { color: "lightsteelblue"; radius: 8 }
+            highlight: null
             focus: true
 
             delegate: Control {
