@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QObject>
+#include <QProcess>
 
 class DeviceInfoSettings : public QObject
 {
@@ -34,6 +35,7 @@ public:
     QString madeIn() const { return m_madeIn; }
 
     Q_INVOKABLE bool loadFromFile(const QString &filePath);
+    Q_INVOKABLE void readBoardInfo();
 
 signals:
     void infoChanged();
@@ -48,6 +50,8 @@ private:
     QString m_wifi;
     QString m_firmwareVersion;
     QString m_madeIn;
+
+    QString execCommand(const QString &cmd);
 };
 
 #endif // DEVICEINFOSETTINGS_H

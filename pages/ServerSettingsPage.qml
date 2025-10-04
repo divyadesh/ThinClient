@@ -253,7 +253,9 @@ BasicPage {
 
                                     PrefsLink {
                                         text: qsTr("Connect")
-                                        onClicked: {}
+                                        onClicked: {
+                                            serverInfo.connectRdServer("183.83.196.74:5566", "u1","g1@123")
+                                        }
                                     }
 
                                     PrefsLink {

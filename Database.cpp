@@ -36,7 +36,7 @@ bool DataBase::createTable() {
     return true;
 }
 
-Q_INVOKABLE void DataBase::qmlInsertWifiData() {
+void DataBase::qmlInsertWifiData() {
     QSqlQuery query;
     query.prepare("INSERT INTO WifiTable(ssid, password) VALUES (:ssid, :password)");
     if(m_insertIntoValues.size() == 2) {

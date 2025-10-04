@@ -31,8 +31,12 @@ public:
     Q_INVOKABLE void setServerInfo(QString connectionName, QString serverIp);
     Q_INVOKABLE void removeConnection(QString connectionName, QString serverIp);
     Q_INVOKABLE void resetAutoConnect();
+    Q_INVOKABLE void connectRdServer(const QString &server, const QString &username, const QString &password);
 
 signals:
+
+private:
+    void launchRDPSequence(const QString &server, const QString &username, const QString &password);
 };
 
 #endif // SERVERINFOCOLL_H
