@@ -16,6 +16,8 @@ BasicPage {
     property bool editConnection: false
     property string connectionName: ""
     property string ipAddr: ""
+    property string errorMessage: ""
+    property bool hasError: errorMessage.length > 0
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -343,6 +345,7 @@ BasicPage {
                                 y: connection.topPadding + (connection.availableHeight - height) / 2
 
                                 placeholderText : qsTr("Enter %1").arg(connection.text)
+                                onTextChanged: page.errorMessage = ""
                             }
                         }
                         PrefsItemDelegate {
@@ -356,9 +359,15 @@ BasicPage {
                                 y: serverIp.topPadding + (serverIp.availableHeight - height) / 2
 
                                 validator: RegularExpressionValidator {
-                                    regularExpression: /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                                    // Accepts:
+                                    // - IPv4: 192.168.10.34
+                                    // - IPv4 + port: 192.168.10.34:4444  (port can be any length)
+                                    // - IPv6: ::1 or fe80::1
+                                    // - IPv6 + port (with brackets): [::1]:4444
+                                    regularExpression: /^(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)|(\[?[A-Fa-f0-9:]+\]?))(:\d*)?$/
                                 }
 
+                                onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
                             }
                         }
@@ -373,6 +382,7 @@ BasicPage {
                                 x: deviceName.width - width - deviceName.rightPadding
                                 y: deviceName.topPadding + (deviceName.availableHeight - height) / 2
 
+                                onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(deviceName.text)
                             }
                         }
@@ -392,6 +402,7 @@ BasicPage {
                                 x: username.width - width - username.rightPadding
                                 y: username.topPadding + (username.availableHeight - height) / 2
 
+                                onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(username.text)
                             }
                         }
@@ -406,6 +417,7 @@ BasicPage {
                                 x: password.width - width - password.rightPadding
                                 y: password.topPadding + (password.availableHeight - height) / 2
 
+                                onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(password.text)
                                 echoMode: TextInput.Password
                             }
@@ -588,30 +600,43 @@ BasicPage {
             RowLayout {
                 Layout.fillWidth: true
 
+                PrefsLabel {
+                    visible: page.hasError
+                    text: page.errorMessage
+                    color: Colors.statusError
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                }
+
                 Item { Layout.fillWidth: true }
 
                 PrefsButton {
                     text: qsTr("Save")
                     highlighted: true
+                    enabled: !page.hasError
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     onClicked: {
+                        if (!validateRequiredFields()) {
+                            console.log("Validation failed — missing required fields.")
+                            return
+                        }
+
                         let newList = [
-                            connectionField.text,
-                            serverIpField.text,
-                            deviceNameField.text,
-                            usernameField.text,
-                            passwordField.text,
-                            performanceRadioButton.tabGroup.checkedButton.text,
-                            audioButton.checked,
-                            microphoneButton.checked,
-                            driveButton.checked,
-                            usbDeviceButton.checked,
-                            securityButton.checked,
-                            rdGateWay.checked,
-                            gatewayIp.text,
-                            gatewayUserName.text,
-                            gatewayPassword.text
-                        ]
+                                connectionField.text,
+                                serverIpField.text,
+                                deviceNameField.text,
+                                usernameField.text,
+                                passwordField.text,
+                                performanceRadioButton.tabGroup.checkedButton.text,
+                                audioButton.checked,
+                                microphoneButton.checked,
+                                driveButton.checked,
+                                usbDeviceButton.checked,
+                                securityButton.checked,
+                                rdGateWay.checked,
+                                gatewayIp.text,
+                                gatewayUserName.text,
+                                gatewayPassword.text
+                            ]
 
                         dataBase.insertIntoValues = newList
 
@@ -645,6 +670,39 @@ BasicPage {
                         gatewayIp.text = ""
                         gatewayUserName.text = ""
                         gatewayPassword.text = ""
+                    }
+
+                    function validateRequiredFields() {
+                        // Reset errors before validation
+                        page.errorMessage = ""
+
+                        // --- Validation checks for required fields ---
+                        if (connectionField.text.trim() === "") {
+                            page.errorMessage = qsTr("Connection Name cannot be empty")
+                            return false
+                        }
+
+                        if (serverIpField.text.trim() === "") {
+                            page.errorMessage = qsTr("Server IP cannot be empty")
+                            return false
+                        }
+
+                        if (deviceNameField.text.trim() === "") {
+                            page.errorMessage = qsTr("Device Name cannot be empty")
+                            return false
+                        }
+
+                        if (usernameField.text.trim() === "") {
+                            page.errorMessage = qsTr("Username cannot be empty")
+                            return false
+                        }
+
+                        if (passwordField.text.trim() === "") {
+                            page.errorMessage = qsTr("Password cannot be empty")
+                            return false
+                        }
+
+                        return true
                     }
                 }
             }

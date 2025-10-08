@@ -21,8 +21,8 @@ ApplicationWindow {
     width: ScreenConfig.screenWidth
     height: ScreenConfig.screenHeight
     visible: true
-    visibility: Window.FullScreen
-    flags: Qt.WindowStaysOnTopHint
+    // visibility: Window.FullScreen
+    // flags: Qt.WindowStaysOnTopHint
     title: qsTr("G1 Thin Client pc")
 
     contentData: AppLayout {

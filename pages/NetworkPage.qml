@@ -398,7 +398,9 @@ BasicPage {
                             x: dns.width - width - dns.rightPadding
                             y: dns.topPadding + (dns.availableHeight - height) / 2
 
-                            text: dhcpRadio.checked ? dnsNetworkInfo.dnsServers : ""
+                            text: dhcpRadio.checked && dnsNetworkInfo.dnsServers.length > 0
+                                  ? dnsNetworkInfo.dnsServers[0]
+                                  : ""
                             placeholderText : qsTr("Enter %1").arg(dns.text)
                         }
                     }
