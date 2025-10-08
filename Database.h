@@ -54,7 +54,7 @@ public:
     void setQueryResultList(QStringList newQueryResultList);
 
     // --- Public Methods Accessible from QML ---
-    Q_INVOKABLE void qmlQueryServerTable(const QString &connectionName,
+    Q_INVOKABLE QStringList qmlQueryServerTable(const QString &connectionName,
                                          const QString &serverIpAddress);
 
     Q_INVOKABLE bool removeServer(const QString &connectionName,

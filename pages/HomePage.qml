@@ -56,7 +56,10 @@ BasicPage {
                     ButtonGroup.group: tabGroup
                     text: serverInformation.connectionName
                     icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
-                    onClicked: {serverInfo.connectRdServer("183.83.196.74:5566", 'u1','g1@123')}
+
+                    onClicked: {
+                        serverInfo.connectRdServer(serverInformation.serverIp, serverInformation.connectionName)
+                    }
 
                     background: Rectangle {
                         anchors.fill: parent

@@ -39,7 +39,11 @@ DataBase& DataBase::getInstance(QObject *parent)
 #elif defined(Q_OS_MAC)
     static DataBase m_dbInstance(parent, "/Users/Shared/ThinClientDB.db");
 #elif defined(Q_OS_LINUX)
+#  ifdef QT_DEBUG
+    static DataBase m_dbInstance(parent, "/home/rajni/ThinClientDB_debug.db");
+#  else
     static DataBase m_dbInstance(parent, "/home/root/ThinClientDB.db");
+#  endif
 #else
     static DataBase m_dbInstance(parent, "ThinClientDB.db"); // Fallback
 #endif
@@ -357,13 +361,13 @@ void DataBase::qmlUpdateServerData(const QString &connectionName, const QString 
     }
 }
 
-void DataBase::qmlQueryServerTable(const QString &connectionName, const QString &serverIpAddress)
+QStringList DataBase::qmlQueryServerTable(const QString &connectionName, const QString &serverIpAddress)
 {
     // Ensure we use the correct database connection
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
         qWarning() << "Database is not open or invalid!";
-        return;
+        return {};
     }
 
     QSqlQuery query(db);
@@ -381,14 +385,14 @@ void DataBase::qmlQueryServerTable(const QString &connectionName, const QString 
 
     if (!query.exec()) {
         qWarning() << "Query failed:" << query.lastError().text();
-        return;
+        return {};
     }
 
     if (!query.next()) {
         qInfo() << "No server record found for" << connectionName << serverIpAddress;
         m_queryResultList.clear();
         setQueryResultList({});
-        return;
+        return {};
     }
 
     // Extract result fields
@@ -420,6 +424,7 @@ void DataBase::qmlQueryServerTable(const QString &connectionName, const QString 
         << "\n Device Name:" << resultFields[2]
         << "\n User:" << resultFields[3]
         << "\n Performance:" << resultFields[5];
+    return resultFields;
 }
 
 void DataBase::getServerList(ServerInfoColl &serverInfoColl)
