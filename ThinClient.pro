@@ -50,6 +50,7 @@ HEADERS += \
     DeviceInfo.h \
     DeviceSettings.h \
     PersistData.h \
+    RdpMonitorThread.h \
     ServerInfo.h \
     ServerInfoColl.h \
     WifiNetworkDetails.h \

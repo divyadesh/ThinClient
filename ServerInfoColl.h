@@ -36,6 +36,8 @@ public:
 signals:
 
 private:
+    bool _already_running{false};
+    void startRdpMonitor();
     void launchRDPSequence(const QString &server, const QString &username, const QString &password);
 };
 

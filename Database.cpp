@@ -7,7 +7,7 @@ DataBase::DataBase(QObject *parent, const QString &path) : QObject{parent} {
 }
 
 DataBase& DataBase::getInstance(QObject *parent) {
-    static DataBase m_dbInstance(parent, "ThinClientDB.db");
+    static DataBase m_dbInstance(parent, "/home/root/ThinClientDB.db");
     return m_dbInstance;
 }
 

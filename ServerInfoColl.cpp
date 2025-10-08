@@ -7,6 +7,7 @@
 #include <QThread>
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
+#include "RdpMonitorThread.h"
 
 ServerInfoColl::ServerInfoColl(QObject *parent)
     : QAbstractListModel{parent}
@@ -82,48 +83,36 @@ void ServerInfoColl::removeConnection(QString connectionName, QString serverIp) 
 
 void ServerInfoColl::launchRDPSequence(const QString &server, const QString &username, const QString &password)
 {
-    // 1. Setup runtime dir
-    QStringList mkdirArgs = {"-p", "/run/user/0"};
-    QProcess mkdirProcess;
-    mkdirProcess.start("mkdir", mkdirArgs);
-    mkdirProcess.waitForFinished();
-
-    QProcess chmodProcess;
-    chmodProcess.start("chmod", {"700", "/run/user/0"});
-    chmodProcess.waitForFinished();
-
-    qputenv("XDG_RUNTIME_DIR", "/run/user/0");
-
-    // 2. Start Weston on tty1
-    QProcess westonProcess;
-    westonProcess.start("weston", {"--tty=1"});
-    if (!westonProcess.waitForStarted(5000)) {
-        qWarning() << "Failed to start Weston!";
+    if(_already_running) {
         return;
     }
+    QString script = "/usr/bin/run_rdp.sh";
 
-    // 3. Sleep 3 seconds
-    QThread::sleep(3);
+    // Use QProcess instead of system() for proper argument escaping
+    QProcess process;
+    QStringList args;
+    args << server << username << password;
 
-    // 4. Launch wlfreerdp with arguments
-    QStringList rdpArgs;
-    rdpArgs << "/f"
-            << "/bpp:32"
-            << "/network:lan"
-            << "/cert-ignore"
-            << "+auto-reconnect"
-            << "/auto-reconnect-max-retries:6"
-            << "/gfx +gfx-progressive "
-            << "/v:" + server
-            << "/u:" + username
-            << "/p:" + password;
+    qInfo() << "Starting RDP script:" << script << args;
 
-    QProcess rdpProcess;
-    rdpProcess.start("wlfreerdp", rdpArgs);
+    // Run the script synchronously in the background thread
+    process.start(script, args);
+    _already_running = true;
+    process.waitForFinished(-1);  // Wait indefinitely until RDP session ends
 
-    if (!rdpProcess.waitForFinished(-1)) { // wait indefinitely until session ends
-        qWarning() << "RDP process failed!";
+    int ret = process.exitCode();
+    if (ret != 0) {
+        qWarning() << "RDP script exited with error code:" << ret;
+    } else {
+        qInfo() << "RDP session finished successfully.";
     }
+    _already_running = false;
+}
+
+void ServerInfoColl::startRdpMonitor()
+{
+    RdpMonitorThread *monitor = new RdpMonitorThread(this);
+    monitor->start(QThread::LowestPriority);
 }
 
 
@@ -138,6 +127,10 @@ void ServerInfoColl::connectRdServer(const QString &server, const QString &usern
     // QString server = "183.83.196.74:5566";
     // QString username = "u1";
     // QString password = "g1@123";
+
+    if(_already_running) {
+        return;
+    }
 
     // Launch the RDP sequence in the background
     QtConcurrent::run([this, server, username, password]() {
