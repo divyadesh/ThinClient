@@ -361,10 +361,11 @@ BasicPage {
                                 validator: RegularExpressionValidator {
                                     // Accepts:
                                     // - IPv4: 192.168.10.34
-                                    // - IPv4 + port: 192.168.10.34:4444  (port can be any length)
+                                    // - IPv4 + port: 192.168.10.34:4444
                                     // - IPv6: ::1 or fe80::1
-                                    // - IPv6 + port (with brackets): [::1]:4444
-                                    regularExpression: /^(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)|(\[?[A-Fa-f0-9:]+\]?))(:\d*)?$/
+                                    // - IPv6 + port: [::1]:4444 or fe80::1:4444
+                                    // ❌ Rejects plain text like "abcd"
+                                    regularExpression: /^(((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)|(\[?[A-Fa-f0-9]*:[A-Fa-f0-9:]+\]?))(:\d*)?$/
                                 }
 
                                 onTextChanged: page.errorMessage = ""
