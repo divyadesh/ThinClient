@@ -26,7 +26,7 @@ BasicPage {
         anchors.leftMargin: -40
         anchors.topMargin: -40
         sourceSize: Qt.size(600, 210)
-        source: logoLoader.logo ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
+        source: (logoLoader && logoLoader.logo) ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
     Control {

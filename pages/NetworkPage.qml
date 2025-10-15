@@ -13,6 +13,15 @@ BasicPage {
     StackView.visible: true
     padding: 20
     property bool addNewServer: false
+    property string wifiPassword: ""
+    property string ssid: ""
+    signal sigOkPressed()
+
+    onSigOkPressed: {
+        if(wifiPassword !== "") {
+            wifiNetworkDetails.connectToSsid(page.ssid, page.wifiPassword)
+        }
+    }
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -165,6 +174,10 @@ BasicPage {
                                     function onSigConnectionFinished() {
                                         if(index === wifiControl.connectIndex) {
                                             busyIndicator.running = false
+                                            let newList = [ wifiDetails.ssid, page.wifiPassword ]
+                                            dataBase.insertIntoValues = newList
+                                            dataBase.qmlInsertWifiData()
+                                            pageStack.pop()
                                         }
                                     }
                                 }
@@ -185,8 +198,9 @@ BasicPage {
                                     visible: itemDelegate.hovered && wifiNetworkDetails.activeSsid !== wifiDetails.ssid
                                     radius: height / 2
                                     onClicked: {
+                                        page.ssid = wifiDetails.ssid
+                                        pageStack.push(setWifiPassword)
                                         wifiControl.connectIndex = index
-                                        wifiNetworkDetails.connectToSsid(wifiDetails.ssid, "9013779904");
                                     }
                                 }
                             }
@@ -237,7 +251,6 @@ BasicPage {
                     }
                 }
             }
-
 
             Control {
                 visible: ethernet.checked
@@ -333,6 +346,8 @@ BasicPage {
                         text: qsTr("IP Address")
                         enabled: manualRadio.checked
 
+                        property string manualIpAddress: ""
+
                         indicator: PrefsTextField {
                             id: ipAddressField
                             x: ipAddress.width - width - ipAddress.rightPadding
@@ -340,7 +355,12 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(ipAddress.text)
 
-                            text: dhcpRadio.checked ? dnsNetworkInfo.ipAddress : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.ipAddress : ipAddress.manualIpAddress
+                            onTextChanged: {
+                                if (manualRadio.checked) {
+                                    ipAddress.manualIpAddress = text;
+                                }
+                            }
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -353,6 +373,8 @@ BasicPage {
                         text: qsTr("Netmask")
                         enabled: manualRadio.checked
 
+                        property string manualNetmask: ""
+
                         indicator: PrefsTextField {
                             id: netmaskField
                             x: netmask.width - width - netmask.rightPadding
@@ -360,7 +382,12 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(netmask.text)
 
-                            text: dhcpRadio.checked ? dnsNetworkInfo.netmask : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.netmask : netmask.manualNetmask
+                            onTextChanged: {
+                                if (manualRadio.checked) {
+                                    netmask.manualNetmask = text;
+                                }
+                            }
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -373,6 +400,8 @@ BasicPage {
                         text: qsTr("Gateway")
                         enabled: manualRadio.checked
 
+                        property string manualGateway: ""
+
                         indicator: PrefsTextField {
                             id: gateWayField
                             x: gateWay.width - width - gateWay.rightPadding
@@ -380,7 +409,12 @@ BasicPage {
 
                             placeholderText : qsTr("Enter %1").arg(gateWay.text)
 
-                            text: dhcpRadio.checked ? dnsNetworkInfo.gateway : ""
+                            text: dhcpRadio.checked ? dnsNetworkInfo.gateway : gateWay.manualGateway
+                            onTextChanged: {
+                                if (manualRadio.checked) {
+                                    gateWay.manualGateway = text;
+                                }
+                            }
                             validator: RegularExpressionValidator {
                                 regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                             }
@@ -393,6 +427,8 @@ BasicPage {
                         text: qsTr("DNS")
                         enabled: manualRadio.checked
 
+                        property string manualDns: ""
+
                         indicator: PrefsTextField {
                             id: dnsField
                             x: dns.width - width - dns.rightPadding
@@ -400,8 +436,11 @@ BasicPage {
 
                             text: dhcpRadio.checked && dnsNetworkInfo.dnsServers.length > 0
                                   ? dnsNetworkInfo.dnsServers[0]
-                                  : ""
+                                  : dns.manualDns
                             placeholderText : qsTr("Enter %1").arg(dns.text)
+                            validator: RegularExpressionValidator {
+                                regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
+                            }
                         }
                     }
 
@@ -448,7 +487,6 @@ BasicPage {
                     highlighted: true
                     onClicked: {
                         if(manualRadio.checked) {
-                            ethernetNetworkController.disconnectClicked()
                             ethernetNetworkController.setManualConfig(ipAddressField.text, netmaskField.text, gateWayField.text, dnsField.text)
                         }
                     }
@@ -457,6 +495,7 @@ BasicPage {
                 PrefsDangerButton {
                     id: disconnected
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                    visible: manualRadio.checked
                     text: qsTr("Disconnect")
                     onClicked: {
                         if(dhcpRadio.checked) {
@@ -471,5 +510,9 @@ BasicPage {
     Component {
         id: wifiDetailsComponent
         WifiDetails {}
+    }
+    Component {
+        id: setWifiPassword
+        SetWifiPassword {}
     }
 }

@@ -212,9 +212,24 @@ BasicPage {
                                     }
 
                                     PrefsBusyIndicator {
+                                        id: busyIndicator
                                         radius: 10
-                                        visible: false
+                                        running: false
+                                        visible: running
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    }
+                                    Connections {
+                                        target: serverInfo
+                                        function onSigConnectionStarted() {
+                                            if(index === page.currentIndex) {
+                                                busyIndicator.running = true
+                                            }
+                                        }
+                                        function onSigConnectionCompleted() {
+                                            if(index === page.currentIndex) {
+                                                busyIndicator.running = false
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -225,6 +240,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
                                 RadioButton {
+                                    id: autoConnectRadioButton
                                     anchors.left: parent.left
                                     anchors.verticalCenter: parent.verticalCenter
                                     palette.text: Colors.accentPrimary
@@ -266,10 +282,6 @@ BasicPage {
                                             dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
 
                                             if (dataBase.queryResultList.length > 0) {
-                                                page.editConnection  = true
-                                                page.connectionName  = dataBase.queryResultList[0]
-                                                page.ipAddr          = dataBase.queryResultList[1]
-
                                                 populateConnectionFields(dataBase.queryResultList)
                                             }
                                         }
@@ -648,7 +660,7 @@ BasicPage {
                             page.editConnection = false
                             dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
                             serverInfo.removeConnection(page.connectionName, page.ipAddr)
-                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+                            serverInfo.setServerInfo(connectionField.text, serverIpField.text, page.autoConnectRadioButtn)
                         }
 
                         clearEntryFields()

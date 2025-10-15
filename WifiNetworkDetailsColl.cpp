@@ -143,7 +143,7 @@ void WifiNetworkDetailsColl::connectToSsid(QString ssid, QString password) {
         QString program = "nmcli";
         QStringList arguments;
         arguments << "dev" << "wifi" << "connect" << ssid << "password" << password;
-        sigConnectionStarted();
+        emit sigConnectionStarted();
         m_process.start(program, arguments);
         m_process.waitForFinished();
 
@@ -154,7 +154,7 @@ void WifiNetworkDetailsColl::connectToSsid(QString ssid, QString password) {
         if (!errorOutput.isEmpty()) {
             qDebug() << "Error Output:\n" << errorOutput;
         }
-        sigConnectionFinished();
+        emit sigConnectionFinished();
         fetchActiveWifiDetails();
     });
     pthread.detach();
