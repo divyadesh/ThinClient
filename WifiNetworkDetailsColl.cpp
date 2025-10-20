@@ -1,12 +1,65 @@
 #include "WifiNetworkDetailsColl.h"
 #include "WifiNetworkDetails.h"
 #include <QQmlEngine>
-#include <thread>
 #include <QRegularExpression>
+#include <QDebug>
 
 WifiNetworkDetailsColl::WifiNetworkDetailsColl(QObject *parent)
     : QAbstractListModel{parent}
-{}
+{
+    // Async process for scanning
+    connect(&m_asyncProcess, &QProcess::finished, this, [this](int exitCode, QProcess::ExitStatus status) {
+        if (status != QProcess::NormalExit || exitCode != 0) {
+            qWarning() << "Async scan failed:" << m_asyncProcess.errorString();
+            return;
+        }
+
+        QString output = m_asyncProcess.readAllStandardOutput();
+        QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+
+        beginResetModel();
+        m_WifiDetailsColl.clear();
+        endResetModel();
+
+        for (const QString &line : lines) {
+            QStringList fields = line.split(":");
+            if (fields.size() < 7) continue;
+
+            QString active   = fields[0];
+            QString ssid     = fields[1];
+            QString bars     = fields[2];
+            QString security = fields[3];
+            int chan         = fields[4].toInt();
+            QString rate     = fields[5];
+            QString bssid    = fields.size() >= 12 ? QStringList(fields.mid(6, 6)).join(":") : "";
+
+            int bar = StrengthNone;
+            if (bars == "▂▄▆█")      bar = StrengthExcellent;
+            else if (bars == "▂▄▆_") bar = StrengthGood;
+            else if (bars == "▂▄__") bar = StrengthFair;
+            else if (bars == "▂___") bar = StrengthWeak;
+            else if (bars == "____") bar = StrengthNone;
+
+            if (active == "yes") {
+                setActiveSsid(ssid);
+                setActiveBars(bar);
+            }
+
+            bool isSecured = security.contains("WPA1") || security.contains("WPA2");
+
+            beginInsertRows(QModelIndex{}, static_cast<int>(m_WifiDetailsColl.size()), static_cast<int>(m_WifiDetailsColl.size()));
+            auto spNewWifiNetwork = std::make_shared<WifiNetworkDetails>(this, active, ssid, bar, isSecured, bssid, chan, rate);
+            QQmlEngine::setObjectOwnership(spNewWifiNetwork.get(), QQmlEngine::CppOwnership);
+            m_WifiDetailsColl.emplace_back(spNewWifiNetwork);
+            endInsertRows();
+        }
+
+        emit sigWifiListUpdated();
+    });
+
+    connect(&m_autoRefreshTimer, &QTimer::timeout, this, &WifiNetworkDetailsColl::getWifiDetailsAsync);
+    startAutoRefresh();
+}
 
 QHash<int, QByteArray> WifiNetworkDetailsColl::roleNames() const {
     QHash<int, QByteArray> roles;
@@ -19,180 +72,150 @@ int WifiNetworkDetailsColl::rowCount([[maybe_unused]] const QModelIndex &refMode
 }
 
 QVariant WifiNetworkDetailsColl::data(const QModelIndex &index, int role) const {
-    if((int)index.row() >= 0 && (std::size_t)index.row() < m_WifiDetailsColl.size()) {
-        switch(role) {
-        case eWifiListCollectionRole: {
+    if (index.row() >= 0 && static_cast<size_t>(index.row()) < m_WifiDetailsColl.size()) {
+        if (role == eWifiListCollectionRole)
             return QVariant::fromValue(static_cast<QObject*>(m_WifiDetailsColl.at(index.row()).get()));
-        }
-        }
     }
-    return QVariant {};
+    return QVariant{};
 }
 
 void WifiNetworkDetailsColl::clear() {
-    beginResetModel(); // Notify views that the model is about to change
-    m_WifiDetailsColl.clear(); // Actually clear the data
-    endResetModel(); // Notify views that the model has been reset
+    beginResetModel();
+    m_WifiDetailsColl.clear();
+    endResetModel();
     setActiveSsid("");
     setActiveBars(-1);
 }
 
-void WifiNetworkDetailsColl::getWifiDetails() {
-    clear();
-    m_process.start("nmcli", QStringList() << "-t" << "-f" << "ACTIVE,SSID,BARS,SECURITY,CHAN,RATE,BSSID" << "dev" << "wifi" << "list");
-    m_process.waitForFinished();
-    QString output = m_process.readAllStandardOutput();
-    QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+/* -------------------------------------------------------------------------- */
+/*                                ASYNC SCAN                                  */
+/* -------------------------------------------------------------------------- */
 
-    for (const QString &line : lines) {
-        QStringList fields = line.split(":");
-        if (fields.size() >= 3) {
-            QString active   = fields[0];
-            QString ssid     = fields[1];
-            QString bars     = fields[2];
-            QString security = fields[3];
-            int chan         = fields[4].toInt();
-            QString rate     = fields[5];
-            QString bssid    = fields[6].replace(QRegularExpression("\\\\+$"), ":") +
-                               fields[7].replace(QRegularExpression("\\\\+$"), ":") +
-                               fields[8].replace(QRegularExpression("\\\\+$"), ":") +
-                               fields[9].replace(QRegularExpression("\\\\+$"), ":") +
-                               fields[10].replace(QRegularExpression("\\\\+$"), ":") +
-                               fields[11];
-            qDebug()<<"::::> HELLO bssid="<<bssid<<", "<<fields[4]<<fields[5]<<fields[6]<<fields[7]<<fields[8]<<fields[9];
-            int bar = -1;
-            if(bars == "▂▄▆█")
-                bar = StrengthExcellent;
-            else if(bars == "▂▄▆_")
-                bar = StrengthGood;
-            else if(bars == "▂▄__")
-                bar = StrengthFair;
-            else if(bars == "▂___")
-                bar = StrengthWeak;
-            else if(bars == "____")
-                bar = StrengthNone;
-            if(active == "yes") {
-                setActiveSsid(ssid);
-                setActiveBars(bar);
-            }
-            bool isSecured = false;
-            QStringList parts = security.split(" ", Qt::SkipEmptyParts);
-            if(parts.size() > 1) {
-                for(const QString &p : parts) {
-                    qDebug() << p;
-                    if(p == "WPA1"||p == "WPA2") {
-                        isSecured = true;
-                        break;
-                    }
-                }
-            }
-            else {
-                if(security == "WPA1"||security == "WPA2")
-                    isSecured = true;
-            }
-            qDebug() <<"ACTIVE:"<<active <<", SSID:" << ssid << ", Signal Bars:" << bars<<", Security:"<<security<<", chan="<<chan<<", rate="<<rate;
-            beginInsertRows(QModelIndex{}, static_cast<int>(m_WifiDetailsColl.size()), static_cast<int>(m_WifiDetailsColl.size()));
-            std::shared_ptr<WifiNetworkDetails> spNewWifiNetwork = std::make_shared<WifiNetworkDetails>(this, active, ssid, bar, isSecured, bssid, chan, rate);
-            if(spNewWifiNetwork) {
-                QQmlEngine::setObjectOwnership(spNewWifiNetwork.get(), QQmlEngine::CppOwnership);
-                m_WifiDetailsColl.emplace_back(spNewWifiNetwork);
-            }
-            endInsertRows();
-        }
-    }
+void WifiNetworkDetailsColl::getWifiDetails() {
+    // Just trigger the async one-shot version for backward compatibility
+    getWifiDetailsAsync();
 }
 
 void WifiNetworkDetailsColl::fetchActiveWifiDetails() {
-    setActiveSsid("");
-    setActiveBars(-1);
-    m_process.start("nmcli", QStringList() << "-t" << "-f" << "ACTIVE,SSID,BARS" << "dev" << "wifi" << "list");
-    m_process.waitForFinished();
-    QString output = m_process.readAllStandardOutput();
-    QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+    // Use the same async QProcess safely on the main thread
+    QProcess *proc = new QProcess(this);
+    connect(proc, &QProcess::finished, this, [this, proc](int exitCode, QProcess::ExitStatus status) {
+        proc->deleteLater();
 
-    for (const QString &line : lines) {
-        QStringList fields = line.split(":");
-        if (fields.size() >= 3) {
+        if (status != QProcess::NormalExit || exitCode != 0) {
+            qWarning() << "fetchActiveWifiDetails failed:" << proc->errorString();
+            return;
+        }
+
+        QString output = proc->readAllStandardOutput();
+        QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+
+        setActiveSsid("");
+        setActiveBars(-1);
+
+        for (const QString &line : lines) {
+            QStringList fields = line.split(":");
+            if (fields.size() < 3)
+                continue;
+
             QString active = fields[0];
             QString ssid   = fields[1];
             QString bars   = fields[2];
-            int bar = -1;
-            if(bars == "▂▄▆█")
-                bar = StrengthExcellent;
-            else if(bars == "▂▄▆_")
-                bar = StrengthGood;
-            else if(bars == "▂▄__")
-                bar = StrengthFair;
-            else if(bars == "▂___")
-                bar = StrengthWeak;
-            else if(bars == "____")
-                bar = StrengthNone;
-            if(active == "yes") {
+
+            int bar = StrengthNone;
+            if (bars == "▂▄▆█")      bar = StrengthExcellent;
+            else if (bars == "▂▄▆_") bar = StrengthGood;
+            else if (bars == "▂▄__") bar = StrengthFair;
+            else if (bars == "▂___") bar = StrengthWeak;
+
+            if (active == "yes") {
                 setActiveSsid(ssid);
                 setActiveBars(bar);
             }
-
-            qDebug() <<"ACTIVE:"<<active <<", SSID:" << ssid << ", Signal Bars:" << bars;
         }
-    }
+    });
+
+    proc->start("nmcli", QStringList() << "-t" << "-f" << "ACTIVE,SSID,BARS" << "dev" << "wifi" << "list");
+    startAutoRefresh();
 }
+
+/* -------------------------------------------------------------------------- */
+/*                            CONNECT / DISCONNECT                            */
+/* -------------------------------------------------------------------------- */
 
 void WifiNetworkDetailsColl::connectToSsid(QString ssid, QString password) {
-    //nmcli dev wifi connect "Home WiFi"
-    std::thread pthread ([this, &ssid, &password](){
-        QString program = "nmcli";
-        QStringList arguments;
-        arguments << "dev" << "wifi" << "connect" << ssid << "password" << password;
-        emit sigConnectionStarted();
-        m_process.start(program, arguments);
-        m_process.waitForFinished();
+    // Run safely in the main thread asynchronously
+    QProcess *proc = new QProcess(this);
 
-        QString output      = m_process.readAllStandardOutput();
-        QString errorOutput = m_process.readAllStandardError();
+    connect(proc, &QProcess::finished, this, [this, proc](int, QProcess::ExitStatus) {
+        QString output = proc->readAllStandardOutput();
+        QString errorOutput = proc->readAllStandardError();
+        qDebug() << "connectToSsid() Output:\n" << output;
+        if (!errorOutput.isEmpty())
+            qDebug() << "Error:\n" << errorOutput;
 
-        qDebug() << "connectToSsid() Command Output:\n" << output;
-        if (!errorOutput.isEmpty()) {
-            qDebug() << "Error Output:\n" << errorOutput;
-        }
         emit sigConnectionFinished();
+        proc->deleteLater();
+
         fetchActiveWifiDetails();
     });
-    pthread.detach();
+
+    emit sigConnectionStarted();
+    proc->start("nmcli", QStringList() << "dev" << "wifi" << "connect" << ssid << "password" << password);
 }
 
-void WifiNetworkDetailsColl::disconnectWifiNetwork(const QString& ssid) {
-    std::thread pthread ([this, &ssid](){
-        QString program = "nmcli";
-        QStringList arguments;
-        arguments << "con" << "down" << ssid;
+void WifiNetworkDetailsColl::disconnectWifiNetwork(const QString &ssid) {
+    QProcess *proc = new QProcess(this);
 
-        m_process.start(program, arguments);
-        m_process.waitForFinished();
+    connect(proc, &QProcess::finished, this, [this, proc](int, QProcess::ExitStatus) {
+        QString output = proc->readAllStandardOutput();
+        QString errorOutput = proc->readAllStandardError();
+        qDebug() << "disconnectWifiNetwork() Output:\n" << output;
+        if (!errorOutput.isEmpty())
+            qDebug() << "Error:\n" << errorOutput;
 
-        QString output = m_process.readAllStandardOutput();
-        QString error = m_process.readAllStandardError();
-        qDebug() << "Output:" << output;
-        qDebug() << "Error:" << error;
+        proc->deleteLater();
         fetchActiveWifiDetails();
     });
-    pthread.detach();
+
+    proc->start("nmcli", QStringList() << "con" << "down" << ssid);
 }
 
-/*QString WifiNetworkDetailsColl::getActiveSsid() {
-    for(auto& spWifiNetworkDetail : m_WifiDetailsColl) {
-        if(spWifiNetworkDetail->active() == "yes")
-            return spWifiNetworkDetail->ssid();
+/* -------------------------------------------------------------------------- */
+/*                             AUTO REFRESH / ASYNC                           */
+/* -------------------------------------------------------------------------- */
+
+void WifiNetworkDetailsColl::getWifiDetailsAsync() {
+    if (m_asyncProcess.state() != QProcess::NotRunning) {
+        qDebug() << "Scan already running — skipping this cycle.";
+        return;
     }
-    return QString("");
+
+    QStringList args = { "-t", "-f", "ACTIVE,SSID,BARS,SECURITY,CHAN,RATE,BSSID", "dev", "wifi", "list" };
+    m_asyncProcess.start("nmcli", args);
 }
 
-QString WifiNetworkDetailsColl::getActiveBars() {
-    for(auto& spWifiNetworkDetail : m_WifiDetailsColl) {
-        if(spWifiNetworkDetail->active() == "yes")
-            return spWifiNetworkDetail->bars();
+void WifiNetworkDetailsColl::startAutoRefresh(int intervalMs) {
+    if (m_autoRefreshTimer.isActive()) {
+        qDebug() << "Auto-refresh already running.";
+        return;
     }
-    return QString("");
-}*/
+
+    m_autoRefreshTimer.start(intervalMs);
+    qDebug() << "Wi-Fi auto-refresh started every" << intervalMs << "ms.";
+    getWifiDetailsAsync(); // first scan immediately
+}
+
+void WifiNetworkDetailsColl::stopAutoRefresh() {
+    if (m_autoRefreshTimer.isActive()) {
+        m_autoRefreshTimer.stop();
+        qDebug() << "Wi-Fi auto-refresh stopped.";
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             GETTERS / SETTERS                              */
+/* -------------------------------------------------------------------------- */
 
 QString WifiNetworkDetailsColl::activeSsid() const {
     return m_activeSsid;
@@ -214,4 +237,9 @@ void WifiNetworkDetailsColl::setActiveBars(const int &newActiveBars) {
         return;
     m_activeBars = newActiveBars;
     emit sigActiveBarsChanged(m_activeBars);
+}
+
+bool WifiNetworkDetailsColl::scanning() const
+{
+    return m_scanning;
 }
