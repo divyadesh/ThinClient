@@ -21,7 +21,7 @@ void AppSettings::setSelectedLanguage(const QString &lang)
 
 QString AppSettings::selectedTimeZone() const
 {
-    return m_settings.value("timezone", "UTC").toString();
+    return m_settings.value("timezone","").toString();
 }
 
 void AppSettings::setSelectedTimeZone(const QString &tz)

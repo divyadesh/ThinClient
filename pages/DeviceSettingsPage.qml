@@ -81,6 +81,7 @@ BasicPage {
                                 font.weight: Font.Normal
                                 onClicked: {
                                     persistData.saveData("Audio", 0)
+                                    DeviceSettings.setAudioOutput("alsa_output.pci-0000_00_1b.0.analog-stereo")
                                 }
                             }
 
@@ -93,6 +94,7 @@ BasicPage {
                                 font.weight: Font.Normal
                                 onClicked: {
                                     persistData.saveData("Audio", 1)
+                                    DeviceSettings.setAudioOutput("alsa_output.usb-Logitech_USB_Headset-00.analog-stereo")
                                 }
                             }
 
@@ -105,6 +107,7 @@ BasicPage {
                                 font.weight: Font.Normal
                                 onClicked: {
                                     persistData.saveData("Audio", 2)
+                                    DeviceSettings.setAudioOutput("alsa_output.pci-0000_01_00.1.hdmi-stereo")
                                 }
                             }
                         }
@@ -127,6 +130,7 @@ BasicPage {
                                 for (var i = 0; i < model.count; ++i) {
                                     if (model.get(i).tzId === appSettings.selectedTimeZone) {
                                         currentIndex = i
+                                        DeviceSettings.setTimezone(appSettings.selectedTimeZone)
                                         break
                                     }
                                 }
@@ -136,6 +140,7 @@ BasicPage {
                                 var obj = model.get(currentIndex)
                                 appSettings.selectedTimeZone = obj.tzId
                                 persistData.saveData("TimeZone", appSettings.selectedTimeZone)
+                                DeviceSettings.setTimezone(appSettings.selectedTimeZone)
                             }
                         }
                     }

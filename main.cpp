@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
 #include "Database.h"
-#include "DeviceSettings.h"
+#include "AudioSettingsOptions.h"
 #include "DeviceInfo.h"
 #include "ServerInfoColl.h"
 #include "WifiNetworkDetailsColl.h"
@@ -23,6 +23,7 @@
 #include "timezone_model.h"
 #include "qmlregistrar.h"
 #include "ethernetNetworkConroller.h"
+#include "devicesettings.h"
 
 bool updateWestonConfig()
 {
@@ -124,7 +125,9 @@ int main(int argc, char *argv[])
     AppSettings appSettings;
     LanguageModel languageModel(&appSettings);
     TimeZoneModel timeZoneModel;
+    DeviceSettings deviceSettings;
 
+    engine.rootContext()->setContextProperty("DeviceSettings", &deviceSettings);
     engine.rootContext()->setContextProperty("appSettings", &appSettings);
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
     engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
@@ -141,7 +144,7 @@ int main(int argc, char *argv[])
     // --- Register enums-only types for QML (App.Enums) ---
     qmlRegisterUncreatableType<WifiNetworkDetailsColl>(
         "App.Enums", 1, 0, "WifiNetworkDetailsColl", "Access to enums only");
-    qmlRegisterUncreatableType<DeviceSettings>(
+    qmlRegisterUncreatableType<AudioSettingsOptions>(
         "App.Enums", 1, 0, "Audio", "Access to enums only");
 
 

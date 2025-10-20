@@ -15,6 +15,7 @@ SOURCES += \
         appsettings.cpp \
         appunlockmanager.cpp \
         deviceinfosettings.cpp \
+        devicesettings.cpp \
         dnsnetworkinfo.cpp \
         ethernetmonitor.cpp \
         ethernetworker.cpp \
@@ -46,9 +47,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    AudioSettingsOptions.h \
     Database.h \
     DeviceInfo.h \
-    DeviceSettings.h \
     PersistData.h \
     RdpMonitorThread.h \
     ServerInfo.h \
@@ -58,6 +59,7 @@ HEADERS += \
     appsettings.h \
     appunlockmanager.h \
     deviceinfosettings.h \
+    devicesettings.h \
     dnsnetworkinfo.h \
     ethernetmonitor.h \
     ethernetworker.h \
