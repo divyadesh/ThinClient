@@ -6,8 +6,11 @@ import AppSecurity 1.0
 
 import "../controls"
 import "../components"
+import "../dialogs"
 
 BasicPage {
+    id: page
+    objectName: "HomePage"
     StackView.visible: true
     background: Image {
         //width : height = 3 : 2 Aspect ratio
@@ -19,6 +22,28 @@ BasicPage {
     }
 
     ButtonGroup { id: tabGroup }
+
+    Timer {
+        id: delayedConnectTimer
+        interval: 5000    // 5 seconds delay
+        repeat: false
+        running: false
+        property string serverIp: ""
+        property string connectionName: ""
+
+        onTriggered: {
+            if(pageStack.currentItem.objectName === "HomePage") {
+                pageStack.push(autoConnectServer, {"ipServer": serverIp, "connectionName": connectionName})
+            }
+        }
+    }
+
+    function connectRDServer(serverIp, connectionName, delayMs) {
+        delayedConnectTimer.interval = delayMs
+        delayedConnectTimer.serverIp = serverIp
+        delayedConnectTimer.connectionName = connectionName
+        delayedConnectTimer.start()
+    }
 
     Image {
         anchors.left: parent.left
@@ -65,6 +90,12 @@ BasicPage {
                         anchors.fill: parent
                         color: tabButton.checked ? Colors.accentHover : Colors.surfaceBackground
                         radius: 8
+                    }
+                }
+
+                Component.onCompleted: {
+                    if(serverInformation.autoEnable) {
+                        connectRDServer(serverInformation.serverIp, serverInformation.connectionName, 5000) // will run after 5 seconds
                     }
                 }
             }
@@ -144,6 +175,13 @@ BasicPage {
             onLoginSuccess: {
                 pageStack.replace(dashboardPage)
             }
+        }
+    }
+
+    Component {
+        id: autoConnectServer
+        AutoConnect {
+            onCancelled: {}
         }
     }
 }

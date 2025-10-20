@@ -171,6 +171,11 @@ BasicPage {
                         }
                     }
 
+                    Item {
+                        Layout.preferredHeight: 20
+                        Layout.fillWidth: true
+                    }
+
                     PrefsItemDelegate {
                         id: updatePwdDelegate
                         Layout.fillWidth: true
@@ -182,6 +187,48 @@ BasicPage {
                             implicitWidth: 260
                             text: qsTr("Update")
                             onClicked: pageStack.push(updatePassword)
+                        }
+                    }
+
+                    PrefsItemDelegate {
+                        id: enableOnScreenKeyboard
+                        Layout.fillWidth: true
+                        text: qsTr("Enable On Screen Keyboard")
+
+                        indicator: RowLayout {
+                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
+                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
+
+                            PrefsButton {
+                                id: securityButton
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                visible: !!text
+                                font.weight: Font.Normal
+                                onClicked: {}
+                            }
+                        }
+                    }
+
+                    PrefsItemDelegate {
+                        id: enableTouchScreen
+                        Layout.fillWidth: true
+                        text: qsTr("Enable Touch Screen")
+
+                        indicator: RowLayout {
+                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
+                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
+
+                            PrefsButton {
+                                id: enableTouchScreenButton
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                visible: !!text
+                                font.weight: Font.Normal
+                                onClicked: {}
+                            }
                         }
                     }
 

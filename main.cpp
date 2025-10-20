@@ -4,7 +4,10 @@
 #include <QQuickStyle>
 #include <QStyleHints>
 #include <QTimer>
-
+#include <QFile>
+#include <QDir>
+#include <QDebug>
+#include <QtConcurrent/QtConcurrent>
 #include "Database.h"
 #include "DeviceSettings.h"
 #include "DeviceInfo.h"
@@ -20,6 +23,75 @@
 #include "timezone_model.h"
 #include "qmlregistrar.h"
 #include "ethernetNetworkConroller.h"
+
+bool updateWestonConfig()
+{
+    const QString targetPath = "/etc/xdg/weston/weston.ini";
+    const QString sourcePath = "/etc/xdg/weston/thinclient/weston.ini";
+
+    QFile sourceFile(sourcePath);
+    QFile targetFile(targetPath);
+
+    // Check if source exists
+    if (!sourceFile.exists()) {
+        qWarning() << "Source Weston config not found:" << sourcePath;
+        return false;
+    }
+
+    // Remove old Weston config if present
+    if (targetFile.exists()) {
+        if (!targetFile.remove()) {
+            qWarning() << "Failed to remove old Weston config:" << targetPath;
+            return false;
+        } else {
+            qInfo() << "Removed old Weston config:" << targetPath;
+        }
+    }
+
+    // Ensure target directory exists
+    QDir dir(QFileInfo(targetPath).absolutePath());
+    if (!dir.exists()) {
+        if (!dir.mkpath(".")) {
+            qWarning() << "Failed to create Weston config directory:" << dir.absolutePath();
+            return false;
+        }
+    }
+
+    // Copy new config
+    if (!QFile::copy(sourcePath, targetPath)) {
+        qWarning() << "Failed to copy new Weston config from" << sourcePath << "to" << targetPath;
+        return false;
+    }
+
+    // Set proper permissions (optional but good practice)
+    QFile::setPermissions(targetPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+
+    qInfo() << "Weston config successfully updated from" << sourcePath << "to" << targetPath;
+    return true;
+}
+
+// called at application startup
+void ensureWestonConfig()
+{
+    QSettings settings("/var/lib/thinclient/settings.ini", QSettings::IniFormat);
+    bool alreadyUpdated = settings.value("WestonConfigUpdated", false).toBool();
+
+    if (!alreadyUpdated) {
+        qInfo() << "Updating Weston config for the first time...";
+        (void)QtConcurrent::run([=]() {
+            if (updateWestonConfig()) {
+                QSettings s("/var/lib/thinclient/settings.ini", QSettings::IniFormat);
+                s.setValue("WestonConfigUpdated", true);
+                s.sync();
+                qInfo() << "Weston config updated and marked as done.";
+            } else {
+                qWarning() << "Weston config update failed!";
+            }
+        });
+    } else {
+        qInfo() << "Weston config already updated previously — skipping.";
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -120,6 +192,8 @@ int main(int argc, char *argv[])
             qInfo() << "Auto-connect triggered for:" << result.first << "IP:" << result.second;
         }
     });
+
+    ensureWestonConfig();
 
     // --- Load Main QML ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));

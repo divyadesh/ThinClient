@@ -134,22 +134,31 @@ void ServerInfoColl::launchRDPSequence(const QString &server, const QString &use
 {
     QString script = "/usr/bin/run_rdp.sh";
 
-    QProcess process;
-    QStringList args{server, username, password};
+    // Run the RDP launcher as an independent systemd scope
+    QStringList args;
+    args << "--scope"
+         << "--slice=rdp"
+         << script
+         << server
+         << username
+         << password;
 
-    process.start(script, args);
-    if (!process.waitForStarted(5000)) {
-        qCWarning(lcServerInfo) << "Failed to start RDP script.";
+    QProcess *process = new QProcess(this);
+    process->setProgram("systemd-run");
+    process->setArguments(args);
+
+    qInfo() << "Starting RDP launcher via systemd-run:" << args.join(" ");
+
+    // Start detached so it won’t be killed when this Qt process stops
+    bool started = process->startDetached();
+
+    if (!started) {
+        qWarning() << "Failed to start RDP launcher using systemd-run.";
+        delete process;
         return;
     }
 
-    process.waitForFinished(-1);
-    int exitCode = process.exitCode();
-
-    if (exitCode == 0)
-        qCInfo(lcServerInfo) << "RDP session finished successfully.";
-    else
-        qCWarning(lcServerInfo) << "RDP script exited with code:" << exitCode;
+    qInfo() << "RDP launcher started successfully in separate scope.";
 }
 
 void ServerInfoColl::onRdpFinished()

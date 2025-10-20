@@ -71,5 +71,6 @@
         <file>dialogs/SoftwareUpdater.qml</file>
         <file>dialogs/WifiDetails.qml</file>
         <file>dialogs/SetWifiPassword.qml</file>
+        <file>dialogs/AutoConnect.qml</file>
     </qresource>
 </RCC>

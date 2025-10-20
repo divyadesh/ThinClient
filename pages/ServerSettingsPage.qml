@@ -218,19 +218,6 @@ BasicPage {
                                         visible: running
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     }
-                                    Connections {
-                                        target: serverInfo
-                                        function onSigConnectionStarted() {
-                                            if(index === page.currentIndex) {
-                                                busyIndicator.running = true
-                                            }
-                                        }
-                                        function onSigConnectionCompleted() {
-                                            if(index === page.currentIndex) {
-                                                busyIndicator.running = false
-                                            }
-                                        }
-                                    }
                                 }
                             }
 

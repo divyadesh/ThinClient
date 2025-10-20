@@ -61,25 +61,13 @@ BasicPage {
 
                             model: [
                                 "Auto",
-                                "640 x 480",     // VGA
-                                "800 x 600",     // SVGA
                                 "1024 x 768",    // XGA
                                 "1280 x 720",    // HD
-                                "1280 x 800",    // WXGA
                                 "1366 x 768",    // HD+
                                 "1440 x 900",    // WXGA+
                                 "1600 x 900",    // HD+
-                                "1600 x 1200",   // UXGA
                                 "1680 x 1050",   // WSXGA+
                                 "1920 x 1080",   // Full HD
-                                "1920 x 1200",   // WUXGA
-                                "2048 x 1152",   // 2K-ish
-                                "2560 x 1080",   // UltraWide FHD
-                                "2560 x 1440",   // QHD
-                                "2560 x 1600",   // WQXGA
-                                "3440 x 1440",   // UltraWide QHD
-                                "3840 x 1600",   // UltraWide 4K-ish
-                                "3840 x 2160"    // 4K UHD
                             ]
                             onCurrentIndexChanged: {
                                 if(currentIndex > 0) {
@@ -108,7 +96,6 @@ BasicPage {
                             y: orientation.topPadding + (orientation.availableHeight - height) / 2
 
                             model: [
-                                "Auto",
                                 "Landscape",
                                 "Portrait",
                                 "Landscape (Flipped)",
