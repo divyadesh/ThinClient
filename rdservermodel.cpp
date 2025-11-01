@@ -55,10 +55,10 @@ QHash<int, QByteArray> RdServerModel::roleNames() const
         {RedirectDriveRole, "redirectDrive"},
         {RedirectUsbDeviceRole, "redirectUsbDevice"},
         {SecurityRole, "security"},
-        {GatewayRole, "gateway"},
-        {GatewayIpRole, "gatewayIp"},
-        {GatewayUserNameRole, "gatewayUserName"},
-        {GatewayPasswordRole, "gatewayPassword"},
+        {GatewayRole, "gatewayValue"},
+        {GatewayIpRole, "gatewayIpValue"},
+        {GatewayUserNameRole, "gatewayUserNameValue"},
+        {GatewayPasswordRole, "gatewayPasswordValue"},
         {AutoConnectRole, "autoConnect"},
     };
 }
@@ -148,8 +148,8 @@ void RdServerModel::fetchAll()
         s.enableMicrophone    = query.value("enableMicrophone").toBool();
         s.redirectDrive       = query.value("redirectDrive").toBool();
         s.redirectUsbDevice   = query.value("redirectUsbDevice").toBool();
-        s.security            = query.value("security").toString();
-        s.gateway             = query.value("gateway").toString();
+        s.security            = query.value("security").toBool();
+        s.gateway             = query.value("gateway").toBool();
         s.gatewayIp           = query.value("gateway_ip").toString();
         s.gatewayUserName     = query.value("gateway_user_name").toString();
         s.gatewayPassword     = query.value("gateway_password").toString();

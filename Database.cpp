@@ -113,8 +113,8 @@ bool DataBase::createTable()
         enableMicrophone      BOOLEAN,
         redirectDrive         BOOLEAN,
         redirectUsbDevice     BOOLEAN,
-        security              VARCHAR(3),
-        gateway               VARCHAR(1),
+        security              BOOLEAN,
+        gateway               BOOLEAN,
         gateway_ip            VARCHAR(15),
         gateway_user_name     VARCHAR(50),
         gateway_password      VARCHAR(50),
@@ -262,18 +262,18 @@ void DataBase::qmlInsertServerData()
 
     // Safe binding using helper functions
     query.bindValue(":connectionname",    safeValue(m_insertIntoValues, 0,  "Unnamed"));
-    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  "0.0.0.0:0000"));
+    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  ""));
     query.bindValue(":deviceName",        safeValue(m_insertIntoValues, 2,  "UnknownDevice"));
-    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  "guest"));
+    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  ""));
     query.bindValue(":passwd",            safeValue(m_insertIntoValues, 4,  ""));
     query.bindValue(":performance",       safeValue(m_insertIntoValues, 5,  "Best"));
     query.bindValue(":enableAudio",       toBool(safeValue(m_insertIntoValues, 6), false));
     query.bindValue(":enableMicrophone",  toBool(safeValue(m_insertIntoValues, 7), false));
     query.bindValue(":redirectDrive",     toBool(safeValue(m_insertIntoValues, 8), false));
     query.bindValue(":redirectUsbDevice", toBool(safeValue(m_insertIntoValues, 9), false));
-    query.bindValue(":security",          safeValue(m_insertIntoValues, 10, "RDP"));
-    query.bindValue(":gateway",           safeValue(m_insertIntoValues, 11, "0"));
-    query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, "0.0.0.0"));
+    query.bindValue(":security",          toBool(safeValue(m_insertIntoValues, 10), false));
+    query.bindValue(":gateway",           toBool(safeValue(m_insertIntoValues, 11), false));
+    query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, ""));
     query.bindValue(":gatewayusername",   safeValue(m_insertIntoValues, 13, ""));
     query.bindValue(":gatewaypassword",   safeValue(m_insertIntoValues, 14, ""));
 
@@ -359,29 +359,29 @@ void DataBase::qmlUpdateServerData(const QString &connectionId)
             redirectUsbDevice    = :redirectusbdevice,
             security             = :security,
             gateway              = :gateway,
-            gateway_ip           = :gatewayip,
-            gateway_user_name    = :gatewayusername,
-            gateway_password     = :gatewaypassword
+            gateway_ip           = :gatewayIp,
+            gateway_user_name    = :gatewayUserName,
+            gateway_password     = :gatewayPassword
         WHERE
             connection_id = :connectionid
     )");
 
     // Bind safe values using your helpers
     query.bindValue(":connectionname",    safeValue(m_insertIntoValues, 0,  "Unnamed"));
-    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  "0.0.0.0:0000"));
+    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  ""));
     query.bindValue(":devicename",        safeValue(m_insertIntoValues, 2,  "UnknownDevice"));
-    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  "guest"));
+    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  ""));
     query.bindValue(":passwd",            safeValue(m_insertIntoValues, 4,  ""));
     query.bindValue(":performance",       safeValue(m_insertIntoValues, 5,  "Best"));
     query.bindValue(":enableaudio",       toBool(m_insertIntoValues[6], false));
     query.bindValue(":enablemicrophone",  toBool(m_insertIntoValues[7], false));
     query.bindValue(":redirectdrive",     toBool(m_insertIntoValues[8], false));
     query.bindValue(":redirectusbdevice", toBool(m_insertIntoValues[9], false));
-    query.bindValue(":security",          safeValue(m_insertIntoValues, 10, "RDP"));
-    query.bindValue(":gateway",           safeValue(m_insertIntoValues, 11, "0"));
-    query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, "0.0.0.0"));
-    query.bindValue(":gatewayusername",   safeValue(m_insertIntoValues, 13, ""));
-    query.bindValue(":gatewaypassword",   safeValue(m_insertIntoValues, 14, ""));
+    query.bindValue(":security",          toBool(m_insertIntoValues[10], false));
+    query.bindValue(":gateway",           toBool(m_insertIntoValues[11], false));;
+    query.bindValue(":gatewayIp",         safeValue(m_insertIntoValues, 12, ""));
+    query.bindValue(":gatewayUserName",   safeValue(m_insertIntoValues, 13, ""));
+    query.bindValue(":gatewayPassword",   safeValue(m_insertIntoValues, 14, ""));
 
     // Bind connection ID (primary key)
     query.bindValue(":connectionid", connectionId);

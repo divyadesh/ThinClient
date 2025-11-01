@@ -63,8 +63,8 @@ private:
         bool enableMicrophone;
         bool redirectDrive;
         bool redirectUsbDevice;
-        QString security;
-        QString gateway;
+        bool security;
+        bool gateway;
         QString gatewayIp;
         QString gatewayUserName;
         QString gatewayPassword;

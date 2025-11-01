@@ -12,11 +12,7 @@ BasicPage {
     id: page
     padding: 20
     StackView.visible: true
-    property bool isServer: false
-    property bool editConnection: false
-    property string connectionName: ""
     property string connectionId: ""
-    property string ipAddr: ""
     property string errorMessage: ""
     property bool hasError: errorMessage.length > 0
 
@@ -289,12 +285,14 @@ BasicPage {
                                             driveButton.checked        = isTrue(redirectDrive)
                                             usbDeviceButton.checked    = isTrue(redirectUsbDevice)
                                             securityButton.checked     = isTrue(security)
-                                            rdGateWay.checked          = isTrue(gateway)
+                                            rdGateWay.checked          = isTrue(gatewayValue)
 
                                             // --- Gateway fields ---
-                                            gatewayIp.text        = gatewayIp || ""
-                                            gatewayUserName.text  = gatewayUserName || ""
-                                            gatewayPassword.text  = gatewayPassword || ""
+                                            if(gatewayValue) {
+                                                gatewayIp.text        = gatewayIpValue || ""
+                                                gatewayUserName.text  = gatewayUserNameValue || ""
+                                                gatewayPassword.text  = gatewayPasswordValue || ""
+                                            }
 
                                             console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
                                         }
@@ -555,9 +553,6 @@ BasicPage {
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
-                                    validator: RegularExpressionValidator {
-                                        regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
-                                    }
                                 }
 
                                 RowLayout {
@@ -695,6 +690,7 @@ BasicPage {
 
                         // Optional: reset any displayed messages or validation
                         page.errorMessage = ""
+                        page.connectionId = ""
                     }
 
                     function validateRequiredFields() {
