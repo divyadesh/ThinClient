@@ -62,7 +62,7 @@ BasicPage {
                             ButtonGroup.group: tabGroup
                             checked: true
                             text: root.server ? qsTr("RD Server") : qsTr("RD Windows")
-                            onClicked: pageStack.replace(serverSettingsPage, {isServer:root.server, pageTitle: text })
+                            onClicked: pageStack.replace(serverSettingsPage, {pageTitle: text })
                         }
 
                         PageTabButton {
@@ -111,7 +111,7 @@ BasicPage {
                 id: pageStack
 
                 Component.onCompleted:  {
-                    pageStack.replace(serverSettingsPage, {isServer: root.server, pageTitle: root.server ? qsTr("RD Server") : qsTr("RD Windows") })
+                    pageStack.replace(serverSettingsPage, { pageTitle: qsTr("RD Server") })
                 }
             }
         }
