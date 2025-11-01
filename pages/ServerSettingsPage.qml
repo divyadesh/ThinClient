@@ -235,11 +235,14 @@ BasicPage {
                                     spacing: 10
                                     ButtonGroup.group: radioGroup
                                     checked: autoConnect
-                                    onToggled: {
+
+                                    onCheckedChanged: {
                                         serverInfo.resetAutoConnect()
                                         autoConnect = checked
-                                        persistData.saveData("AutoConnectIpAddress", serverIp)
-                                        persistData.saveData("AutoConnectConnectionName", connectionName)
+                                        if(checked) {
+                                            persistData.saveData("AutoConnectIpAddress", serverIp)
+                                            persistData.saveData("AutoConnectConnectionName", connectionName)
+                                        }
                                     }
                                 }
                             }

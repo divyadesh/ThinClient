@@ -76,8 +76,6 @@ void ServerInfoColl::removeConnection(const QString &connectionId)
 
 void ServerInfoColl::resetAutoConnect()
 {
-    // for (auto &serverInfo : m_ServerInfoColl)
-    //     serverInfo->setAutoEnable(false);
 }
 
 // === RDP logic ===
