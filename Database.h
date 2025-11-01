@@ -54,16 +54,13 @@ public:
     void setQueryResultList(QStringList newQueryResultList);
 
     // --- Public Methods Accessible from QML ---
-    Q_INVOKABLE QStringList qmlQueryServerTable(const QString &connectionName,
-                                         const QString &serverIpAddress);
-
-    Q_INVOKABLE bool removeServer(const QString &connectionName,
-                                  const QString &serverIp);
-
+    Q_INVOKABLE QStringList qmlQueryServerTable(const QString &connectionId);
+    Q_INVOKABLE bool removeServer(const QString &connectionId);
     Q_INVOKABLE void qmlInsertWifiData();
     Q_INVOKABLE void qmlInsertServerData();
-    Q_INVOKABLE void qmlUpdateServerData(const QString &connectionName,
-                                         const QString &serverIp);
+    Q_INVOKABLE void qmlUpdateServerData(const QString &connectionId);
+    Q_INVOKABLE bool serverExists(const QString &connectionName, const QString &serverIp);
+    Q_INVOKABLE bool serverExists(const QString &connectionId);
 
     /**
      * @brief Retrieves all server entries and populates a ServerInfoColl object.
@@ -74,6 +71,7 @@ public:
 signals:
     void sigInsertIntoValuesChanged();
     void sigQueryResultListChanged();
+    void refreshTable();
 
 private:
     // --- Constructor (Private for Singleton) ---

@@ -30,15 +30,14 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     // Exposed QML methods
-    Q_INVOKABLE void setServerInfo(QString connectionName, QString serverIp);
-    Q_INVOKABLE void removeConnection(QString connectionName, QString serverIp);
+    Q_INVOKABLE void setServerInfo(const QString &connectionId);
+    Q_INVOKABLE void removeConnection(const QString &connectionId);
     Q_INVOKABLE void resetAutoConnect();
-    Q_INVOKABLE void connectRdServer(const QString &serverIp, const QString &connectionName);
+    Q_INVOKABLE void connectRdServer(const QString &connectionId);
 
     // Helpers
-    int getIndexToBeRemoved(QString connectionName, QString serverIp);
-    void setAutoConnect(QString connectionName, QString serverIp);
-    std::pair<QString, QString> checkAutoConnect();
+    int getIndexToBeRemoved(const QString &connectionId);
+    void setAutoConnect(const QString &connectionId);
 
 signals:
     void rdpSessionStarted();

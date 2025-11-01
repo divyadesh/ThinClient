@@ -40,47 +40,33 @@ QVariant ServerInfoColl::data(const QModelIndex &index, int role) const
 
 // === Core logic ===
 
-int ServerInfoColl::getIndexToBeRemoved(QString connectionName, QString serverIp)
+int ServerInfoColl::getIndexToBeRemoved(const QString &connectionId)
 {
     for (int i = 0; i < static_cast<int>(m_ServerInfoColl.size()); ++i) {
         const auto &info = m_ServerInfoColl.at(i);
-        if (info->connectionName() == connectionName && info->serverIp() == serverIp)
+        if (info->connectionId() == connectionId)
             return i;
     }
     return -1;
 }
 
-void ServerInfoColl::setAutoConnect(QString connectionName, QString serverIp)
+void ServerInfoColl::setAutoConnect(const QString &connectionId)
 {
-    for (auto &serverInfo : m_ServerInfoColl) {
-        if (serverInfo->connectionName() == connectionName && serverInfo->serverIp() == serverIp) {
-            serverInfo->setAutoEnable(true);
-            break;
-        }
-    }
+//need to impement in better way
 }
 
-std::pair<QString, QString> ServerInfoColl::checkAutoConnect()
-{
-    for (auto &serverInfo : m_ServerInfoColl) {
-        if (serverInfo->autoEnable())
-            return {serverInfo->connectionName(), serverInfo->serverIp()};
-    }
-    return {"", ""};
-}
-
-void ServerInfoColl::setServerInfo(QString connectionName, QString serverIp)
+void ServerInfoColl::setServerInfo(const QString &connectionId)
 {
     beginInsertRows(QModelIndex{}, rowCount(), rowCount());
-    auto spServerInfo = std::make_shared<ServerInfo>(this, connectionName, serverIp);
+    auto spServerInfo = std::make_shared<ServerInfo>(connectionId, this);
     QQmlEngine::setObjectOwnership(spServerInfo.get(), QQmlEngine::CppOwnership);
     m_ServerInfoColl.emplace_back(spServerInfo);
     endInsertRows();
 }
 
-void ServerInfoColl::removeConnection(QString connectionName, QString serverIp)
+void ServerInfoColl::removeConnection(const QString &connectionId)
 {
-    int index = getIndexToBeRemoved(connectionName, serverIp);
+    int index = getIndexToBeRemoved(connectionId);
     if (index < 0) return;
 
     beginRemoveRows(QModelIndex(), index, index);
@@ -90,13 +76,13 @@ void ServerInfoColl::removeConnection(QString connectionName, QString serverIp)
 
 void ServerInfoColl::resetAutoConnect()
 {
-    for (auto &serverInfo : m_ServerInfoColl)
-        serverInfo->setAutoEnable(false);
+    // for (auto &serverInfo : m_ServerInfoColl)
+    //     serverInfo->setAutoEnable(false);
 }
 
 // === RDP logic ===
 
-void ServerInfoColl::connectRdServer(const QString &serverIp, const QString &connectionName)
+void ServerInfoColl::connectRdServer(const QString &connectionId)
 {
     if (_already_running) {
         qCInfo(lcServerInfo) << "RDP session already running — skipping new request.";
@@ -108,8 +94,8 @@ void ServerInfoColl::connectRdServer(const QString &serverIp, const QString &con
         return;
     }
 
-    QStringList info = _database->qmlQueryServerTable(connectionName, serverIp);
-    qCInfo(lcServerInfo) << "Queried server info for" << connectionName << ":" << info;
+    QStringList info = _database->qmlQueryServerTable(connectionId);
+    qCInfo(lcServerInfo) << "Queried server info for" << connectionId << ":" << info;
 
     if (info.size() <= 5) {
         qCWarning(lcServerInfo) << "Insufficient data from qmlQueryServerTable — aborting.";

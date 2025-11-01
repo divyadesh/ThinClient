@@ -15,6 +15,7 @@ BasicPage {
     property bool isServer: false
     property bool editConnection: false
     property string connectionName: ""
+    property string connectionId: ""
     property string ipAddr: ""
     property string errorMessage: ""
     property bool hasError: errorMessage.length > 0
@@ -94,7 +95,7 @@ BasicPage {
                     }
                     ScrollIndicator.vertical: ScrollIndicator { }
 
-                    model: serverInfo
+                    model: serverModel
                     header: Control {
                         width: listView.width
                         padding: 20
@@ -190,7 +191,7 @@ BasicPage {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
-                                    text: serverInformation.connectionName
+                                    text: connectionName
                                 }
                             }
 
@@ -208,7 +209,7 @@ BasicPage {
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                         horizontalAlignment: Label.AlignLeft
                                         verticalAlignment: Label.AlignVCenter
-                                        text: serverInformation.serverIp
+                                        text: serverIp
                                     }
 
                                     PrefsBusyIndicator {
@@ -237,12 +238,12 @@ BasicPage {
                                     font.weight: Font.Normal
                                     spacing: 10
                                     ButtonGroup.group: radioGroup
-                                    checked: serverInformation.autoEnable
+                                    checked: autoConnect
                                     onToggled: {
                                         serverInfo.resetAutoConnect()
-                                        serverInformation.autoEnable = checked
-                                        persistData.saveData("AutoConnectIpAddress", serverInformation.serverIp)
-                                        persistData.saveData("AutoConnectConnectionName", serverInformation.connectionName)
+                                        autoConnect = checked
+                                        persistData.saveData("AutoConnectIpAddress", serverIp)
+                                        persistData.saveData("AutoConnectConnectionName", connectionName)
                                     }
                                 }
                             }
@@ -259,40 +260,43 @@ BasicPage {
                                     PrefsLink {
                                         text: qsTr("Connect")
                                         onClicked: {
-                                            serverInfo.connectRdServer(serverInformation.serverIp, serverInformation.connectionName)
+                                            serverInfo.connectRdServer(connectionId)
                                         }
                                     }
 
                                     PrefsLink {
                                         text: qsTr("Edit")
                                         onClicked: {
-                                            dataBase.qmlQueryServerTable(serverInformation.connectionName, serverInformation.serverIp)
-
-                                            if (dataBase.queryResultList.length > 0) {
-                                                populateConnectionFields(dataBase.queryResultList)
-                                            }
+                                            page.connectionId = connectionId
+                                            populateConnectionFields()
                                         }
 
-                                        function populateConnectionFields(values) {
-                                            connectionField.text   = values[0]
-                                            serverIpField.text     = values[1]
-                                            deviceNameField.text   = values[2]
-                                            usernameField.text     = values[3]
-                                            passwordField.text     = values[4]
+                                        function populateConnectionFields() {
+                                            // --- Text fields ---
+                                            connectionField.text   = connectionName || ""
+                                            serverIpField.text     = serverIp || ""
+                                            deviceNameField.text   = deviceName || ""
+                                            usernameField.text     = userName || ""
+                                            passwordField.text     = password || ""
 
-                                            performanceRadioButton.leftButton.checked  = (values[5] === "Best")
-                                            performanceRadioButton.rightButton.checked = (values[5] === "Auto")
+                                            // --- Performance radio ---
+                                            performanceRadioButton.leftButton.checked  = (performance === "Best")
+                                            performanceRadioButton.rightButton.checked = (performance === "Auto")
 
-                                            audioButton.checked        = isTrue(values[6])
-                                            microphoneButton.checked   = isTrue(values[7])
-                                            driveButton.checked        = isTrue(values[8])
-                                            usbDeviceButton.checked    = isTrue(values[9])
-                                            securityButton.checked     = isTrue(values[10])
-                                            rdGateWay.checked          = isTrue(values[11])
+                                            // --- Feature toggles ---
+                                            audioButton.checked        = isTrue(enableAudio)
+                                            microphoneButton.checked   = isTrue(enableMicrophone)
+                                            driveButton.checked        = isTrue(redirectDrive)
+                                            usbDeviceButton.checked    = isTrue(redirectUsbDevice)
+                                            securityButton.checked     = isTrue(security)
+                                            rdGateWay.checked          = isTrue(gateway)
 
-                                            gatewayIp.text        = values[12]
-                                            gatewayUserName.text  = values[13]
-                                            gatewayPassword.text  = values[14]
+                                            // --- Gateway fields ---
+                                            gatewayIp.text        = gatewayIp || ""
+                                            gatewayUserName.text  = gatewayUserName || ""
+                                            gatewayPassword.text  = gatewayPassword || ""
+
+                                            console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
                                         }
 
                                         function isTrue(value) {
@@ -303,8 +307,7 @@ BasicPage {
                                     PrefsLink {
                                         text: qsTr("Delete")
                                         onClicked: {
-                                            page.connectionName = serverInformation.connectionName
-                                            page.ipAddr = serverInformation.serverIp
+                                            page.connectionId = connectionId
                                             pageStack.push(deleteConnection)
                                         }
                                     }
@@ -615,91 +618,101 @@ BasicPage {
                     enabled: !page.hasError
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     onClicked: {
+                        // 1️⃣ Validate form input
                         if (!validateRequiredFields()) {
-                            console.log("Validation failed — missing required fields.")
+                            console.warn("Validation failed — missing required fields.")
                             return
                         }
 
-                        let newList = [
-                                connectionField.text,
-                                serverIpField.text,
-                                deviceNameField.text,
-                                usernameField.text,
-                                passwordField.text,
-                                performanceRadioButton.tabGroup.checkedButton.text,
-                                audioButton.checked,
-                                microphoneButton.checked,
-                                driveButton.checked,
-                                usbDeviceButton.checked,
-                                securityButton.checked,
-                                rdGateWay.checked,
-                                gatewayIp.text,
-                                gatewayUserName.text,
-                                gatewayPassword.text
-                            ]
+                        // 2️⃣ Collect all field values in proper order
+                        const newList = [
+                            connectionField.text.trim(),
+                            serverIpField.text.trim(),
+                            deviceNameField.text.trim(),
+                            usernameField.text.trim(),
+                            passwordField.text.trim(),
+                            performanceRadioButton.tabGroup.checkedButton?.text || "Best",
+                            audioButton.checked,
+                            microphoneButton.checked,
+                            driveButton.checked,
+                            usbDeviceButton.checked,
+                            securityButton.checked,
+                            rdGateWay.checked,
+                            gatewayIp.text.trim(),
+                            gatewayUserName.text.trim(),
+                            gatewayPassword.text.trim()
+                        ]
 
                         dataBase.insertIntoValues = newList
 
-                        if (!page.editConnection) {
-                            dataBase.qmlInsertServerData()
-                            serverInfo.setServerInfo(connectionField.text, serverIpField.text)
+                        // 3️⃣ Check if connection already exists (simple existence check)
+                        const exists = dataBase.serverExists(page.connectionId)
+
+                        if (exists) {
+                            dataBase.qmlUpdateServerData(page.connectionId)
+                            serverInfo.removeConnection(page.connectionId)
+                            console.log("🔄 Existing connection updated:", connectionField.text.trim())
                         } else {
-                            page.editConnection = false
-                            dataBase.qmlUpdateServerData(page.connectionName, page.ipAddr)
-                            serverInfo.removeConnection(page.connectionName, page.ipAddr)
-                            serverInfo.setServerInfo(connectionField.text, serverIpField.text, page.autoConnectRadioButtn)
+                            dataBase.qmlInsertServerData()
+                            console.log("✅ New connection added:", connectionField.text.trim())
                         }
 
+                        // 4️⃣ Refresh server list model
+                        serverInfo.setServerInfo(page.connectionId)
+
+                        // 5️⃣ Reset form
                         clearEntryFields()
                     }
 
                     function clearEntryFields() {
-                        connectionField.text = ""
-                        serverIpField.text = ""
-                        deviceNameField.text = ""
-                        usernameField.text = ""
-                        passwordField.text = ""
+                        // --- Text Fields ---
+                        const textFields = [
+                            connectionField,
+                            serverIpField,
+                            deviceNameField,
+                            usernameField,
+                            passwordField,
+                            gatewayIp,
+                            gatewayUserName,
+                            gatewayPassword
+                        ]
 
-                        audioButton.checked = false
-                        microphoneButton.checked = false
-                        driveButton.checked = false
-                        usbDeviceButton.checked = false
-                        securityButton.checked = false
+                        for (const field of textFields)
+                            field.text = ""
 
-                        rdGateWay.checked = false
-                        gatewayIp.text = ""
-                        gatewayUserName.text = ""
-                        gatewayPassword.text = ""
+                        // --- Toggle / Check Buttons ---
+                        const toggleButtons = [
+                            audioButton,
+                            microphoneButton,
+                            driveButton,
+                            usbDeviceButton,
+                            securityButton,
+                            rdGateWay
+                        ]
+
+                        for (const btn of toggleButtons)
+                            btn.checked = false
+
+                        // Optional: reset any displayed messages or validation
+                        page.errorMessage = ""
                     }
 
                     function validateRequiredFields() {
-                        // Reset errors before validation
                         page.errorMessage = ""
 
-                        // --- Validation checks for required fields ---
-                        if (connectionField.text.trim() === "") {
-                            page.errorMessage = qsTr("Connection Name cannot be empty")
-                            return false
-                        }
+                        const fields = [
+                            { value: connectionField.text, label: qsTr("Connection Name") },
+                            { value: serverIpField.text,  label: qsTr("Server IP") },
+                            { value: deviceNameField.text, label: qsTr("Device Name") },
+                            { value: usernameField.text,   label: qsTr("Username") },
+                            { value: passwordField.text,   label: qsTr("Password") }
+                        ]
 
-                        if (serverIpField.text.trim() === "") {
-                            page.errorMessage = qsTr("Server IP cannot be empty")
-                            return false
-                        }
-
-                        if (deviceNameField.text.trim() === "") {
-                            page.errorMessage = qsTr("Device Name cannot be empty")
-                            return false
-                        }
-
-                        if (usernameField.text.trim() === "") {
-                            page.errorMessage = qsTr("Username cannot be empty")
-                            return false
-                        }
-
-                        if (passwordField.text.trim() === "") {
-                            page.errorMessage = qsTr("Password cannot be empty")
-                            return false
+                        for (const field of fields) {
+                            if (!field.value || field.value.trim() === "") {
+                                page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
+                                return false
+                            }
                         }
 
                         return true
@@ -752,11 +765,17 @@ BasicPage {
         id: deleteConnection
         DeleteWifiConnection {
             onSigDelete: {
-                dataBase.removeServer(page.connectionName, page.ipAddr)
-                serverInfo.removeConnection(page.connectionName, page.ipAddr)
-                page.connectionName = ""
-                page.ipAddr = ""
+                dataBase.removeServer(page.connectionId)
+                serverInfo.removeConnection(page.connectionId)
+                page.connectionId = ""
             }
+        }
+    }
+
+    Connections {
+        target: dataBase
+        function onRefreshTable() {
+            serverModel.refresh()
         }
     }
 }

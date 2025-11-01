@@ -24,6 +24,7 @@
 #include "qmlregistrar.h"
 #include "ethernetNetworkConroller.h"
 #include "devicesettings.h"
+#include "rdservermodel.h"
 
 bool updateWestonConfig()
 {
@@ -126,6 +127,7 @@ int main(int argc, char *argv[])
     LanguageModel languageModel(&appSettings);
     TimeZoneModel timeZoneModel;
     DeviceSettings deviceSettings;
+    // Create a single instance of your model
 
     engine.rootContext()->setContextProperty("DeviceSettings", &deviceSettings);
     engine.rootContext()->setContextProperty("appSettings", &appSettings);
@@ -166,11 +168,16 @@ int main(int argc, char *argv[])
         dbInstance.getServerList(serverInfoColl);
     }
 
+    RdServerModel serverModel;
+
+    // Expose it to QML as a context property
+    engine.rootContext()->setContextProperty("serverModel", &serverModel);
+
     // --- Load Persistent and Network Data ---
-    serverInfoColl.setAutoConnect(
-        persistData.getData("AutoConnectConnectionName"),
-        persistData.getData("AutoConnectIpAddress")
-        );
+    // serverInfoColl.setAutoConnect(
+    //     persistData.getData("AutoConnectConnectionName"),
+    //     persistData.getData("AutoConnectIpAddress")
+    //     );
 
     deviceInfo.getDeviceInfoDetails();
     wifiNetworkDetailsColl.getWifiDetails();
@@ -187,14 +194,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("persistData", &persistData);
     engine.rootContext()->setContextProperty("deviceInfoSettings", &deviceInfoSettings);
     engine.rootContext()->setContextProperty("resetManager", &resetManager);
-
-    // --- Auto-Connect Check ---
-    QTimer::singleShot(5000, [&serverInfoColl] {
-        const auto result = serverInfoColl.checkAutoConnect();
-        if (!result.first.isEmpty()) {
-            qInfo() << "Auto-connect triggered for:" << result.first << "IP:" << result.second;
-        }
-    });
 
     ensureWestonConfig();
 

@@ -28,20 +28,18 @@ BasicPage {
         interval: 5000    // 5 seconds delay
         repeat: false
         running: false
-        property string serverIp: ""
-        property string connectionName: ""
+        property string connectionId: ""
 
         onTriggered: {
             if(pageStack.currentItem.objectName === "HomePage") {
-                pageStack.push(autoConnectServer, {"ipServer": serverIp, "connectionName": connectionName})
+                pageStack.push(autoConnectServer, {"connectionId": connectionId})
             }
         }
     }
 
-    function connectRDServer(serverIp, connectionName, delayMs) {
+    function connectRDServer(connectionId, delayMs) {
         delayedConnectTimer.interval = delayMs
-        delayedConnectTimer.serverIp = serverIp
-        delayedConnectTimer.connectionName = connectionName
+        delayedConnectTimer.connectionId = connectionId
         delayedConnectTimer.start()
     }
 
@@ -66,7 +64,7 @@ BasicPage {
             cellWidth: 220; cellHeight: 220
             clip: true
 
-            model: serverInfo
+            model: serverModel
 
             highlight: null
             focus: true
@@ -79,11 +77,11 @@ BasicPage {
                 contentItem: HomeTabButton {
                     id: tabButton
                     ButtonGroup.group: tabGroup
-                    text: serverInformation.connectionName
+                    text: connectionName
                     icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
 
                     onClicked: {
-                        serverInfo.connectRdServer(serverInformation.serverIp, serverInformation.connectionName)
+                        serverInfo.connectRdServer(connectionId)
                     }
 
                     background: Rectangle {
@@ -94,8 +92,8 @@ BasicPage {
                 }
 
                 Component.onCompleted: {
-                    if(serverInformation.autoEnable) {
-                        connectRDServer(serverInformation.serverIp, serverInformation.connectionName, 5000) // will run after 5 seconds
+                    if(autoConnect) {
+                        connectRDServer(connectionId, 5000) // will run after 5 seconds
                     }
                 }
             }
@@ -182,6 +180,13 @@ BasicPage {
         id: autoConnectServer
         AutoConnect {
             onCancelled: {}
+        }
+    }
+
+    Connections {
+        target: dataBase
+        function onRefreshTable() {
+            serverModel.refresh()
         }
     }
 }

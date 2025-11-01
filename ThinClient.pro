@@ -25,6 +25,7 @@ SOURCES += \
         logoloader.cpp \
         main.cpp \
         qmlregistrar.cpp \
+        rdservermodel.cpp \
         systemresetmanager.cpp \
         timezone_model.cpp \
         wifimonitor.cpp \
@@ -68,6 +69,7 @@ HEADERS += \
     language_model.h \
     logoloader.h \
     qmlregistrar.h \
+    rdservermodel.h \
     systemresetmanager.h \
     timezone_model.h \
     wifimonitor.h \

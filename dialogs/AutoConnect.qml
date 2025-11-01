@@ -16,8 +16,7 @@ import "../controls"
 
 BasicPage {
     id: control
-    property string ipServer: ""
-    property string connectionName: ""
+    property string connectionId: ""
 
     signal cancelled()
 
@@ -36,7 +35,7 @@ BasicPage {
         running: false
         repeat: false
         onTriggered: {
-            serverInfo.connectRdServer(control.ipServer, control.connectionName)
+            serverInfo.connectRdServer(control.connectionId)
         }
     }
 

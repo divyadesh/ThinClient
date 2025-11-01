@@ -6,29 +6,20 @@
 class ServerInfo : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString connectionName READ connectionName WRITE setConnectionName NOTIFY sigConnectionNameChanged FINAL)
-    Q_PROPERTY(QString serverIp READ serverIp WRITE setServerIp NOTIFY sigServerIpChanged FINAL)
-    Q_PROPERTY(bool autoEnable READ autoEnable WRITE setAutoEnable NOTIFY sigAutoEnableChanged FINAL)
+    Q_PROPERTY(QString connectionId READ connectionId WRITE setConnectionId NOTIFY connectionIdChanged FINAL)
 
-    QString m_connectionName;
-    QString m_serverIp;
-    bool m_autoEnable;
 public:
-    explicit ServerInfo(QObject *parent = nullptr, QString connectionName = "", QString serverIp = "", bool autoEnable = false);
+    explicit ServerInfo(const QString &connId, QObject *parent = nullptr);
+    QString connectionId() const;
 
-    QString connectionName() const;
-    void setConnectionName(const QString &newConnectionName);
-
-    QString serverIp() const;
-    void setServerIp(const QString &newServerIp);
-
-    bool autoEnable() const;
-    void setAutoEnable(const bool &newAutoEnable);
+public slots:
+    void setConnectionId(const QString &newConnectionId);
 
 signals:
-    void sigConnectionNameChanged(QString connectionName);
-    void sigServerIpChanged(QString serverIp);
-    void sigAutoEnableChanged(bool autoEnable);
+    void connectionIdChanged();
+
+private:
+    QString m_connectionId;
 };
 
 #endif // SERVERINFO_H

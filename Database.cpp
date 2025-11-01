@@ -7,6 +7,22 @@
 #include <QStandardPaths>
 #include <QDir>
 
+
+inline QString safeValue(const QStringList &list, int index, const QString &defaultValue = QString())
+{
+    if (index < 0 || index >= list.size())
+        return defaultValue;
+
+    QString val = list.at(index).trimmed();
+    return val.isEmpty() ? defaultValue : val;
+}
+inline bool toBool(const QString &value, bool defaultVal = false)
+{
+    if (value.isEmpty()) return defaultVal;
+    QString lower = value.trimmed().toLower();
+    return (lower == "1" || lower == "true" || lower == "yes");
+}
+
 /**
  * @brief Constructs the DataBase object and initializes the SQLite connection.
  * @param parent Parent QObject (usually nullptr for singleton).
@@ -85,23 +101,25 @@ bool DataBase::createTable()
     QSqlQuery query(db);
 
     const QString createServerTable = R"(
-        CREATE TABLE IF NOT EXISTS ServerTable (
-            connection_name      VARCHAR(50),
-            server_ip            VARCHAR(15),
-            deviceName           VARCHAR(50),
-            user_name            VARCHAR(50),
-            password             VARCHAR(50),
-            performance          VARCHAR(4),
-            enableAudio          BOOLEAN,
-            enableMicrophone     BOOLEAN,
-            redirectDrive        BOOLEAN,
-            redirectUsbDevice    BOOLEAN,
-            security             VARCHAR(3),
-            gateway              VARCHAR(1),
-            gateway_ip           VARCHAR(15),
-            gateway_user_name    VARCHAR(50),
-            gateway_password     VARCHAR(50)
-        )
+    CREATE TABLE IF NOT EXISTS ServerTable (
+        connection_id         TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+        connection_name       VARCHAR(50),
+        server_ip             VARCHAR(15),
+        deviceName            VARCHAR(50),
+        user_name             VARCHAR(50),
+        password              VARCHAR(50),
+        performance           VARCHAR(4),
+        enableAudio           BOOLEAN,
+        enableMicrophone      BOOLEAN,
+        redirectDrive         BOOLEAN,
+        redirectUsbDevice     BOOLEAN,
+        security              VARCHAR(3),
+        gateway               VARCHAR(1),
+        gateway_ip            VARCHAR(15),
+        gateway_user_name     VARCHAR(50),
+        gateway_password      VARCHAR(50),
+        autoConnect           BOOLEAN DEFAULT 0
+    )
     )";
 
     if (!query.exec(createServerTable)) {
@@ -110,10 +128,16 @@ bool DataBase::createTable()
     }
 
     const QString createWifiTable = R"(
-        CREATE TABLE IF NOT EXISTS WifiTable (
-            ssid     VARCHAR(32),
-            password VARCHAR(64)
-        )
+    CREATE TABLE IF NOT EXISTS WifiTable (
+        wifi_id             TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+        ssid                VARCHAR(32),
+        password            VARCHAR(64),
+        known               BOOLEAN DEFAULT 0,
+        last_connected_at   DATETIME DEFAULT NULL,
+        signal_strength     INTEGER DEFAULT NULL,      -- e.g., RSSI value
+        security_type       VARCHAR(10) DEFAULT NULL,  -- e.g., WPA2, WPA3, Open
+        is_hidden           BOOLEAN DEFAULT 0
+    )
     )";
 
     if (!query.exec(createWifiTable)) {
@@ -134,21 +158,41 @@ bool DataBase::createTable()
  */
 void DataBase::qmlInsertWifiData()
 {
-    if (m_insertIntoValues.size() != 2) {
-        qWarning() << "qmlInsertWifiData(): Invalid Wi-Fi data — expected 2 values, got"
+    // Expect at least SSID and password
+    if (m_insertIntoValues.size() < 2) {
+        qWarning() << "qmlInsertWifiData(): Invalid Wi-Fi data — expected at least 2 values, got"
                    << m_insertIntoValues.size();
         return;
     }
 
     QSqlQuery query(db);
+
+    // Insert with defaults for optional fields
     query.prepare(R"(
-        INSERT INTO WifiTable (ssid, password)
-        VALUES (:ssid, :password)
+        INSERT INTO WifiTable (
+            ssid,
+            password,
+            known,
+            last_connected_at,
+            signal_strength,
+            security_type,
+            is_hidden
+        ) VALUES (
+            :ssid,
+            :password,
+            0,                     -- known (false by default)
+            NULL,                  -- last_connected_at
+            NULL,                  -- signal_strength
+            NULL,                  -- security_type
+            0                      -- is_hidden (false)
+        )
     )");
 
+    // Required bindings
     query.bindValue(":ssid", m_insertIntoValues[0]);
     query.bindValue(":password", m_insertIntoValues[1]);
 
+    // Execute
     if (!query.exec()) {
         qWarning() << "qmlInsertWifiData(): Failed to insert Wi-Fi record -" << query.lastError().text();
         return;
@@ -187,23 +231,20 @@ void DataBase::qmlInsertWifiData()
  * db.qmlInsertServerData();
  * @endcode
  */
+
 void DataBase::qmlInsertServerData()
 {
-    // Ensure database connection is valid and open
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
         qWarning() << "qmlInsertServerData(): Database is not open or invalid.";
         return;
     }
 
-    // Validate input data
-    if (m_insertIntoValues.size() != 15) {
-        qWarning() << "qmlInsertServerData(): Invalid number of fields. Expected 15, got"
-                   << m_insertIntoValues.size();
+    if (m_insertIntoValues.isEmpty()) {
+        qWarning() << "qmlInsertServerData(): No values provided.";
         return;
     }
 
-    // Prepare SQL INSERT statement
     QSqlQuery query(db);
     query.prepare(R"(
         INSERT INTO ServerTable (
@@ -219,32 +260,32 @@ void DataBase::qmlInsertServerData()
         )
     )");
 
-    // Bind values from m_insertIntoValues
-    query.bindValue(":connectionname",    m_insertIntoValues[0]);
-    query.bindValue(":serverip",          m_insertIntoValues[1]);
-    query.bindValue(":deviceName",        m_insertIntoValues[2]);
-    query.bindValue(":username",          m_insertIntoValues[3]);
-    query.bindValue(":passwd",            m_insertIntoValues[4]);
-    query.bindValue(":performance",       m_insertIntoValues[5]);
-    query.bindValue(":enableAudio",       m_insertIntoValues[6]);
-    query.bindValue(":enableMicrophone",  m_insertIntoValues[7]);
-    query.bindValue(":redirectDrive",     m_insertIntoValues[8]);
-    query.bindValue(":redirectUsbDevice", m_insertIntoValues[9]);
-    query.bindValue(":security",          m_insertIntoValues[10]);
-    query.bindValue(":gateway",           m_insertIntoValues[11]);
-    query.bindValue(":gatewayip",         m_insertIntoValues[12]);
-    query.bindValue(":gatewayusername",   m_insertIntoValues[13]);
-    query.bindValue(":gatewaypassword",   m_insertIntoValues[14]);
+    // Safe binding using helper functions
+    query.bindValue(":connectionname",    safeValue(m_insertIntoValues, 0,  "Unnamed"));
+    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  "0.0.0.0:0000"));
+    query.bindValue(":deviceName",        safeValue(m_insertIntoValues, 2,  "UnknownDevice"));
+    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  "guest"));
+    query.bindValue(":passwd",            safeValue(m_insertIntoValues, 4,  ""));
+    query.bindValue(":performance",       safeValue(m_insertIntoValues, 5,  "Best"));
+    query.bindValue(":enableAudio",       toBool(safeValue(m_insertIntoValues, 6), false));
+    query.bindValue(":enableMicrophone",  toBool(safeValue(m_insertIntoValues, 7), false));
+    query.bindValue(":redirectDrive",     toBool(safeValue(m_insertIntoValues, 8), false));
+    query.bindValue(":redirectUsbDevice", toBool(safeValue(m_insertIntoValues, 9), false));
+    query.bindValue(":security",          safeValue(m_insertIntoValues, 10, "RDP"));
+    query.bindValue(":gateway",           safeValue(m_insertIntoValues, 11, "0"));
+    query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, "0.0.0.0"));
+    query.bindValue(":gatewayusername",   safeValue(m_insertIntoValues, 13, ""));
+    query.bindValue(":gatewaypassword",   safeValue(m_insertIntoValues, 14, ""));
 
-    // Execute query and handle result
     if (!query.exec()) {
-        qWarning() << "qmlInsertServerData(): Failed to insert record -" << query.lastError().text();
+        qWarning() << "qmlInsertServerData(): Insert failed -" << query.lastError().text();
         return;
     }
 
     qInfo().noquote()
-        << "qmlInsertServerData(): Record inserted successfully for"
-        << m_insertIntoValues[0] << "/" << m_insertIntoValues[1];
+        << "✅ qmlInsertServerData(): Inserted record for"
+        << safeValue(m_insertIntoValues, 0) << "/" << safeValue(m_insertIntoValues, 1);
+    emit refreshTable();
 }
 
 /**
@@ -279,7 +320,8 @@ void DataBase::qmlInsertServerData()
  * @param connectionName The existing connection name (used for lookup)
  * @param serverIp       The existing server IP (used for lookup)
  */
-void DataBase::qmlUpdateServerData(const QString &connectionName, const QString &serverIp)
+
+void DataBase::qmlUpdateServerData(const QString &connectionId)
 {
     // Ensure the database connection is valid and open
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
@@ -288,14 +330,20 @@ void DataBase::qmlUpdateServerData(const QString &connectionName, const QString 
         return;
     }
 
-    // Sanity check for input data
-    if (m_insertIntoValues.size() != 15) {
-        qWarning() << "qmlUpdateServerData(): Invalid input — expected 15 fields, got"
-                   << m_insertIntoValues.size();
+    // Validate UUID
+    if (connectionId.trimmed().isEmpty()) {
+        qWarning() << "qmlUpdateServerData(): Invalid connection ID.";
         return;
     }
 
-    // Prepare the SQL UPDATE statement
+    // Pad missing fields to ensure 15 values
+    if (m_insertIntoValues.size() < 15) {
+        qWarning() << "qmlUpdateServerData(): Fewer than 15 values, filling with defaults.";
+        while (m_insertIntoValues.size() < 15)
+            m_insertIntoValues.append("");
+    }
+
+    // Prepare SQL statement
     QSqlQuery query(db);
     query.prepare(R"(
         UPDATE ServerTable SET
@@ -315,88 +363,94 @@ void DataBase::qmlUpdateServerData(const QString &connectionName, const QString 
             gateway_user_name    = :gatewayusername,
             gateway_password     = :gatewaypassword
         WHERE
-            connection_name = :connname
-            AND server_ip   = :servrip
+            connection_id = :connectionid
     )");
 
-    // Bind updated values (new data)
-    query.bindValue(":connectionname",      m_insertIntoValues[0]);
-    query.bindValue(":serverip",            m_insertIntoValues[1]);
-    query.bindValue(":devicename",          m_insertIntoValues[2]);
-    query.bindValue(":username",            m_insertIntoValues[3]);
-    query.bindValue(":passwd",              m_insertIntoValues[4]);
-    query.bindValue(":performance",         m_insertIntoValues[5]);
-    query.bindValue(":enableaudio",         m_insertIntoValues[6]);
-    query.bindValue(":enablemicrophone",    m_insertIntoValues[7]);
-    query.bindValue(":redirectdrive",       m_insertIntoValues[8]);
-    query.bindValue(":redirectusbdevice",   m_insertIntoValues[9]);
-    query.bindValue(":security",            m_insertIntoValues[10]);
-    query.bindValue(":gateway",             m_insertIntoValues[11]);
-    query.bindValue(":gatewayip",           m_insertIntoValues[12]);
-    query.bindValue(":gatewayusername",     m_insertIntoValues[13]);
-    query.bindValue(":gatewaypassword",     m_insertIntoValues[14]);
+    // Bind safe values using your helpers
+    query.bindValue(":connectionname",    safeValue(m_insertIntoValues, 0,  "Unnamed"));
+    query.bindValue(":serverip",          safeValue(m_insertIntoValues, 1,  "0.0.0.0:0000"));
+    query.bindValue(":devicename",        safeValue(m_insertIntoValues, 2,  "UnknownDevice"));
+    query.bindValue(":username",          safeValue(m_insertIntoValues, 3,  "guest"));
+    query.bindValue(":passwd",            safeValue(m_insertIntoValues, 4,  ""));
+    query.bindValue(":performance",       safeValue(m_insertIntoValues, 5,  "Best"));
+    query.bindValue(":enableaudio",       toBool(m_insertIntoValues[6], false));
+    query.bindValue(":enablemicrophone",  toBool(m_insertIntoValues[7], false));
+    query.bindValue(":redirectdrive",     toBool(m_insertIntoValues[8], false));
+    query.bindValue(":redirectusbdevice", toBool(m_insertIntoValues[9], false));
+    query.bindValue(":security",          safeValue(m_insertIntoValues, 10, "RDP"));
+    query.bindValue(":gateway",           safeValue(m_insertIntoValues, 11, "0"));
+    query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, "0.0.0.0"));
+    query.bindValue(":gatewayusername",   safeValue(m_insertIntoValues, 13, ""));
+    query.bindValue(":gatewaypassword",   safeValue(m_insertIntoValues, 14, ""));
 
-    // Bind old identifiers (the record to be updated)
-    query.bindValue(":connname", connectionName);
-    query.bindValue(":servrip",  serverIp);
+    // Bind connection ID (primary key)
+    query.bindValue(":connectionid", connectionId);
 
-    // Execute the query
+    // Execute safely
     if (!query.exec()) {
         qWarning().noquote()
-        << "qmlUpdateServerData(): Failed to update record:"
-        << query.lastError().text();
+        << "❌ qmlUpdateServerData(): Update failed -" << query.lastError().text();
         return;
     }
 
-    // Log success and how many rows were updated
+    // Report result
     const int rows = query.numRowsAffected();
     if (rows > 0) {
         qInfo().noquote()
-        << "qmlUpdateServerData(): Successfully updated record for"
-        << connectionName << "/" << serverIp
+        << "✅ qmlUpdateServerData(): Updated record with connection_id:" << connectionId
         << "→ Rows affected:" << rows;
+        emit refreshTable();
     } else {
         qInfo().noquote()
-        << "qmlUpdateServerData(): No rows updated (record not found or identical data).";
+        << "⚠️ qmlUpdateServerData(): No rows updated (invalid ID or identical data).";
     }
 }
 
-QStringList DataBase::qmlQueryServerTable(const QString &connectionName, const QString &serverIpAddress)
+QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
 {
     // Ensure we use the correct database connection
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
-        qWarning() << "Database is not open or invalid!";
+        qWarning() << "qmlQueryServerTable(): Database is not open or invalid!";
         return {};
     }
 
+    // Validate connection ID
+    if (connectionId.trimmed().isEmpty()) {
+        qWarning() << "qmlQueryServerTable(): Invalid connection ID provided.";
+        return {};
+    }
+
+    // Prepare the query using the UUID (connection_id)
     QSqlQuery query(db);
     query.prepare(R"(
-        SELECT connection_name, server_ip, deviceName, user_name, password,
+        SELECT connection_id, connection_name, server_ip, deviceName, user_name, password,
                performance, enableAudio, enableMicrophone, redirectDrive,
                redirectUsbDevice, security, gateway, gateway_ip,
                gateway_user_name, gateway_password
         FROM ServerTable
-        WHERE connection_name = :connname AND server_ip = :serverip
+        WHERE connection_id = :connectionid
     )");
 
-    query.bindValue(":connname", connectionName);
-    query.bindValue(":serverip", serverIpAddress);
+    query.bindValue(":connectionid", connectionId);
 
+    // Execute safely
     if (!query.exec()) {
-        qWarning() << "Query failed:" << query.lastError().text();
+        qWarning() << "qmlQueryServerTable(): Query failed -" << query.lastError().text();
         return {};
     }
 
+    // Check if a record was found
     if (!query.next()) {
-        qInfo() << "No server record found for" << connectionName << serverIpAddress;
+        qInfo() << "qmlQueryServerTable(): No server record found for connection_id:" << connectionId;
         m_queryResultList.clear();
         setQueryResultList({});
         return {};
     }
 
-    // Extract result fields
+    // Extract all fields safely
     QStringList resultFields = {
+        query.value("connection_id").toString(),
         query.value("connection_name").toString(),
         query.value("server_ip").toString(),
         query.value("deviceName").toString(),
@@ -414,16 +468,20 @@ QStringList DataBase::qmlQueryServerTable(const QString &connectionName, const Q
         query.value("gateway_password").toString()
     };
 
+    // Store result internally
     setQueryResultList(resultFields);
 
-    // Optional: structured debug logging
+    // Structured log for debug
     qDebug().noquote()
-        << "Server record fetched:"
-        << "\n Connection:" << connectionName
-        << "\n Server IP:" << serverIpAddress
-        << "\n Device Name:" << resultFields[2]
-        << "\n User:" << resultFields[3]
-        << "\n Performance:" << resultFields[5];
+        << "✅ qmlQueryServerTable(): Record fetched successfully"
+        << "\n Connection ID:" << resultFields[0]
+        << "\n Connection Name:" << resultFields[1]
+        << "\n Server IP:" << resultFields[2]
+        << "\n Device Name:" << resultFields[3]
+        << "\n User:" << resultFields[4]
+        << "\n Performance:" << resultFields[6];
+
+    emit refreshTable();
     return resultFields;
 }
 
@@ -431,61 +489,75 @@ void DataBase::getServerList(ServerInfoColl &serverInfoColl)
 {
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
-        qWarning() << "Database is not open in getServerList()";
+        qWarning() << "❌ getServerList(): Database is not open or invalid.";
         return;
     }
 
     QSqlQuery query(db);
-    query.prepare("SELECT connection_name, server_ip FROM ServerTable");
+    query.prepare("SELECT connection_id, connection_name, server_ip FROM ServerTable ORDER BY connection_name ASC");
 
     if (!query.exec()) {
-        qWarning() << "getServerList(): Failed to execute query:" << query.lastError().text();
+        qWarning() << "❌ getServerList(): Query failed -" << query.lastError().text();
         return;
     }
 
     int count = 0;
     while (query.next()) {
+        const QString connectionId   = query.value("connection_id").toString();
         const QString connectionName = query.value("connection_name").toString();
-        const QString serverIp = query.value("server_ip").toString();
-        serverInfoColl.setServerInfo(connectionName, serverIp);
+        const QString serverIp       = query.value("server_ip").toString();
+
+        // Pass all three fields to the model
+        serverInfoColl.setServerInfo(connectionId);
         ++count;
     }
 
-    qInfo() << "getServerList(): Retrieved" << count << "server records.";
+    emit refreshTable();
+    qInfo().noquote() << "✅ getServerList(): Retrieved" << count << "server records from database.";
 }
 
 
-bool DataBase::removeServer(const QString &connectionName, const QString &serverIp)
+bool DataBase::removeServer(const QString &connectionId)
 {
+    // Ensure database connection is valid and open
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
-        qWarning() << "Database is not open in removeServer()";
+        qWarning() << "❌ removeServer(): Database is not open or invalid.";
         return false;
     }
 
+    // Validate input
+    if (connectionId.trimmed().isEmpty()) {
+        qWarning() << "❌ removeServer(): Invalid connectionId (empty or null).";
+        return false;
+    }
+
+    // Prepare DELETE statement
     QSqlQuery query(db);
     query.prepare(R"(
         DELETE FROM ServerTable
-        WHERE connection_name = :connectionname
-        AND server_ip = :serverip
+        WHERE connection_id = :connectionid
     )");
+    query.bindValue(":connectionid", connectionId);
 
-    query.bindValue(":connectionname", connectionName);
-    query.bindValue(":serverip", serverIp);
-
+    // Execute safely
     if (!query.exec()) {
-        qWarning() << "removeServer(): Failed to delete record:"
-                   << query.lastError().text();
+        qWarning().noquote()
+        << "❌ removeServer(): Failed to delete record for connectionId:" << connectionId
+        << "\nError:" << query.lastError().text();
         return false;
     }
 
-    if (query.numRowsAffected() > 0) {
-        qInfo() << "removeServer(): Deleted record for"
-                << connectionName << "/" << serverIp;
+    // Check affected rows
+    const int rows = query.numRowsAffected();
+    if (rows > 0) {
+        qInfo().noquote()
+        << "🗑️ removeServer(): Successfully deleted record with connectionId:" << connectionId;
+        emit refreshTable();
         return true;
     } else {
-        qInfo() << "removeServer(): No record found for"
-                << connectionName << "/" << serverIp;
+        qInfo().noquote()
+        << "⚠️ removeServer(): No record found for connectionId:" << connectionId;
         return false;
     }
 }
@@ -519,3 +591,56 @@ void DataBase::setQueryResultList(QStringList newQueryResultList)
     m_queryResultList = std::move(newQueryResultList);
     emit sigQueryResultListChanged();
 }
+
+bool DataBase::serverExists(const QString &connectionName, const QString &serverIp)
+{
+    QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
+    if (!db.isValid() || !db.isOpen()) {
+        qWarning() << "❌ serverExists(): Database not open.";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare(R"(
+        SELECT COUNT(1)
+        FROM ServerTable
+        WHERE connection_name = :name
+          AND server_ip = :ip
+    )");
+
+    query.bindValue(":name", connectionName.trimmed());
+    query.bindValue(":ip", serverIp.trimmed());
+
+    if (!query.exec()) {
+        qWarning() << "❌ serverExists(): Query failed -" << query.lastError().text();
+        return false;
+    }
+
+    return (query.next() && query.value(0).toInt() > 0);
+}
+
+bool DataBase::serverExists(const QString &connectionId)
+{
+    QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
+    if (!db.isValid() || !db.isOpen()) {
+        qWarning() << "❌ serverExists(): Database is not open or invalid.";
+        return false;
+    }
+
+    if (connectionId.trimmed().isEmpty()) {
+        qWarning() << "❌ serverExists(): Invalid (empty) connectionId.";
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare("SELECT COUNT(1) FROM ServerTable WHERE connection_id = :connectionid");
+    query.bindValue(":connectionid", connectionId);
+
+    if (!query.exec()) {
+        qWarning() << "❌ serverExists(): Query failed -" << query.lastError().text();
+        return false;
+    }
+
+    return (query.next() && query.value(0).toInt() > 0);
+}
+
