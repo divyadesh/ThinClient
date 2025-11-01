@@ -106,6 +106,15 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    // --- Global UI Style ---
+    QQuickStyle::setStyle("Material");
+
+    // Optional: choose Material theme colors
+    QQuickStyle::setFallbackStyle("Default");  // fallback
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", QByteArray("Dark"));
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", QByteArray("Blue"));
+    qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", QByteArray("Teal"));
+
     // --- Application Metadata ---
     QGuiApplication::setOrganizationDomain(QStringLiteral("https://g1thinclientpc.com/"));
     QGuiApplication::setOrganizationName(QStringLiteral("G1 Thin Client PC"));
@@ -172,12 +181,6 @@ int main(int argc, char *argv[])
 
     // Expose it to QML as a context property
     engine.rootContext()->setContextProperty("serverModel", &serverModel);
-
-    // --- Load Persistent and Network Data ---
-    // serverInfoColl.setAutoConnect(
-    //     persistData.getData("AutoConnectConnectionName"),
-    //     persistData.getData("AutoConnectIpAddress")
-    //     );
 
     deviceInfo.getDeviceInfoDetails();
     wifiNetworkDetailsColl.getWifiDetails();
