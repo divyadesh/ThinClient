@@ -1,36 +1,44 @@
-// timezone_model.h
-#pragma once
+#ifndef TIMEZONE_MODEL_H
+#define TIMEZONE_MODEL_H
 
 #include <QAbstractListModel>
-#include <QTimeZone>
+#include <QVector>
+#include <QString>
 
-class TimeZoneModel : public QAbstractListModel
-{
+struct TimezoneItem {
+    QString tzId;   // Full zone identifier, e.g. "Asia/Kolkata"
+    QString tzName; // Display name, e.g. "Asia/Kolkata" or just "Kolkata"
+};
+
+class TimezoneModel : public QAbstractListModel {
     Q_OBJECT
+    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
 public:
-    enum TimeZoneRoles { IdRole = Qt::UserRole + 1, NameRole, OffsetRole };
+    enum Roles {
+        TzIdRole = Qt::UserRole + 1,
+        TzNameRole
+    };
 
-    explicit TimeZoneModel(QObject *parent = nullptr);
+    explicit TimezoneModel(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    Q_INVOKABLE QVariantMap get(int row) const
-    {
-        QVariantMap map;
-        if (row < 0 || row >= m_timeZones.size())
-            return map;
+    Q_INVOKABLE void refresh();
+    Q_INVOKABLE QVariantMap get(int index) const;
 
-        QByteArray tzId = m_timeZones.at(row);
-        QTimeZone tz(tzId);
+    QString rootPath() const { return m_root; }
+    void setRootPath(const QString &path);
 
-        map["tzId"] = QString::fromUtf8(tzId);
-        map["tzName"] = tz.displayName(QTimeZone::StandardTime, QTimeZone::LongName);
-        map["tzOffset"] = tz.offsetFromUtc(QDateTime::currentDateTime()) / 3600.0;
-        return map;
-    }
+signals:
+    void rootPathChanged();
 
 private:
-    QList<QByteArray> m_timeZones;
+    void load();
+
+    QString m_root = QStringLiteral("/usr/share/zoneinfo");
+    QVector<TimezoneItem> m_items;
 };
+
+#endif // TIMEZONE_MODEL_H

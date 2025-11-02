@@ -28,6 +28,7 @@ SOURCES += \
         qmlregistrar.cpp \
         rdservermodel.cpp \
         systemresetmanager.cpp \
+        timezone_filter_model.cpp \
         timezone_model.cpp \
         wifimonitor.cpp \
         wifiworker.cpp
@@ -59,6 +60,7 @@ HEADERS += \
     qmlregistrar.h \
     rdservermodel.h \
     systemresetmanager.h \
+    timezone_filter_model.h \
     timezone_model.h \
     wifimonitor.h \
     wifiworker.h

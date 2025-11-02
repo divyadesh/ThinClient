@@ -21,6 +21,7 @@
 #include "appunlockmanager.h"
 #include "language_model.h"
 #include "timezone_model.h"
+#include "timezone_filter_model.h"
 #include "qmlregistrar.h"
 #include "ethernetNetworkConroller.h"
 #include "devicesettings.h"
@@ -107,15 +108,6 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
-    // --- Global UI Style ---
-    // QQuickStyle::setStyle("Material");
-
-    // Optional: choose Material theme colors
-    // QQuickStyle::setFallbackStyle("Default");  // fallback
-    // qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", QByteArray("Dark"));
-    // qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", QByteArray("Blue"));
-    // qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", QByteArray("Teal"));
-
     // --- Application Metadata ---
     QGuiApplication::setOrganizationDomain(QStringLiteral("https://g1thinclientpc.com/"));
     QGuiApplication::setOrganizationName(QStringLiteral("G1 Thin Client PC"));
@@ -135,15 +127,19 @@ int main(int argc, char *argv[])
     // --- Application Settings and Models ---
     AppSettings appSettings;
     LanguageModel languageModel(&appSettings);
-    TimeZoneModel timeZoneModel;
     DeviceSettings deviceSettings;
     UdevMonitor monitor;
 
+    TimezoneModel tzModel;
+    TimezoneFilterModel proxy;
+    proxy.setSourceModel(&tzModel);
+
+    engine.rootContext()->setContextProperty("timezoneModel", &tzModel);
+    engine.rootContext()->setContextProperty("timezoneProxyModel", &proxy);
     // Create a single instance of your model
     engine.rootContext()->setContextProperty("DeviceSettings", &deviceSettings);
     engine.rootContext()->setContextProperty("appSettings", &appSettings);
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
-    engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
     engine.rootContext()->setContextProperty("usbMonitor", &monitor);
 
     // --- Register QML Backend Types ---

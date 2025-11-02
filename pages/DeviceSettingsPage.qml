@@ -62,52 +62,62 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Audio")
 
-                        property string audioPersistData: persistData.getData("Audio")
+                        // keep it simple: store as int (0 Jack, 1 USB, 2 HDMI)
+                        property int audioSelection: {
+                            const v = persistData.getData("Audio");
+                            if (v === "" || v === undefined) return Audio.Jack; // default
+                            return parseInt(v);
+                        }
 
                         ButtonGroup { id: tabGroup }
 
                         indicator: RowLayout {
                             x: audio.width - width - audio.rightPadding
                             y: audio.topPadding + (audio.availableHeight - height) / 2
-
                             spacing: 20
 
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
-                                checked: parseInt(audio.audioPersistData) === Audio.Jack || audio.audioPersistData === ""
+                                checked: audio.audioSelection === Audio.Jack   // ✅ bind to int
                                 text: "Jack"
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
-                                    persistData.saveData("Audio", 0)
-                                    DeviceSettings.setAudioOutput("alsa_output.pci-0000_00_1b.0.analog-stereo")
+                                    if (audio.audioSelection !== Audio.Jack) {
+                                        audio.audioSelection = Audio.Jack;
+                                        persistData.saveData("Audio", audio.audioSelection); // ✅ persist
+                                    }
                                 }
                             }
 
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
-                                checked: parseInt(audio.audioPersistData) === Audio.Usb
+                                checked: audio.audioSelection === Audio.Usb
                                 text: "USB"
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
-                                    persistData.saveData("Audio", 1)
-                                    DeviceSettings.setAudioOutput("alsa_output.usb-Logitech_USB_Headset-00.analog-stereo")
+                                    if (audio.audioSelection !== Audio.Usb) {
+                                        audio.audioSelection = Audio.Usb;
+                                        persistData.saveData("Audio", audio.audioSelection);
+                                    }
                                 }
                             }
 
                             PrefsTabButton {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
-                                checked: parseInt(audio.audioPersistData) === Audio.Hdmi
+                                checked: audio.audioSelection === Audio.Hdmi
                                 text: "HDMI"
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
-                                    persistData.saveData("Audio", 2)
-                                    DeviceSettings.setAudioOutput("alsa_output.pci-0000_01_00.1.hdmi-stereo")
+                                    if (audio.audioSelection !== Audio.Hdmi) {
+                                        audio.audioSelection = Audio.Hdmi;
+                                        persistData.saveData("Audio", audio.audioSelection);
+                                    }
                                 }
                             }
                         }
@@ -123,24 +133,25 @@ BasicPage {
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
 
-                            model: timeZoneModel
-                            textRole: "tzName"
+                            model: timezoneModel
+                            textRole: "tzId"
+                            //imezoneProxyModel.filterString = text
 
                             Component.onCompleted: {
-                                for (var i = 0; i < model.count; ++i) {
-                                    if (model.get(i).tzId === appSettings.selectedTimeZone) {
-                                        currentIndex = i
-                                        DeviceSettings.setTimezone(appSettings.selectedTimeZone)
-                                        break
+                                let timeZone = persistData.getData("TimeZone")
+                                if(timeZone) {
+                                    for (var i = 0; i < timeZoneComboBox.count; ++i) {
+                                        if (timezoneModel.get(i).tzId === timeZone) {
+                                            currentIndex = i;
+                                            break;
+                                        }
                                     }
                                 }
                             }
 
-                            onCurrentIndexChanged: {
-                                var obj = model.get(currentIndex)
-                                appSettings.selectedTimeZone = obj.tzId
-                                persistData.saveData("TimeZone", appSettings.selectedTimeZone)
-                                DeviceSettings.setTimezone(appSettings.selectedTimeZone)
+                            onActivated: {
+                                var obj = timezoneModel.get(currentIndex)
+                                persistData.saveData("TimeZone", obj.tzId)
                             }
                         }
                     }
@@ -156,22 +167,23 @@ BasicPage {
                             y: language.topPadding + (language.availableHeight - height) / 2
 
                             model: languageModel
-                            textRole: "langName"
+                            textRole: "displayName"
 
-                            onCurrentIndexChanged: {
-                                if(currentIndex > 0) {
-                                    var obj = languageModel.get(currentIndex)
-                                    appSettings.selectedLanguage = obj.langCode
-                                    persistData.saveData("Language", appSettings.selectedLanguage)
+                            Component.onCompleted: {
+                                let language = persistData.getData("Language")
+                                if(language) {
+                                    for (var i = 0; i < languageComboBox.count; ++i) {
+                                        if (languageModel.get(i).displayName === language) {
+                                            currentIndex = i;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
-                            Component.onCompleted: {
-                                let savedOrientation = persistData.getData("Language")
-                                if(savedOrientation !== undefined) {
-                                    let index = languageModel.indexForCode(savedOrientation)
-                                    if(index >= 0)
-                                        languageComboBox.currentIndex = index
-                                }
+
+                            onActivated: {
+                                var obj = languageModel.get(currentIndex)
+                                persistData.saveData("Language", obj.displayName)
                             }
                         }
                     }
@@ -179,6 +191,72 @@ BasicPage {
                     Item {
                         Layout.preferredHeight: 20
                         Layout.fillWidth: true
+                    }
+
+                    // --- Enable On Screen Keyboard ---
+                    PrefsItemDelegate {
+                        id: enableOnScreenKeyboard
+                        Layout.fillWidth: true
+                        text: qsTr("Enable On Screen Keyboard")
+
+                        indicator: RowLayout {
+                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
+                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
+
+                            PrefsButton {
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                font.weight: Font.Normal
+
+                                Component.onCompleted: {
+                                    // Load saved setting
+                                    let savedValue = persistData.getData("EnableOnScreenKeyboard")
+                                    if (savedValue === "true" || savedValue === true) {
+                                        checked = true
+                                    } else {
+                                        checked = false
+                                    }
+                                }
+
+                                onClicked: {
+                                    // Toggle and save persistently
+                                    persistData.saveData("EnableOnScreenKeyboard", checked)
+                                }
+                            }
+                        }
+                    }
+
+                    // --- Enable Touch Screen ---
+                    PrefsItemDelegate {
+                        id: enableTouchScreen
+                        Layout.fillWidth: true
+                        text: qsTr("Enable Touch Screen")
+
+                        indicator: RowLayout {
+                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
+                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
+
+                            PrefsButton {
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                font.weight: Font.Normal
+
+                                Component.onCompleted: {
+                                    let savedValue = persistData.getData("EnableTouchScreen")
+                                    if (savedValue === "true" || savedValue === true) {
+                                        checked = true
+                                    } else {
+                                        checked = false
+                                    }
+                                }
+
+                                onClicked: {
+                                    persistData.saveData("EnableTouchScreen", checked)
+                                }
+                            }
+                        }
                     }
 
                     PrefsItemDelegate {
@@ -192,48 +270,6 @@ BasicPage {
                             implicitWidth: 260
                             text: qsTr("Update")
                             onClicked: pageStack.push(updatePassword)
-                        }
-                    }
-
-                    PrefsItemDelegate {
-                        id: enableOnScreenKeyboard
-                        Layout.fillWidth: true
-                        text: qsTr("Enable On Screen Keyboard")
-
-                        indicator: RowLayout {
-                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
-                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
-
-                            PrefsButton {
-                                id: securityButton
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                visible: !!text
-                                font.weight: Font.Normal
-                                onClicked: {}
-                            }
-                        }
-                    }
-
-                    PrefsItemDelegate {
-                        id: enableTouchScreen
-                        Layout.fillWidth: true
-                        text: qsTr("Enable Touch Screen")
-
-                        indicator: RowLayout {
-                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
-                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
-
-                            PrefsButton {
-                                id: enableTouchScreenButton
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                visible: !!text
-                                font.weight: Font.Normal
-                                onClicked: {}
-                            }
                         }
                     }
 

@@ -1,33 +1,37 @@
-// language_model.h
-#pragma once
+#ifndef LANGUAGE_MODEL_H
+#define LANGUAGE_MODEL_H
 
 #include <QAbstractListModel>
 #include <QLocale>
-#include "appsettings.h"
+#include <QVector>
 
-class LanguageModel : public QAbstractListModel
-{
+struct LanguageItem {
+    QString localeId;   // e.g. "en_US"
+    QString displayName; // e.g. "English (United States)"
+};
+
+class LanguageModel : public QAbstractListModel {
     Q_OBJECT
 public:
-    enum LanguageRoles { CodeRole = Qt::UserRole + 1, NameRole, SystemRole };
+    enum Roles {
+        LocaleIdRole = Qt::UserRole + 1,
+        DisplayNameRole
+    };
 
-    explicit LanguageModel(AppSettings *settings, QObject *parent = nullptr);
+    explicit LanguageModel(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    Q_INVOKABLE QVariantMap get(int row) const;
-    Q_INVOKABLE int systemLanguageIndex() const;
-    Q_INVOKABLE int indexForCode(const QString &code) const;
+    Q_INVOKABLE QVariantMap get(int index) const;
+
+    Q_INVOKABLE void refresh();
 
 private:
-    struct Lang
-    {
-        QString code;
-        QString name;
-        bool isSystem;
-    };
-    QList<Lang> m_languages;
-    AppSettings *m_settings;
+    void load();
+
+    QVector<LanguageItem> m_items;
 };
+
+#endif // LANGUAGE_MODEL_H

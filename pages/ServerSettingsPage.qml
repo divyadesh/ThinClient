@@ -239,10 +239,6 @@ BasicPage {
                                     onCheckedChanged: {
                                         serverInfo.resetAutoConnect()
                                         autoConnect = checked
-                                        if(checked) {
-                                            persistData.saveData("AutoConnectIpAddress", serverIp)
-                                            persistData.saveData("AutoConnectConnectionName", connectionName)
-                                        }
                                     }
                                 }
                             }

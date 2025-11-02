@@ -8,26 +8,26 @@ AppSettings::AppSettings(QObject *parent)
 
 QString AppSettings::selectedLanguage() const
 {
-    return m_settings.value("language", "en").toString();
+    return m_settings.value("Language", "en").toString();
 }
 
 void AppSettings::setSelectedLanguage(const QString &lang)
 {
     if (lang == selectedLanguage())
         return;
-    m_settings.setValue("language", lang);
+    m_settings.setValue("Language", lang);
     emit selectedLanguageChanged();
 }
 
 QString AppSettings::selectedTimeZone() const
 {
-    return m_settings.value("timezone","").toString();
+    return m_settings.value("TimeZone","").toString();
 }
 
 void AppSettings::setSelectedTimeZone(const QString &tz)
 {
     if (tz == selectedTimeZone())
         return;
-    m_settings.setValue("timezone", tz);
+    m_settings.setValue("TimeZone", tz);
     emit selectedTimeZoneChanged();
 }
