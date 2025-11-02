@@ -107,13 +107,13 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     // --- Global UI Style ---
-    QQuickStyle::setStyle("Material");
+    // QQuickStyle::setStyle("Material");
 
     // Optional: choose Material theme colors
-    QQuickStyle::setFallbackStyle("Default");  // fallback
-    qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", QByteArray("Dark"));
-    qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", QByteArray("Blue"));
-    qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", QByteArray("Teal"));
+    // QQuickStyle::setFallbackStyle("Default");  // fallback
+    // qputenv("QT_QUICK_CONTROLS_MATERIAL_THEME", QByteArray("Dark"));
+    // qputenv("QT_QUICK_CONTROLS_MATERIAL_ACCENT", QByteArray("Blue"));
+    // qputenv("QT_QUICK_CONTROLS_MATERIAL_PRIMARY", QByteArray("Teal"));
 
     // --- Application Metadata ---
     QGuiApplication::setOrganizationDomain(QStringLiteral("https://g1thinclientpc.com/"));

@@ -624,22 +624,24 @@ BasicPage {
 
                         // 2️⃣ Collect all field values in proper order
                         const newList = [
-                            connectionField.text.trim(),
-                            serverIpField.text.trim(),
-                            deviceNameField.text.trim(),
-                            usernameField.text.trim(),
-                            passwordField.text.trim(),
-                            performanceRadioButton.tabGroup.checkedButton?.text || "Best",
-                            audioButton.checked,
-                            microphoneButton.checked,
-                            driveButton.checked,
-                            usbDeviceButton.checked,
-                            securityButton.checked,
-                            rdGateWay.checked,
-                            gatewayIp.text.trim(),
-                            gatewayUserName.text.trim(),
-                            gatewayPassword.text.trim()
-                        ]
+                                          connectionField.text.trim(),
+                                          serverIpField.text.trim(),
+                                          deviceNameField.text.trim(),
+                                          usernameField.text.trim(),
+                                          passwordField.text.trim(),
+                                          performanceRadioButton.tabGroup.checkedButton
+                                          ? performanceRadioButton.tabGroup.checkedButton.text
+                                          : "Best",
+                                          audioButton.checked,
+                                          microphoneButton.checked,
+                                          driveButton.checked,
+                                          usbDeviceButton.checked,
+                                          securityButton.checked,
+                                          rdGateWay.checked,
+                                          gatewayIp.text.trim(),
+                                          gatewayUserName.text.trim(),
+                                          gatewayPassword.text.trim()
+                                      ]
 
                         dataBase.insertIntoValues = newList
 

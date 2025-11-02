@@ -131,7 +131,6 @@ BasicPage {
                     delegate: PrefsItemDelegate {
                         id: itemDelegate
                         width: ListView.view.width
-                        //text: modelData.ssid
                         hoverEnabled: true
 
                         background: Rectangle {
