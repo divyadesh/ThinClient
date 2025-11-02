@@ -3,7 +3,7 @@
 #include <QRegularExpression>
 #include <QDebug>
 
-DNSNetworkInfo::DNSNetworkInfo(const QString &iface, QObject *parent)
+DNSNetworkInfo::DNSNetworkInfo( QObject *parent, const QString &iface)
     : QObject(parent), m_iface(iface)
 {
     updateInfo(); // first fetch

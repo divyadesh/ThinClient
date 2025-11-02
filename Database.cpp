@@ -485,7 +485,7 @@ QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
     return resultFields;
 }
 
-void DataBase::getServerList(ServerInfoColl &serverInfoColl)
+void DataBase::getServerList(ServerInfoColl *serverInfoColl)
 {
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
@@ -508,7 +508,7 @@ void DataBase::getServerList(ServerInfoColl &serverInfoColl)
         const QString serverIp       = query.value("server_ip").toString();
 
         // Pass all three fields to the model
-        serverInfoColl.setServerInfo(connectionId);
+        serverInfoColl->setServerInfo(connectionId);
         ++count;
     }
 

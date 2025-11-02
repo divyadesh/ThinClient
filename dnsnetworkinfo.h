@@ -15,7 +15,7 @@ class DNSNetworkInfo : public QObject
     Q_PROPERTY(QStringList dnsServers READ dnsServers NOTIFY infoChanged)
 
 public:
-    explicit DNSNetworkInfo(const QString &iface = "eth0", QObject *parent = nullptr);
+    explicit DNSNetworkInfo(QObject *parent = nullptr, const QString &iface = "eth0");
 
     QString ipAddress() const { return m_ipAddress; }
     QString netmask() const { return m_netmask; }

@@ -5,6 +5,7 @@ QT += quick quickcontrols2 core qml sql
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        Application.cpp \
         Database.cpp \
         DeviceInfo.cpp \
         PersistData.cpp \
@@ -25,7 +26,6 @@ SOURCES += \
         language_model.cpp \
         logoloader.cpp \
         main.cpp \
-        qmlregistrar.cpp \
         rdservermodel.cpp \
         systemresetmanager.cpp \
         timezone_filter_model.cpp \
@@ -37,6 +37,7 @@ SOURCES += \
 RESOURCES += qml.qrc
 
 HEADERS += \
+    Application.h \
     AudioSettingsOptions.h \
     Database.h \
     DeviceInfo.h \
@@ -58,7 +59,6 @@ HEADERS += \
     imageupdater.h \
     language_model.h \
     logoloader.h \
-    qmlregistrar.h \
     rdservermodel.h \
     systemresetmanager.h \
     timezone_filter_model.h \

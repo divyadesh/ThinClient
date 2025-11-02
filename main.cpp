@@ -22,7 +22,7 @@
 #include "language_model.h"
 #include "timezone_model.h"
 #include "timezone_filter_model.h"
-#include "qmlregistrar.h"
+#include "Application.h"
 #include "ethernetNetworkConroller.h"
 #include "devicesettings.h"
 #include "rdservermodel.h"
@@ -98,6 +98,10 @@ void ensureWestonConfig()
     }
 }
 
+// -------------------------------------------------------------------
+// 🔹 Application Entry Point
+// -------------------------------------------------------------------
+
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -105,104 +109,25 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-
     QGuiApplication app(argc, argv);
 
-    // --- Application Metadata ---
-    QGuiApplication::setOrganizationDomain(QStringLiteral("https://g1thinclientpc.com/"));
-    QGuiApplication::setOrganizationName(QStringLiteral("G1 Thin Client PC"));
-    QGuiApplication::setApplicationName(QStringLiteral("G1ThinClientPC"));
-    QGuiApplication::setApplicationDisplayName(QStringLiteral("G1 Thin Client PC"));
-    QGuiApplication::setApplicationVersion(QStringLiteral("1.0.0"));
+    // --- Metadata ---
+    QGuiApplication::setOrganizationDomain("https://g1thinclientpc.com/");
+    QGuiApplication::setOrganizationName("G1 Thin Client PC");
+    QGuiApplication::setApplicationName("G1ThinClientPC");
+    QGuiApplication::setApplicationDisplayName("G1 Thin Client PC");
+    QGuiApplication::setApplicationVersion("1.0.0");
 
     // --- QML Engine Setup ---
     QQmlApplicationEngine engine;
 
-    // --- Global QML Style Singletons ---
-    qmlRegisterSingletonType(QUrl("qrc:/styles/Colors.qml"), "App.Styles", 1, 0, "Colors");
-    qmlRegisterSingletonType(QUrl("qrc:/styles/Fonts.qml"), "App.Styles", 1, 0, "Fonts");
-    qmlRegisterSingletonType(QUrl("qrc:/styles/Theme.qml"), "App.Styles", 1, 0, "Theme");
-    qmlRegisterSingletonType(QUrl("qrc:/styles/ScreenConfig.qml"), "App.Styles", 1, 0, "ScreenConfig");
+    // --- Initialize our global Application Singleton ---
+    Application::initialize(&engine);
 
-    // --- Application Settings and Models ---
-    AppSettings appSettings;
-    LanguageModel languageModel(&appSettings);
-    DeviceSettings deviceSettings;
-    UdevMonitor monitor;
-
-    TimezoneModel tzModel;
-    TimezoneFilterModel proxy;
-    proxy.setSourceModel(&tzModel);
-    WiFiSettingsManager wifiSettings;
-
-    engine.rootContext()->setContextProperty("timezoneModel", &tzModel);
-    engine.rootContext()->setContextProperty("timezoneProxyModel", &proxy);
-    // Create a single instance of your model
-    engine.rootContext()->setContextProperty("DeviceSettings", &deviceSettings);
-    engine.rootContext()->setContextProperty("appSettings", &appSettings);
-    engine.rootContext()->setContextProperty("languageModel", &languageModel);
-    engine.rootContext()->setContextProperty("usbMonitor", &monitor);
-    engine.rootContext()->setContextProperty("wifiSettings", &wifiSettings);
-
-    // --- Register QML Backend Types ---
-    qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
-    qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
-
-    // --- QML Registrar for central registration ---
-    // This handles additional backend types and context properties
-    QmlRegistrar registrar(&engine);
-    registrar.registerTypesAndContext();
-
-    // --- Register enums-only types for QML (App.Enums) ---
-    qmlRegisterUncreatableType<WifiNetworkDetailsColl>(
-        "App.Enums", 1, 0, "WifiNetworkDetailsColl", "Access to enums only");
-    qmlRegisterUncreatableType<AudioSettingsOptions>(
-        "App.Enums", 1, 0, "Audio", "Access to enums only");
-
-
-    // --- Initialize Backend Components ---
-    PersistData persistData;
-    WifiNetworkDetailsColl wifiNetworkDetailsColl;
-    EthernetNetworkConroller ethernetNetworkController;
-    DeviceInfo deviceInfo;
-    ServerInfoColl serverInfoColl;
-    DeviceInfoSettings deviceInfoSettings;
-    SystemResetManager resetManager;
-
-    // --- Database Setup ---
-    auto &dbInstance = DataBase::getInstance(nullptr);
-    if (!dbInstance.open()) {
-        qCritical() << "Error: Unable to open database";
-    } else {
-        dbInstance.createTable();
-        dbInstance.getServerList(serverInfoColl);
-    }
-
-    RdServerModel serverModel;
-
-    // Expose it to QML as a context property
-    engine.rootContext()->setContextProperty("serverModel", &serverModel);
-
-    deviceInfo.getDeviceInfoDetails();
-    wifiNetworkDetailsColl.getWifiDetails();
-
-    // --- Load Device Info Settings from JSON ---
-    deviceInfoSettings.loadFromFile("/usr/share/thinclient/deviceinfo.json");
-
-    // --- Register Backend Objects to QML Context ---
-    engine.rootContext()->setContextProperty("wifiNetworkDetails", &wifiNetworkDetailsColl);
-    engine.rootContext()->setContextProperty("ethernetNetworkController", &ethernetNetworkController);
-    engine.rootContext()->setContextProperty("deviceInfo", &deviceInfo);
-    engine.rootContext()->setContextProperty("serverInfo", &serverInfoColl);
-    engine.rootContext()->setContextProperty("dataBase", &dbInstance);
-    engine.rootContext()->setContextProperty("persistData", &persistData);
-    engine.rootContext()->setContextProperty("deviceInfoSettings", &deviceInfoSettings);
-    engine.rootContext()->setContextProperty("resetManager", &resetManager);
-
+    // --- Update Weston Config in background (only once) ---
     ensureWestonConfig();
 
-    // --- Load Main QML ---
+    // --- Load Main UI ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));
     QObject::connect(
         &engine,
@@ -216,6 +141,11 @@ int main(int argc, char *argv[])
 
     engine.load(mainQmlUrl);
 
-    // --- Run Application ---
-    return app.exec();
+    // --- Execute ---
+    int code = app.exec();
+
+    // --- Clean up singleton ---
+    Application::destroy();
+
+    return code;
 }

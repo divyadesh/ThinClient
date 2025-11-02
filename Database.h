@@ -66,7 +66,7 @@ public:
      * @brief Retrieves all server entries and populates a ServerInfoColl object.
      * @param serverInfoColl Reference to ServerInfoColl where results are stored.
      */
-    void getServerList(ServerInfoColl &serverInfoColl);
+    void getServerList(ServerInfoColl *serverInfoColl);
 
 signals:
     void sigInsertIntoValuesChanged();
