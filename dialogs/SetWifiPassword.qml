@@ -11,6 +11,8 @@ import "../controls"
 
 BasicPage {
     id: control
+    property string connection_ssid: ""
+
     background: Rectangle {
         color: "#000000"
         opacity: 0.3
@@ -85,8 +87,11 @@ BasicPage {
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        wifiPassword = enterPasswordField.text
-                        page.sigOkPressed()
+                        let wifiPassword = enterPasswordField.text.trim()
+                        if (!wifiSettings.hasSavedPassword(control.connection_ssid)) {
+                            wifiSettings.savePassword(control.connection_ssid, wifiPassword)
+                        }
+                        wifiNetworkDetails.connectToSsid(control.connection_ssid, wifiPassword)
                         pageStack.pop()
                     }
                 }

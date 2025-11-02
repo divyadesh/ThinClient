@@ -31,6 +31,7 @@ SOURCES += \
         timezone_filter_model.cpp \
         timezone_model.cpp \
         wifimonitor.cpp \
+        wifisettingsmanager.cpp \
         wifiworker.cpp
 
 RESOURCES += qml.qrc
@@ -63,6 +64,7 @@ HEADERS += \
     timezone_filter_model.h \
     timezone_model.h \
     wifimonitor.h \
+    wifisettingsmanager.h \
     wifiworker.h
 
 # --- Deployment section ---

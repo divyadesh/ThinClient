@@ -27,6 +27,7 @@
 #include "devicesettings.h"
 #include "rdservermodel.h"
 #include "UdevMonitor.h"
+#include "wifisettingsmanager.h"
 
 bool updateWestonConfig()
 {
@@ -133,6 +134,7 @@ int main(int argc, char *argv[])
     TimezoneModel tzModel;
     TimezoneFilterModel proxy;
     proxy.setSourceModel(&tzModel);
+    WiFiSettingsManager wifiSettings;
 
     engine.rootContext()->setContextProperty("timezoneModel", &tzModel);
     engine.rootContext()->setContextProperty("timezoneProxyModel", &proxy);
@@ -141,6 +143,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("appSettings", &appSettings);
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
     engine.rootContext()->setContextProperty("usbMonitor", &monitor);
+    engine.rootContext()->setContextProperty("wifiSettings", &wifiSettings);
 
     // --- Register QML Backend Types ---
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");

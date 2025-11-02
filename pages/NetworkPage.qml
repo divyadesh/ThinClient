@@ -12,16 +12,6 @@ BasicPage {
     id: page
     StackView.visible: true
     padding: 20
-    property bool addNewServer: false
-    property string wifiPassword: ""
-    property string ssid: ""
-    signal sigOkPressed()
-
-    onSigOkPressed: {
-        if(wifiPassword !== "") {
-            wifiNetworkDetails.connectToSsid(page.ssid, page.wifiPassword)
-        }
-    }
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -165,16 +155,19 @@ BasicPage {
                                 }
                                 Connections {
                                     target: wifiNetworkDetails
+
                                     function onSigConnectionStarted() {
                                         if(index === wifiControl.connectIndex) {
                                             busyIndicator.running = true
                                         }
                                     }
+
                                     function onSigConnectionFinished() {
                                         if(index === wifiControl.connectIndex) {
                                             busyIndicator.running = false
-                                            let newList = [ wifiDetails.ssid, page.wifiPassword ]
-                                            dataBase.insertIntoValues = newList
+                                            let ssid = wifiDetails.ssid
+                                            let saveData = [ ssid, wifiSettings.getPassword(ssid) ]
+                                            dataBase.insertIntoValues = saveData
                                             dataBase.qmlInsertWifiData()
                                             pageStack.pop()
                                         }
@@ -197,9 +190,33 @@ BasicPage {
                                     visible: itemDelegate.hovered && wifiNetworkDetails.activeSsid !== wifiDetails.ssid
                                     radius: height / 2
                                     onClicked: {
-                                        page.ssid = wifiDetails.ssid
-                                        pageStack.push(setWifiPassword)
+                                        if(!wifiDetails.security) {
+                                            wifiNetworkDetails.connectToSsid(wifiDetails.ssid, "")
+                                            wifiControl.connectIndex = index
+                                            return
+                                        }
+
+                                        if(wifiSettings.hasSavedPassword(wifiDetails.ssid)){
+                                            var savedPass = wifiSettings.getPassword(wifiDetails.ssid)
+                                            wifiNetworkDetails.connectToSsid(wifiDetails.ssid, savedPass)
+                                            wifiControl.connectIndex = index
+                                            return
+                                        }
+                                        pageStack.push(setWifiPassword, {"connection_ssid" : wifiDetails.ssid})
                                         wifiControl.connectIndex = index
+                                    }
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    text: qsTr("Fotgot")
+                                    visible: wifiSettings.hasSavedPassword(wifiDetails.ssid) && itemDelegate.hovered
+                                    radius: height / 2
+                                    onClicked: {
+                                        wifiSettings.clearPassword(wifiDetails.ssid)
+                                        if(disconnectWifi.visible) {
+                                            wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
+                                        }
                                     }
                                 }
                             }
