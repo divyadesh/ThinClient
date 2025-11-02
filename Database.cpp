@@ -23,6 +23,8 @@ inline bool toBool(const QString &value, bool defaultVal = false)
     return (lower == "1" || lower == "true" || lower == "yes");
 }
 
+DataBase *DataBase::s_instance = nullptr;
+
 /**
  * @brief Constructs the DataBase object and initializes the SQLite connection.
  * @param parent Parent QObject (usually nullptr for singleton).
@@ -36,40 +38,22 @@ DataBase::DataBase(QObject *parent, const QString &path)
 }
 
 /**
- * @brief Returns a singleton instance of the DataBase class.
- *        Automatically chooses the database file path depending on the OS.
- *
- * On:
- *  - Windows: C:/ProgramData/ThinClientDB.db
- *  - macOS:   /Users/Shared/ThinClientDB.db
- *  - Linux:   /home/root/ThinClientDB.db
- *  - Fallback: ThinClientDB.db (current directory)
- *
- * @param parent Optional QObject parent.
- * @return Reference to the single DataBase instance.
- */
-DataBase& DataBase::getInstance(QObject *parent)
-{
-#ifdef Q_OS_WIN
-    static DataBase m_dbInstance(parent, "C:/ProgramData/ThinClientDB.db");
-#elif defined(Q_OS_MAC)
-    static DataBase m_dbInstance(parent, "/Users/Shared/ThinClientDB.db");
-#elif defined(Q_OS_LINUX)
-#  ifdef QT_DEBUG
-    static DataBase m_dbInstance(parent, "/home/rajni/ThinClientDB_debug.db");
-#  else
-    static DataBase m_dbInstance(parent, "/home/root/ThinClientDB.db");
-#  endif
-#else
-    static DataBase m_dbInstance(parent, "ThinClientDB.db"); // Fallback
-#endif
-    return m_dbInstance;
-}
-
-/**
  * @brief Opens the SQLite database connection.
  * @return True if successful, false otherwise.
  */
+DataBase* DataBase::instance(QObject *parent)
+{
+    if (!s_instance) {
+#  ifdef QT_DEBUG
+        s_instance = new DataBase(parent, "/home/rajni/ThinClientDB_debug.db");
+#  else
+        s_instance = new DataBase(parent,  "/home/root/ThinClientDB.db");
+#  endif
+        s_instance = new DataBase(parent, "ThinClientDB.db");
+    }
+    return s_instance;
+}
+
 bool DataBase::open()
 {
     if (!db.open()) {
@@ -406,7 +390,7 @@ void DataBase::qmlUpdateServerData(const QString &connectionId)
     }
 }
 
-QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
+ServerInfoStruct DataBase::qmlQueryServerTable(const QString &connectionId)
 {
     // Ensure we use the correct database connection
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
@@ -423,6 +407,8 @@ QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
 
     // Prepare the query using the UUID (connection_id)
     QSqlQuery query(db);
+    ServerInfoStruct info;
+
     query.prepare(R"(
         SELECT connection_id, connection_name, server_ip, deviceName, user_name, password,
                performance, enableAudio, enableMicrophone, redirectDrive,
@@ -447,26 +433,27 @@ QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
         setQueryResultList({});
         return {};
     }
+    \
+    info.id = query.value("connection_id").toString();
+    info.name = query.value("connection_name").toString();
+    info.ip = query.value("server_ip").toString();
+    info.deviceName = query.value("deviceName").toString();
+    info.username = query.value("user_name").toString();
+    info.password = query.value("password").toString();
+    info.performance = query.value("performance").toString();
+    info.audio = query.value("enableAudio").toBool();
+    info.mic = query.value("enableMicrophone").toBool();
+    info.redirectDrive = query.value("redirectDrive").toBool();
+    info.redirectUsb = query.value("redirectUsbDevice").toBool();
+    info.security = query.value("security").toBool();
+    info.gateway = query.value("gateway").toBool();
+    info.gatewayIp = query.value("gateway_ip").toString();
+    info.gatewayUser = query.value("gateway_user_name").toString();
+    info.gatewayPass = query.value("gateway_password").toString();
+    info.autoConnect = query.value("autoConnect").toBool();
 
     // Extract all fields safely
-    QStringList resultFields = {
-        query.value("connection_id").toString(),
-        query.value("connection_name").toString(),
-        query.value("server_ip").toString(),
-        query.value("deviceName").toString(),
-        query.value("user_name").toString(),
-        query.value("password").toString(),
-        query.value("performance").toString(),
-        query.value("enableAudio").toString(),
-        query.value("enableMicrophone").toString(),
-        query.value("redirectDrive").toString(),
-        query.value("redirectUsbDevice").toString(),
-        query.value("security").toString(),
-        query.value("gateway").toString(),
-        query.value("gateway_ip").toString(),
-        query.value("gateway_user_name").toString(),
-        query.value("gateway_password").toString()
-    };
+    QStringList resultFields = { query.value("connection_id").toString(), query.value("connection_name").toString(), query.value("server_ip").toString(), query.value("deviceName").toString(), query.value("user_name").toString(), query.value("password").toString(), query.value("performance").toString(), query.value("enableAudio").toString(), query.value("enableMicrophone").toString(), query.value("redirectDrive").toString(), query.value("redirectUsbDevice").toString(), query.value("security").toString(), query.value("gateway").toString(), query.value("gateway_ip").toString(), query.value("gateway_user_name").toString(), query.value("gateway_password").toString() };
 
     // Store result internally
     setQueryResultList(resultFields);
@@ -474,15 +461,15 @@ QStringList DataBase::qmlQueryServerTable(const QString &connectionId)
     // Structured log for debug
     qDebug().noquote()
         << "✅ qmlQueryServerTable(): Record fetched successfully"
-        << "\n Connection ID:" << resultFields[0]
-        << "\n Connection Name:" << resultFields[1]
-        << "\n Server IP:" << resultFields[2]
-        << "\n Device Name:" << resultFields[3]
-        << "\n User:" << resultFields[4]
-        << "\n Performance:" << resultFields[6];
+        << "\n Connection ID:" << info.id
+        << "\n Connection Name:" << info.name
+        << "\n Server IP:" << info.ip
+        << "\n Device Name:" << info.deviceName
+        << "\n User:" << info.username
+        << "\n Performance:" << info.performance;
 
     emit refreshTable();
-    return resultFields;
+    return info;
 }
 
 void DataBase::getServerList(ServerInfoColl *serverInfoColl)

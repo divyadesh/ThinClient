@@ -7,6 +7,28 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QString>
+
+
+struct ServerInfoStruct {
+    QString id;
+    QString name;
+    QString ip;
+    QString deviceName;
+    QString username;
+    QString password;
+    QString performance;
+    bool audio;
+    bool mic;
+    bool redirectDrive;
+    bool redirectUsb;
+    bool security;
+    bool gateway;
+    QString gatewayIp;
+    QString gatewayUser;
+    QString gatewayPass;
+    bool autoConnect;
+};
 
 /**
  * @class DataBase
@@ -39,7 +61,7 @@ public:
      * @brief Returns the singleton instance of the database.
      * @param parent Optional parent QObject.
      */
-    static DataBase& getInstance(QObject *parent = nullptr);
+    static DataBase* instance(QObject *parent = nullptr);
 
     // --- Core Database Operations ---
     bool open();
@@ -54,7 +76,7 @@ public:
     void setQueryResultList(QStringList newQueryResultList);
 
     // --- Public Methods Accessible from QML ---
-    Q_INVOKABLE QStringList qmlQueryServerTable(const QString &connectionId);
+    Q_INVOKABLE ServerInfoStruct qmlQueryServerTable(const QString &connectionId);
     Q_INVOKABLE bool removeServer(const QString &connectionId);
     Q_INVOKABLE void qmlInsertWifiData();
     Q_INVOKABLE void qmlInsertServerData();
@@ -79,6 +101,7 @@ private:
                       const QString &path = QString());
 
     // --- Member Variables ---
+    static DataBase *s_instance;
     QSqlDatabase db;                ///< SQLite database connection
     QStringList m_insertIntoValues; ///< Stores temporary insert/update values
     QStringList m_queryResultList;  ///< Stores results from last executed query

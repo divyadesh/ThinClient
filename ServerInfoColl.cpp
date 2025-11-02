@@ -9,9 +9,9 @@
 Q_LOGGING_CATEGORY(lcServerInfo, "app.serverinfo")
 
 ServerInfoColl::ServerInfoColl(QObject *parent)
-    : QAbstractListModel{parent},
-    _database(&DataBase::getInstance(nullptr))
+    : QAbstractListModel{parent}
 {
+    _database = DataBase::instance(parent);
     connect(&_rdpWatcher, &QFutureWatcher<void>::finished, this, &ServerInfoColl::onRdpFinished);
 }
 
@@ -92,17 +92,17 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
         return;
     }
 
-    QStringList info = _database->qmlQueryServerTable(connectionId);
-    qCInfo(lcServerInfo) << "Queried server info for" << connectionId << ":" << info;
+    ServerInfoStruct info = _database->qmlQueryServerTable(connectionId);
+    qCInfo(lcServerInfo) << "Queried server info for" << connectionId << ":" << info.deviceName;
 
-    if (info.size() <= 5) {
+    if (info.ip.isEmpty()) {
         qCWarning(lcServerInfo) << "Insufficient data from qmlQueryServerTable — aborting.";
         return;
     }
 
-    const QString server   = info.at(1).trimmed();
-    const QString username = info.at(3).trimmed();
-    const QString password = info.at(4); // do not log this
+    const QString server   = info.ip.trimmed();
+    const QString username = info.username.trimmed();
+    const QString password = info.password.trimmed();
 
     _already_running.store(true);
     emit rdpSessionStarted();

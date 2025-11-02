@@ -150,7 +150,7 @@ void Application::initModels()
     _serverModel   = new RdServerModel(this);
 
     // Database singleton (assumed). Do not set parent / delete.
-    _database = &DataBase::getInstance(this);
+    _database = DataBase::instance(this);
 }
 
 void Application::initControllers()
