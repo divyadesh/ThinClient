@@ -45,6 +45,7 @@ HEADERS += \
     RdpMonitorThread.h \
     ServerInfo.h \
     ServerInfoColl.h \
+    SystemSettings.h \
     UdevMonitor.h \
     WifiNetworkDetails.h \
     WifiNetworkDetailsColl.h \

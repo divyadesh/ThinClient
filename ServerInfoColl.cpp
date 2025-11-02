@@ -1,5 +1,7 @@
 #include "ServerInfoColl.h"
 #include "ServerInfo.h"
+#include "Application.h"
+#include "PersistData.h"
 #include <QQmlEngine>
 #include <QtConcurrent/QtConcurrent>
 #include <QProcess>
@@ -119,6 +121,9 @@ void ServerInfoColl::launchRDPSequence(const QString &server, const QString &use
     QString script = "/usr/bin/run_rdp.sh";
 
     // Run the RDP launcher as an independent systemd scope
+    SystemSettings settings = Application::persistData()->systemSettings();
+    Q_UNUSED(settings);
+
     QStringList args;
     args << "--scope"
          << "--slice=rdp"

@@ -1,4 +1,5 @@
 #include "PersistData.h"
+#include <QTimeZone>
 
 PersistData::PersistData(QObject *parent)
     : QObject{parent},
@@ -23,6 +24,35 @@ PersistData::PersistData(QObject *parent)
 }
 
 PersistData::~PersistData() {}
+
+SystemSettings PersistData::systemSettings() const
+{
+    SystemSettings cfg;
+
+    cfg.audio = m_setting.value("Audio", "0").toString();
+
+    // Try to load timezone from settings
+    cfg.timeZone = m_setting.value("TimeZone", "").toString();
+
+    // ✅ If no timezone is saved, use the system’s timezone ID
+    if (cfg.timeZone.isEmpty()) {
+        QByteArray systemZone = QTimeZone::systemTimeZoneId();
+        cfg.timeZone = QString::fromUtf8(systemZone);
+
+        qDebug() << "System timezone detected:" << cfg.timeZone;
+    }
+
+    cfg.enableOnScreenKeyboard = m_setting.value("EnableOnScreenKeyboard", false).toBool();
+    cfg.enableTouchScreen = m_setting.value("EnableTouchScreen", false).toBool();
+    cfg.resolution = m_setting.value("Resolution", "Auto").toString();
+    cfg.ethernet = m_setting.value("Ethernet", "DHCP").toString();
+    cfg.network = m_setting.value("Network", "Ethernet").toString();
+    cfg.orientation = m_setting.value("Orientation", "Landscape").toString();
+    cfg.deviceOff = m_setting.value("DeviceOff", "").toString();
+    cfg.displayOff = m_setting.value("DisplayOff", "").toString();
+
+    return cfg;
+}
 
 // Generic save function
 void PersistData::saveData(const QString &key, const QString &value) {

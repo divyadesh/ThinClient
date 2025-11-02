@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSettings>
 #include <QDebug>
+#include "SystemSettings.h"
 
 class PersistData : public QObject {
     Q_OBJECT
@@ -23,6 +24,8 @@ class PersistData : public QObject {
 public:
     explicit PersistData(QObject *parent = nullptr);
     ~PersistData();
+
+    SystemSettings systemSettings() const;  // 👈 New method
 
     // Generic methods for QML access
     Q_INVOKABLE void saveData(const QString &key, const QString &value);
