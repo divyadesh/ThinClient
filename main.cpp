@@ -25,6 +25,7 @@
 #include "ethernetNetworkConroller.h"
 #include "devicesettings.h"
 #include "rdservermodel.h"
+#include "UdevMonitor.h"
 
 bool updateWestonConfig()
 {
@@ -136,12 +137,14 @@ int main(int argc, char *argv[])
     LanguageModel languageModel(&appSettings);
     TimeZoneModel timeZoneModel;
     DeviceSettings deviceSettings;
-    // Create a single instance of your model
+    UdevMonitor monitor;
 
+    // Create a single instance of your model
     engine.rootContext()->setContextProperty("DeviceSettings", &deviceSettings);
     engine.rootContext()->setContextProperty("appSettings", &appSettings);
     engine.rootContext()->setContextProperty("languageModel", &languageModel);
     engine.rootContext()->setContextProperty("timeZoneModel", &timeZoneModel);
+    engine.rootContext()->setContextProperty("usbMonitor", &monitor);
 
     // --- Register QML Backend Types ---
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");

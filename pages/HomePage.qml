@@ -133,10 +133,10 @@ BasicPage {
 
             Icon {
                 id: usb
-                visible: false
+                visible: usbMonitor.usbConnected
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
-                icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
+                icon: Qt.resolvedUrl("qrc:/assets/icons/usb.svg")
                 scale: 1.0
 
                 onClicked: {}

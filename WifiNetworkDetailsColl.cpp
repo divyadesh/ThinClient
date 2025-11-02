@@ -39,7 +39,6 @@ WifiNetworkDetailsColl::WifiNetworkDetailsColl(QObject *parent)
                                         ? QStringList(fields.mid(6, 6)).join(":")
                                         : "";
 
-                    qDebug()<<"The Wifi Setails :: "<<fields;
                     if(ssid.isEmpty()) {
                         continue;
                     }

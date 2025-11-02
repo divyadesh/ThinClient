@@ -72,5 +72,6 @@
         <file>dialogs/WifiDetails.qml</file>
         <file>dialogs/SetWifiPassword.qml</file>
         <file>dialogs/AutoConnect.qml</file>
+        <file>assets/icons/usb.svg</file>
     </qresource>
 </RCC>

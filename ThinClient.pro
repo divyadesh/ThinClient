@@ -10,6 +10,7 @@ SOURCES += \
         PersistData.cpp \
         ServerInfo.cpp \
         ServerInfoColl.cpp \
+        UdevMonitor.cpp \
         WifiNetworkDetails.cpp \
         WifiNetworkDetailsColl.cpp \
         appsettings.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     RdpMonitorThread.h \
     ServerInfo.h \
     ServerInfoColl.h \
+    UdevMonitor.h \
     WifiNetworkDetails.h \
     WifiNetworkDetailsColl.h \
     appsettings.h \
@@ -61,8 +63,9 @@ HEADERS += \
     wifimonitor.h \
     wifiworker.h
 
-
 # --- Deployment section ---
 TARGET = ThinClient
 target.path = /root
 INSTALLS += target
+
+LIBS += -ludev

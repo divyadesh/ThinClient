@@ -1,8 +1,13 @@
 #include "wifiworker.h"
+#include <QTimer>
 
 WifiWorker::WifiWorker(QObject *parent)
     : QObject(parent)
-{}
+{
+    auto timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &WifiWorker::checkConnection);
+    timer->start(2000);
+}
 
 void WifiWorker::checkConnection()
 {
