@@ -236,16 +236,6 @@ BasicPage {
                                     }
                                 }
                             }
-
-                            Icon {
-                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                icon: "qrc:/assets/icons/menu.svg"
-                                iconWidth: 20
-                                iconHeight: 20
-                                onClicked: {
-                                    pageStack.push(wifiDetailsComponent, {"wifiDetail": wifiDetails})
-                                }
-                            }
                         }
                     }
                 }
