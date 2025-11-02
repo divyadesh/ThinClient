@@ -32,20 +32,6 @@ SOURCES += \
         wifiworker.cpp
 
 RESOURCES += qml.qrc
-# qml_files.files = $$files($$PWD/*.qml, true)
-# qml_files.prefix = "/"
-# RESOURCES += qml_files
-
-# Additional import path used to resolve QML modules in Qt Creator's code model
-QML_IMPORT_PATH =
-
-# Additional import path used to resolve QML modules just for Qt Quick Designer
-QML_DESIGNER_IMPORT_PATH =
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
     AudioSettingsOptions.h \
@@ -74,3 +60,9 @@ HEADERS += \
     timezone_model.h \
     wifimonitor.h \
     wifiworker.h
+
+
+# --- Deployment section ---
+TARGET = ThinClient
+target.path = /root
+INSTALLS += target

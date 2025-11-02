@@ -39,16 +39,17 @@ WifiNetworkDetailsColl::WifiNetworkDetailsColl(QObject *parent)
                                         ? QStringList(fields.mid(6, 6)).join(":")
                                         : "";
 
+                    qDebug()<<"The Wifi Setails :: "<<fields;
                     if(ssid.isEmpty()) {
                         continue;
                     }
 
                     int bar = StrengthNone;
-                    if      (bars == "▂▄▆█") bar = StrengthExcellent;
-                    else if (bars == "▂▄▆_") bar = StrengthGood;
-                    else if (bars == "▂▄__") bar = StrengthFair;
-                    else if (bars == "▂___") bar = StrengthWeak;
-                    else if (bars == "____") bar = StrengthNone;
+                    if      (bars == "****") bar = StrengthExcellent;
+                    else if (bars == "*** ") bar = StrengthGood;
+                    else if (bars == "**  ") bar = StrengthFair;
+                    else if (bars == "*   ") bar = StrengthWeak;
+                    else if (bars == "    ") bar = StrengthNone;
 
                     if (active == "yes") {
                         setActiveSsid(ssid);
@@ -144,10 +145,11 @@ void WifiNetworkDetailsColl::fetchActiveWifiDetails()
                     }
 
                     int bar = StrengthNone;
-                    if      (bars == "▂▄▆█") bar = StrengthExcellent;
-                    else if (bars == "▂▄▆_") bar = StrengthGood;
-                    else if (bars == "▂▄__") bar = StrengthFair;
-                    else if (bars == "▂___") bar = StrengthWeak;
+                    if      (bars == "****") bar = StrengthExcellent;
+                    else if (bars == "*** ") bar = StrengthGood;
+                    else if (bars == "**  ") bar = StrengthFair;
+                    else if (bars == "*   ") bar = StrengthWeak;
+                    else if (bars == "    ") bar = StrengthNone;
 
                     if (active == "yes") {
                         setActiveSsid(ssid);
