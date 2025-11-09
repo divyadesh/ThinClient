@@ -31,7 +31,6 @@
         <file>controls/PrefsTabBar.qml</file>
         <file>controls/PageTabButton.qml</file>
         <file>controls/PrefsStackView.qml</file>
-        <file>pages/EthernetManualItem.qml</file>
         <file>controls/PrefsLabel.qml</file>
         <file>controls/PrefsButton.qml</file>
         <file>assets/icons/back.png</file>
@@ -73,5 +72,6 @@
         <file>dialogs/SetWifiPassword.qml</file>
         <file>dialogs/AutoConnect.qml</file>
         <file>assets/icons/usb.svg</file>
+        <file>components/PrefsFooterLayout.qml</file>
     </qresource>
 </RCC>

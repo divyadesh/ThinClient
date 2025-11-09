@@ -70,7 +70,6 @@ BasicPage {
                         id: ethernet
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         ButtonGroup.group: tabGroup
-                        radius: height / 2
                         Layout.fillWidth: true
                         checked: header.networkPersistData === "Ethernet" || header.networkPersistData === ""
                         text: qsTr("Ethernet")
@@ -83,7 +82,6 @@ BasicPage {
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         ButtonGroup.group: tabGroup
                         Layout.fillWidth: true
-                        radius: height / 2
                         checked: header.networkPersistData === "WiFi"
                         text: qsTr("WiFi")
                         visible: !!text

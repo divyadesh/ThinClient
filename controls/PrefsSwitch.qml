@@ -1,15 +1,14 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.0
-import QtGraphicalEffects 1.0
+import Qt5Compat.GraphicalEffects
 import App.Styles 1.0
 
 
 Switch {
     id: root
     property color checkedColor: Colors.accentPrimary
-
-
     hoverEnabled: true
+
     indicator: Rectangle {
         width: 54
         height: 34

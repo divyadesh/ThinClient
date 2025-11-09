@@ -93,15 +93,15 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
-    if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR"))
-        qputenv("XDG_RUNTIME_DIR", "/run/user/0");
+    // if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR"))
+    //     qputenv("XDG_RUNTIME_DIR", "/run/user/0");
 
-    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
-        if (QFile::exists("/run/user/0/wayland-0"))
-            qputenv("QT_QPA_PLATFORM", QByteArray("wayland"));
-        else
-            qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
-    }
+    // if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+    //     if (QFile::exists("/run/user/0/wayland-0"))
+    //         qputenv("QT_QPA_PLATFORM", QByteArray("wayland"));
+    //     else
+    //         qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
+    // }
 
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");  // ✅ Enable logging early

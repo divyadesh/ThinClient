@@ -63,11 +63,6 @@ BasicPage {
             spacing: 10
             clip: true
 
-            PrefsHeader {
-                Layout.fillWidth: true
-                text: qsTr("RD Servers")
-            }
-
             Control {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 400
@@ -514,38 +509,32 @@ BasicPage {
                                 }
                             }
                         }
-                    }
-                }
 
-                PrefsItemDelegate {
-                    id: rdGateway
-                    Layout.fillWidth: true
-                    text: qsTr("RD Gateway")
-
-                    contentItem: RowLayout {
-                        PrefsButton {
-                            id: rdGateWay
-                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                            checkable: true
-                            text: qsTr("RD Gateway")
-                            onClicked: {}
-                        }
-                    }
-
-                    indicator: ColumnLayout {
-                        enabled: rdGateWay.checked
-                        x: rdGateway.width - width - rdGateway.rightPadding
-                        y: rdGateway.topPadding + (rdGateway.availableHeight - height) / 2
-                        spacing: 10
-
-                        RowLayout {
+                        PrefsItemDelegate {
+                            id: enableGateway
                             Layout.fillWidth: true
+                            implicitHeight: 48
+                            text: qsTr("RD Gateway")
 
-                            Item { Layout.fillWidth: true }
+                            indicator: PrefsSwitch {
+                                x: enableGateway.width - width - enableGateway.rightPadding
+                                y: enableGateway.topPadding + (enableGateway.availableHeight - height) / 2
+                                id: rdGateWay
+                                checkable: true
+                                onClicked: {}
+                            }
+                        }
 
-                            ColumnLayout {
-                                spacing: 20
-                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                        PrefsItemDelegate {
+                            id: rdGateway
+                            Layout.fillWidth: true
+                            text: qsTr("RD Gateway")
+                            visible: rdGateWay.checked
+
+                            indicator: ColumnLayout {
+                                x: rdGateway.width - width - rdGateway.rightPadding
+                                y: rdGateway.topPadding + (rdGateway.availableHeight - height) / 2
+                                spacing: 10
 
                                 PrefsTextField {
                                     id: gatewayIp
