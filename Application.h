@@ -34,6 +34,7 @@
 #include "rdservermodel.h"
 #include "UdevMonitor.h"
 #include "wifisettingsmanager.h"
+#include "logexporter.h"
 
 class Application : public QObject
 {

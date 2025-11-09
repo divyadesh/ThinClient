@@ -95,23 +95,31 @@ BasicPage {
                             x: orientation.width - width - orientation.rightPadding
                             y: orientation.topPadding + (orientation.availableHeight - height) / 2
 
+                            // ✅ Updated model: each item has a label (text) and numeric value
                             model: [
-                                "Landscape",
-                                "Portrait",
-                                "Landscape (Flipped)",
-                                "Portrait (Flipped)"
+                                { text: "Landscape", value: 0 },
+                                { text: "Portrait", value: 90 },
+                                { text: "Landscape (Flipped)", value: 180 },
+                                { text: "Portrait (Flipped)", value: 270 }
                             ]
-                            onCurrentIndexChanged: {
-                                if(currentIndex > 0) {
-                                    persistData.saveData("Orientation", model[currentIndex])
-                                }
+
+                            // ✅ Tell ComboBox which property to display
+                            textRole: "text"
+                            valueRole: "value"
+
+                            // ✅ Save numeric value when changed
+                            onActivated: {
+                                persistData.saveData("Orientation", currentValue)
                             }
+
+                            // ✅ Restore saved numeric orientation
                             Component.onCompleted: {
                                 let savedOrientation = persistData.getData("Orientation")
-                                if(savedOrientation !== undefined) {
-                                    let index = orientationComboBox.find(savedOrientation)
-                                    if(index > 0)
+                                if (savedOrientation !== undefined) {
+                                    let index = model.findIndex(item => item.value === parseInt(savedOrientation, 10))
+                                    if (index >= 0) {
                                         orientationComboBox.currentIndex = index
+                                    }
                                 }
                             }
                         }
@@ -135,33 +143,39 @@ BasicPage {
                                 PrefsComboBox {
                                     id: displayOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                    // ✅ Updated model: each item has a label (text) and numeric value (in minutes)
                                     model: [
-                                        "None",
-                                        "10 Minutes",
-                                        "30 Minutes",
-                                        "60 Minutes"
+                                        { text: "None", value: 0 },
+                                        { text: "10 Minutes", value: 10 },
+                                        { text: "30 Minutes", value: 30 },
+                                        { text: "60 Minutes", value: 60 }
                                     ]
 
-                                    // Default selected = "None"
+                                    // ✅ Tell ComboBox which roles to use
+                                    textRole: "text"
+                                    valueRole: "value"
+
+                                    // Default selection = "None"
                                     currentIndex: 0
 
-                                    onCurrentIndexChanged: {
-                                        switch (currentIndex) {
-                                        case 0: console.log("Display Off: None"); break;
-                                        case 1: console.log("Display Off: 10 min"); break;
-                                        case 2: console.log("Display Off: 30 min"); break;
-                                        case 3: console.log("Display Off: 60 min"); break;
-                                        }
-                                        if(currentIndex > 0) {
-                                            persistData.saveData("DisplayOff", model[currentIndex])
-                                        }
+                                    // ✅ When user changes the selection
+                                    onActivated: {
+                                        let selectedValue = model[currentIndex].value
+                                        console.log("Display Off:", selectedValue === 0 ? "None" : `${selectedValue} min`)
+                                        persistData.saveData("DisplayOff", selectedValue)
                                     }
+
+                                    // ✅ Restore saved setting
                                     Component.onCompleted: {
                                         let savedDisplayOff = persistData.getData("DisplayOff")
-                                        if(savedDisplayOff !== undefined) {
-                                            let index = displayOffComboBox.find(savedDisplayOff)
-                                            if(index > 0)
+                                        console.log("Restored DisplayOff:", savedDisplayOff)
+                                        if (savedDisplayOff !== undefined) {
+                                            // 🔍 Find matching index by numeric value
+                                            let index = model.findIndex(item => item.value === parseInt(savedDisplayOff, 10))
+                                            if (index >= 0) {
                                                 displayOffComboBox.currentIndex = index
+                                            }
                                         }
                                     }
                                 }
@@ -176,36 +190,40 @@ BasicPage {
                                 PrefsComboBox {
                                     id: deviceOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+                                    // ✅ Each item has a display label (text) and numeric value (in hours)
                                     model: [
-                                        "None",
-                                        "1 Hour",
-                                        "5 Hours",
-                                        "10 Hours",
-                                        "24 Hours",
-                                        "48 Hours"
+                                        { text: "None", value: 0 },
+                                        { text: "1 Hour", value: 1 },
+                                        { text: "5 Hours", value: 5 },
+                                        { text: "10 Hours", value: 10 },
+                                        { text: "24 Hours", value: 24 },
+                                        { text: "48 Hours", value: 48 }
                                     ]
-                                    // Default selected = "None"
+
+                                    textRole: "text"
+                                    valueRole: "value"
+
+                                    // Default = "None"
                                     currentIndex: 0
 
-                                    onCurrentIndexChanged: {
-                                        switch (currentIndex) {
-                                        case 0: console.log("Device Off: None"); break;
-                                        case 1: console.log("Device Off: 1 hour"); break;
-                                        case 2: console.log("Device Off: 5 hours"); break;
-                                        case 3: console.log("Device Off: 10 hours"); break;
-                                        case 4: console.log("Device Off: 24 hours"); break;
-                                        case 5: console.log("Device Off: 48 hours"); break;
-                                        }
-                                        if(currentIndex > 0) {
-                                            persistData.saveData("DeviceOff", model[currentIndex])
-                                        }
+                                    // ✅ Handle user change
+                                    onActivated: {
+                                        let selectedValue = model[currentIndex].value
+                                        console.log("Device Off:", selectedValue === 0 ? "None" : `${selectedValue} hour(s)`)
+                                        persistData.saveData("DeviceOff", selectedValue)
                                     }
+
+                                    // ✅ Restore saved value
                                     Component.onCompleted: {
                                         let savedDeviceOff = persistData.getData("DeviceOff")
-                                        if(savedDeviceOff !== undefined) {
-                                            let index = deviceOffComboBox.find(savedDeviceOff)
-                                            if(index > 0)
+                                        console.log("Restored DeviceOff:", savedDeviceOff)
+                                        if (savedDeviceOff !== undefined) {
+                                            // Find index based on stored numeric value
+                                            let index = model.findIndex(item => item.value === parseInt(savedDeviceOff, 10))
+                                            if (index >= 0) {
                                                 deviceOffComboBox.currentIndex = index
+                                            }
                                         }
                                     }
                                 }

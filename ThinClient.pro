@@ -24,6 +24,8 @@ SOURCES += \
         ethernetNetworkConroller.cpp \
         imageupdater.cpp \
         language_model.cpp \
+        logexporter.cpp \
+        logger.cpp \
         logoloader.cpp \
         main.cpp \
         rdservermodel.cpp \
@@ -59,6 +61,8 @@ HEADERS += \
     ethernetNetworkConroller.h \
     imageupdater.h \
     language_model.h \
+    logexporter.h \
+    logger.h \
     logoloader.h \
     rdservermodel.h \
     systemresetmanager.h \
@@ -70,7 +74,12 @@ HEADERS += \
 
 # --- Deployment section ---
 TARGET = ThinClient
-target.path = /root
-INSTALLS += target
+# target.path = /root
+# INSTALLS += target
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
 
 LIBS += -ludev

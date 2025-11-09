@@ -3,6 +3,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 import App.Enums 1.0
+import G1.ThinClient 1.0
 
 import "../components"
 import "../controls"
@@ -319,7 +320,8 @@ BasicPage {
                             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                             Layout.fillWidth: true
                             radius: height / 2
-                            text: qsTr("Update")
+                            enabled: usbMonitor.usbConnected
+                            text: qsTr("Update From USB")
                             onClicked: pageStack.push(updateDialog)
                         }
 
@@ -327,9 +329,28 @@ BasicPage {
                             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                             Layout.fillWidth: true
                             radius: height / 2
-                            text: qsTr("Export Log")
+                            text: exporter.busy ? "Exporting..." : "Export Logs to USB"
+                            enabled: !exporter.busy && usbMonitor.usbConnected
+                            onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
+                        }
+
+                        BusyIndicator {
+                            running: exporter.busy
+                            visible: exporter.busy
                         }
                     }
+
+                    Item {Layout.fillWidth: true}
+
+                    Label {
+                        id: messageLabel
+                        text: exporter.statusMessage
+                        visible: text
+                        wrapMode: Text.WordWrap
+                        font.pixelSize: 14
+                    }
+
+                    Item {Layout.fillWidth: true}
                 }
             }
         }
@@ -362,4 +383,13 @@ BasicPage {
         id: updateDialog
         SoftwareUpdater {}
     }
+
+    LogExporter {
+         id: exporter
+         onExportFinished: (success, msg) => {
+             messageLabel.text = msg
+             if (success) messageLabel.color = "green"
+             else messageLabel.color = "red"
+         }
+     }
 }

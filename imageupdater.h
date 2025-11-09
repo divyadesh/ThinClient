@@ -5,6 +5,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
+#include <QString>
 
 class ImageUpdater : public QObject
 {
@@ -13,7 +14,7 @@ class ImageUpdater : public QObject
 
 public:
     explicit ImageUpdater(QObject *parent = nullptr);
-    Q_INVOKABLE void startUpdate(const QString &url);
+    Q_INVOKABLE void startUpdate(const QString &usbPortPath);
     Q_INVOKABLE void cancelUpdate();
 
     bool isUpdating() const;

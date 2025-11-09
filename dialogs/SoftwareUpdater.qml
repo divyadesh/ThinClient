@@ -39,17 +39,20 @@ BasicPage {
     ImageUpdater {
         id: updater
 
-        onProgressChanged: (step, percent) => {
-                               statusText.text = step + " (" + percent + "%)";
-                           }
+        onProgressChanged: function(step, percent) {
+            statusText.text = step + " (" + percent + "%)";
+            if(percent === 100 || parseInt(percent, 10) === 100) {
+                pageStack.pop()
+            }
+        }
 
-        onErrorOccurred: (err) => {
-                             statusText.text = "Error: " + err;
-                         }
+        onErrorOccurred: function(err) {
+            statusText.text = "Error: " + err;
+        }
 
-        onRebootCountdown: (sec) => {
-                               statusText.text = "Rebooting in " + sec + " seconds...";
-                           }
+        onRebootCountdown: function(sec) {
+            statusText.text = "Rebooting in " + sec + " seconds...";
+        }
     }
 
     Page {
@@ -64,7 +67,7 @@ BasicPage {
         }
 
         header: Control {
-            implicitHeight: 52
+            height: 52
             padding: 10
             topPadding: 16
 
@@ -121,13 +124,13 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    enabled: !updater.updating
+                    enabled: !updater.updating && usbMonitor.usbConnected
                     text: qsTr("Start Update")
                     radius: height / 2
                     highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        updater.startUpdate("http://yourserver.com/path/to/Connect")
+                        updater.startUpdate(usbMonitor.usbStoragePort)
                     }
                 }
 

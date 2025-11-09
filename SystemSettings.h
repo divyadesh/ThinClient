@@ -9,7 +9,7 @@ struct SystemSettings {
     QString resolution;
     QString ethernet;
     QString network;
-    QString orientation;
-    QString deviceOff;
-    QString displayOff;
+    int orientation = 0;
+    int deviceOff = 0;
+    int displayOff = 0;
 };

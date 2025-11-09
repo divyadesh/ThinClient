@@ -228,6 +228,7 @@ void Application::registerTypesAndContext()
     // --- Backend types available to QML for instantiation if needed ---
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
     qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
+    qmlRegisterType<LogExporter>("G1.ThinClient", 1, 0, "LogExporter");
 
     // --- Context singletons (instances) ---
     auto *ctx = m_engine->rootContext();

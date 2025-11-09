@@ -52,6 +52,7 @@ UdevMonitor::UdevMonitor(QObject *parent)
                 QStringList devs = devDir.entryList(QStringList() << "sd*", QDir::System);
                 m_connected = !devs.isEmpty();
             }
+            setUsbStoragePort(devNode);
             emit usbConnectedChanged();
         }
 
@@ -64,4 +65,17 @@ UdevMonitor::UdevMonitor(QObject *parent)
     QStringList devs = devDir.entryList(QStringList() << "sd*", QDir::System);
     m_connected = !devs.isEmpty();
     emit usbConnectedChanged();
+}
+
+QString UdevMonitor::usbStoragePort() const
+{
+    return m_usbStoragePort;
+}
+
+void UdevMonitor::setUsbStoragePort(QString newUsbStoragePort)
+{
+    if (m_usbStoragePort == newUsbStoragePort)
+        return;
+    m_usbStoragePort = newUsbStoragePort;
+    emit usbStoragePortChanged();
 }

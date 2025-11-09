@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QTimer>
+#include <QProcess>
 
 ImageUpdater::ImageUpdater(QObject *parent)
     : QObject(parent)
@@ -14,44 +15,48 @@ bool ImageUpdater::isUpdating() const
     return m_updating;
 }
 
-void ImageUpdater::startUpdate(const QString &url)
+void ImageUpdater::startUpdate(const QString &usbPortPath)
 {
+    QString scriptPath = "/usr/bin/update_from_usb.sh";
+
     if (m_updating) {
         emit errorOccurred("Update already in progress");
         return;
     }
 
+    // Check if the script exists before executing
+    if (!QFile::exists(scriptPath)) {
+        qWarning() << "❌ Update script not found:" << scriptPath;
+        return;
+    }
+
+    // Check if argument provided
+    if (usbPortPath.isEmpty()) {
+        qWarning() << "⚠️ No USB path provided to updater (e.g. /dev/sda1)";
+        return;
+    }
+
+    // Prepare arguments for QProcess
+    QStringList arguments;
+    arguments << usbPortPath;
+
     m_updating = true;
     emit updatingChanged();
     emit progressChanged("Removing old file...", 0);
 
-    if (QFile::exists(m_targetPath)) {
-        if (!QFile::remove(m_targetPath)) {
-            emit errorOccurred("Failed to remove existing file.");
-            resetState();
-            return;
-        }
+
+    // Start the update script as detached (so it runs independently)
+    bool success = QProcess::startDetached(scriptPath, arguments);
+
+    if (success) {
+        qDebug() << "✅ Started update script with device:" << usbPortPath;
+    } else {
+        qWarning() << "❌ Failed to start update script!";
     }
 
-    emit progressChanged("Starting download...", 0);
-
-    m_reply = m_networkManager.get(QNetworkRequest(QUrl(url)));
-
-    connect(m_reply, &QNetworkReply::downloadProgress, this, &ImageUpdater::handleDownloadProgress);
-
-    connect(m_reply, &QNetworkReply::finished, this, &ImageUpdater::handleDownloadFinished);
-
-    // connect(m_reply,
-    //         QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error),
-    //         this,
-    //         &ImageUpdater::handleDownloadError);
-
-    m_file.setFileName(m_targetPath);
-    if (!m_file.open(QIODevice::WriteOnly)) {
-        emit errorOccurred("Failed to open file for writing.");
-        m_reply->abort();
-        resetState();
-    }
+    m_updating = false;
+    emit updatingChanged();
+    emit progressChanged("Update Successfully!", 100);
 }
 
 void ImageUpdater::handleDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)

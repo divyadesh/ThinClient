@@ -8,26 +8,11 @@
 #include <QDir>
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
-#include "Database.h"
-#include "AudioSettingsOptions.h"
-#include "DeviceInfo.h"
-#include "ServerInfoColl.h"
-#include "WifiNetworkDetailsColl.h"
-#include "PersistData.h"
-#include "deviceinfosettings.h"
-#include "imageupdater.h"
-#include "systemresetmanager.h"
-#include "appsettings.h"
-#include "appunlockmanager.h"
-#include "language_model.h"
-#include "timezone_model.h"
-#include "timezone_filter_model.h"
+#include <QFile>
+#include <QTextStream>
+
 #include "Application.h"
-#include "ethernetNetworkConroller.h"
-#include "devicesettings.h"
-#include "rdservermodel.h"
-#include "UdevMonitor.h"
-#include "wifisettingsmanager.h"
+#include "logger.h"
 
 bool updateWestonConfig()
 {
@@ -108,15 +93,51 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
+    if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR"))
+        qputenv("XDG_RUNTIME_DIR", "/run/user/0");
+
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+        if (QFile::exists("/run/user/0/wayland-0"))
+            qputenv("QT_QPA_PLATFORM", QByteArray("wayland"));
+        else
+            qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
+    }
 
     QGuiApplication app(argc, argv);
+    Logger::init("/var/log/thinclient.log");  // ✅ Enable logging early
 
     // --- Metadata ---
+    const QString appName = "G1ThinClientPC";
+    const QString appDisplayName = "G1 Thin Client PC";
+    const QString appVersion = "1.0.1";
+    const QString appDescription = "Thin client desktop for embedded systems (Qt/QML + C++).";
+
     QGuiApplication::setOrganizationDomain("https://g1thinclientpc.com/");
     QGuiApplication::setOrganizationName("G1 Thin Client PC");
-    QGuiApplication::setApplicationName("G1ThinClientPC");
-    QGuiApplication::setApplicationDisplayName("G1 Thin Client PC");
-    QGuiApplication::setApplicationVersion("1.0.0");
+    QGuiApplication::setApplicationName(appName);
+    QGuiApplication::setApplicationDisplayName(appDisplayName);
+    QGuiApplication::setApplicationVersion(appVersion);
+
+    // --- Command line parser ---
+    QCommandLineParser parser;
+    parser.setApplicationDescription(appDescription);
+    parser.addHelpOption();
+    parser.addVersionOption(); // enables --version and -v
+
+    parser.process(app);
+
+    // If --version passed, Qt automatically prints "<name> <version>" and exits
+    if (parser.isSet("version")) {
+        return 0;
+    }
+
+    // --- Print startup info ---
+    qInfo().noquote() << QString("==== %1 v%2 ====").arg(appDisplayName, appVersion);
+    qInfo().noquote() << QString("Description: %1").arg(appDescription);
+    qInfo().noquote() << QString("Startup Time: %1").arg(QDateTime::currentDateTime().toString(Qt::ISODate));
+    qInfo() << "Organization:" << QGuiApplication::organizationName();
+    qInfo() << "Domain:" << QGuiApplication::organizationDomain();
+    qInfo() << "Application path:" << QCoreApplication::applicationFilePath();
 
     // --- QML Engine Setup ---
     QQmlApplicationEngine engine;
@@ -125,7 +146,7 @@ int main(int argc, char *argv[])
     Application::initialize(&engine);
 
     // --- Update Weston Config in background (only once) ---
-    ensureWestonConfig();
+    // ensureWestonConfig();
 
     // --- Load Main UI ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));
@@ -146,6 +167,9 @@ int main(int argc, char *argv[])
 
     // --- Clean up singleton ---
     Application::destroy();
+
+    qInfo() << "Application exited with code:" << code;
+    Logger::shutdown();
 
     return code;
 }

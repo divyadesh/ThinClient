@@ -16,9 +16,9 @@ PersistData::PersistData(QObject *parent)
     m_resolution = m_setting.value("Resolution", "1600 x 900").toString();
     m_ethernet = m_setting.value("Ethernet", "DHCP").toString();
     m_network = m_setting.value("Network", "Ethernet").toString();
-    m_orientation = m_setting.value("Orientation", "Landscape").toString();
-    m_deviceOff = m_setting.value("DeviceOff", "").toString();
-    m_displayOff = m_setting.value("DisplayOff", "").toString();
+    m_orientation = m_setting.value("Orientation", "0").toString();
+    m_deviceOff = m_setting.value("DeviceOff", "0").toString();
+    m_displayOff = m_setting.value("DisplayOff", "0").toString();
 
     m_setting.endGroup();
 }
@@ -47,9 +47,9 @@ SystemSettings PersistData::systemSettings() const
     cfg.resolution = m_setting.value("Resolution", "Auto").toString();
     cfg.ethernet = m_setting.value("Ethernet", "DHCP").toString();
     cfg.network = m_setting.value("Network", "Ethernet").toString();
-    cfg.orientation = m_setting.value("Orientation", "Landscape").toString();
-    cfg.deviceOff = m_setting.value("DeviceOff", "").toString();
-    cfg.displayOff = m_setting.value("DisplayOff", "").toString();
+    cfg.orientation = m_setting.value("Orientation", 0).toInt();
+    cfg.deviceOff = m_setting.value("DeviceOff", 0).toInt();
+    cfg.displayOff = m_setting.value("DisplayOff", 0).toInt();
 
     return cfg;
 }
