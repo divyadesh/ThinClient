@@ -9,7 +9,7 @@
         <file>styles/Theme.qml</file>
         <file>utils/StateManager.qml</file>
         <file>pages/HomePage.qml</file>
-        <file>pages/NetworkPage.qml</file>
+        <file>pages/WifiNetworkPage.qml</file>
         <file>pages/DisplayPage.qml</file>
         <file>pages/DeviceSettingsPage.qml</file>
         <file>pages/DeviceInfoPage.qml</file>
@@ -79,5 +79,6 @@
         <file>assets/settingsIcons/ic_device.svg</file>
         <file>assets/settingsIcons/ic_about.svg</file>
         <file>assets/settingsIcons/ic_rdserver.svg</file>
+        <file>pages/EthernetNetworkPage.qml</file>
     </qresource>
 </RCC>

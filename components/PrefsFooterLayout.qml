@@ -42,13 +42,13 @@ TabBar {
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/assets/settingsIcons/ic_display.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_device.svg"
         text: qsTr("Display Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Display, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/assets/settingsIcons/ic_device.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_display.svg"
         text: qsTr("Device Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Device, text)
     }

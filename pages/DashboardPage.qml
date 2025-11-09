@@ -44,10 +44,10 @@ BasicPage {
                     pageStack.replace(serverSettingsPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Ethernet:
-                    pageStack.replace(networkPage, {pageTitle: title })
+                    pageStack.replace(ethernetnetworkPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Wifi:
-                    pageStack.replace(networkPage, {pageTitle: title })
+                    pageStack.replace(wifinetworkPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Display:
                     pageStack.replace(displayPage, {pageTitle: title })
@@ -94,8 +94,14 @@ BasicPage {
     }
 
     Component {
-        id: networkPage
-        NetworkPage {
+        id: ethernetnetworkPage
+        EthernetNetworkPage {
+            onBackToHome: { root.pageStack.pop() }
+        }
+    }
+    Component {
+        id: wifinetworkPage
+        WifiNetworkPage {
             onBackToHome: { root.pageStack.pop() }
         }
     }
