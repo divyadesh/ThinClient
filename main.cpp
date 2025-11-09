@@ -103,6 +103,8 @@ int main(int argc, char *argv[])
     //         qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
     // }
 
+     qputenv("QT_QPA_PLATFORM", QByteArray("wayland"));
+
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");  // ✅ Enable logging early
 

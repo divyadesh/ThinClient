@@ -73,5 +73,11 @@
         <file>dialogs/AutoConnect.qml</file>
         <file>assets/icons/usb.svg</file>
         <file>components/PrefsFooterLayout.qml</file>
+        <file>assets/settingsIcons/ic_wifi.svg</file>
+        <file>assets/settingsIcons/ic_ethernet.svg</file>
+        <file>assets/settingsIcons/ic_display.svg</file>
+        <file>assets/settingsIcons/ic_device.svg</file>
+        <file>assets/settingsIcons/ic_about.svg</file>
+        <file>assets/settingsIcons/ic_rdserver.svg</file>
     </qresource>
 </RCC>

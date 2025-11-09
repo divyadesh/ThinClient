@@ -24,37 +24,37 @@ TabBar {
 
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/fa--dashboard.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_rdserver.svg"
         text: qsTr("RD Servers")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.RDServer, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/fa-solid--fan.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_ethernet.svg"
         text: qsTr("Ethernet")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Ethernet, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/lamp-svgrepo-com.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_wifi.svg"
         text: qsTr("Wifi")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Wifi, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/refrigerator-free-4-svgrepo-com.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_display.svg"
         text: qsTr("Display Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Display, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/maki--communications-tower.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_device.svg"
         text: qsTr("Device Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Device, text)
     }
     PageTabButton {
         implicitHeight: parent.height
-        icon.source: "qrc:/icons/wpf--security-checked.svg"
+        icon.source: "qrc:/assets/settingsIcons/ic_about.svg"
         text: qsTr("About")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.About, text)
     }

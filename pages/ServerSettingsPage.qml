@@ -77,13 +77,9 @@ BasicPage {
 
                 contentItem: ListView {
                     id: listView
-
                     spacing: 8
                     clip: true
-
-                    ScrollBar.vertical: ScrollBar{
-                        //policy: "AlwaysOn"
-                    }
+                    ScrollBar.vertical: ScrollBar{}
                     ScrollIndicator.vertical: ScrollIndicator { }
 
                     model: serverModel
@@ -514,13 +510,14 @@ BasicPage {
                             id: enableGateway
                             Layout.fillWidth: true
                             implicitHeight: 48
-                            text: qsTr("RD Gateway")
+                            text: qsTr("Enable RD Gateway")
 
                             indicator: PrefsSwitch {
                                 x: enableGateway.width - width - enableGateway.rightPadding
                                 y: enableGateway.topPadding + (enableGateway.availableHeight - height) / 2
                                 id: rdGateWay
                                 checkable: true
+                                rightPadding: 0
                                 onClicked: {}
                             }
                         }
@@ -563,148 +560,138 @@ BasicPage {
                                 }
                             }
                         }
+
+
+                        PrefsItemDelegate {
+                            id: saveButton
+                            Layout.fillWidth: true
+                            rightPadding: 0
+                            leftPadding: 0
+
+                            background: Item {
+                                implicitWidth: 100
+                                implicitHeight: 40
+                            }
+
+                            indicator: PrefsButton {
+                                x: saveButton.width - width - saveButton.rightPadding
+                                y: saveButton.topPadding + (saveButton.availableHeight - height) / 2
+
+                                text: qsTr("Save")
+                                highlighted: true
+                                enabled: !page.hasError
+                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+
+                                onClicked: {
+                                    // 1️⃣ Validate form input
+                                    if (!validateRequiredFields()) {
+                                        console.warn("Validation failed — missing required fields.")
+                                        return
+                                    }
+
+                                    // 2️⃣ Collect all field values in proper order
+                                    const newList = [
+                                                      connectionField.text.trim(),
+                                                      serverIpField.text.trim(),
+                                                      deviceNameField.text.trim(),
+                                                      usernameField.text.trim(),
+                                                      passwordField.text.trim(),
+                                                      performanceRadioButton.tabGroup.checkedButton
+                                                      ? performanceRadioButton.tabGroup.checkedButton.text
+                                                      : "Best",
+                                                      audioButton.checked,
+                                                      microphoneButton.checked,
+                                                      driveButton.checked,
+                                                      usbDeviceButton.checked,
+                                                      securityButton.checked,
+                                                      rdGateWay.checked,
+                                                      gatewayIp.text.trim(),
+                                                      gatewayUserName.text.trim(),
+                                                      gatewayPassword.text.trim()
+                                                  ]
+
+                                    dataBase.insertIntoValues = newList
+
+                                    // 3️⃣ Check if connection already exists (simple existence check)
+                                    const exists = dataBase.serverExists(page.connectionId)
+
+                                    if (exists) {
+                                        dataBase.qmlUpdateServerData(page.connectionId)
+                                        serverInfo.removeConnection(page.connectionId)
+                                        console.log("🔄 Existing connection updated:", connectionField.text.trim())
+                                    } else {
+                                        dataBase.qmlInsertServerData()
+                                        console.log("✅ New connection added:", connectionField.text.trim())
+                                    }
+
+                                    // 4️⃣ Refresh server list model
+                                    serverInfo.setServerInfo(page.connectionId)
+
+                                    // 5️⃣ Reset form
+                                    clearEntryFields()
+                                }
+
+                                function clearEntryFields() {
+                                    // --- Text Fields ---
+                                    const textFields = [
+                                        connectionField,
+                                        serverIpField,
+                                        deviceNameField,
+                                        usernameField,
+                                        passwordField,
+                                        gatewayIp,
+                                        gatewayUserName,
+                                        gatewayPassword
+                                    ]
+
+                                    for (const field of textFields)
+                                        field.text = ""
+
+                                    // --- Toggle / Check Buttons ---
+                                    const toggleButtons = [
+                                        audioButton,
+                                        microphoneButton,
+                                        driveButton,
+                                        usbDeviceButton,
+                                        securityButton,
+                                        rdGateWay
+                                    ]
+
+                                    for (const btn of toggleButtons)
+                                        btn.checked = false
+
+                                    // Optional: reset any displayed messages or validation
+                                    page.errorMessage = ""
+                                    page.connectionId = ""
+                                }
+
+                                function validateRequiredFields() {
+                                    page.errorMessage = ""
+
+                                    const fields = [
+                                        { value: connectionField.text, label: qsTr("Connection Name") },
+                                        { value: serverIpField.text,  label: qsTr("Server IP") },
+                                        { value: deviceNameField.text, label: qsTr("Device Name") },
+                                        { value: usernameField.text,   label: qsTr("Username") },
+                                        { value: passwordField.text,   label: qsTr("Password") }
+                                    ]
+
+                                    for (const field of fields) {
+                                        if (!field.value || field.value.trim() === "") {
+                                            page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
+                                            return false
+                                        }
+                                    }
+
+                                    return true
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             Item { Layout.fillHeight: true }
-        }
-    }
-
-    footer: Control {
-        padding: 20
-        clip: true
-
-        background: Rectangle {
-            implicitHeight: 84
-            color: Colors.headerColor
-        }
-
-        contentItem: ColumnLayout {
-            spacing: 10
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                PrefsLabel {
-                    visible: page.hasError
-                    text: page.errorMessage
-                    color: Colors.statusError
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                }
-
-                Item { Layout.fillWidth: true }
-
-                PrefsButton {
-                    text: qsTr("Save")
-                    highlighted: true
-                    enabled: !page.hasError
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    onClicked: {
-                        // 1️⃣ Validate form input
-                        if (!validateRequiredFields()) {
-                            console.warn("Validation failed — missing required fields.")
-                            return
-                        }
-
-                        // 2️⃣ Collect all field values in proper order
-                        const newList = [
-                                          connectionField.text.trim(),
-                                          serverIpField.text.trim(),
-                                          deviceNameField.text.trim(),
-                                          usernameField.text.trim(),
-                                          passwordField.text.trim(),
-                                          performanceRadioButton.tabGroup.checkedButton
-                                          ? performanceRadioButton.tabGroup.checkedButton.text
-                                          : "Best",
-                                          audioButton.checked,
-                                          microphoneButton.checked,
-                                          driveButton.checked,
-                                          usbDeviceButton.checked,
-                                          securityButton.checked,
-                                          rdGateWay.checked,
-                                          gatewayIp.text.trim(),
-                                          gatewayUserName.text.trim(),
-                                          gatewayPassword.text.trim()
-                                      ]
-
-                        dataBase.insertIntoValues = newList
-
-                        // 3️⃣ Check if connection already exists (simple existence check)
-                        const exists = dataBase.serverExists(page.connectionId)
-
-                        if (exists) {
-                            dataBase.qmlUpdateServerData(page.connectionId)
-                            serverInfo.removeConnection(page.connectionId)
-                            console.log("🔄 Existing connection updated:", connectionField.text.trim())
-                        } else {
-                            dataBase.qmlInsertServerData()
-                            console.log("✅ New connection added:", connectionField.text.trim())
-                        }
-
-                        // 4️⃣ Refresh server list model
-                        serverInfo.setServerInfo(page.connectionId)
-
-                        // 5️⃣ Reset form
-                        clearEntryFields()
-                    }
-
-                    function clearEntryFields() {
-                        // --- Text Fields ---
-                        const textFields = [
-                            connectionField,
-                            serverIpField,
-                            deviceNameField,
-                            usernameField,
-                            passwordField,
-                            gatewayIp,
-                            gatewayUserName,
-                            gatewayPassword
-                        ]
-
-                        for (const field of textFields)
-                            field.text = ""
-
-                        // --- Toggle / Check Buttons ---
-                        const toggleButtons = [
-                            audioButton,
-                            microphoneButton,
-                            driveButton,
-                            usbDeviceButton,
-                            securityButton,
-                            rdGateWay
-                        ]
-
-                        for (const btn of toggleButtons)
-                            btn.checked = false
-
-                        // Optional: reset any displayed messages or validation
-                        page.errorMessage = ""
-                        page.connectionId = ""
-                    }
-
-                    function validateRequiredFields() {
-                        page.errorMessage = ""
-
-                        const fields = [
-                            { value: connectionField.text, label: qsTr("Connection Name") },
-                            { value: serverIpField.text,  label: qsTr("Server IP") },
-                            { value: deviceNameField.text, label: qsTr("Device Name") },
-                            { value: usernameField.text,   label: qsTr("Username") },
-                            { value: passwordField.text,   label: qsTr("Password") }
-                        ]
-
-                        for (const field of fields) {
-                            if (!field.value || field.value.trim() === "") {
-                                page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
-                                return false
-                            }
-                        }
-
-                        return true
-                    }
-                }
-            }
         }
     }
 

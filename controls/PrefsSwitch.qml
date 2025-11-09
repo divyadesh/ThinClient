@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.0
-import Qt5Compat.GraphicalEffects
+import QtGraphicalEffects 1.3
 import App.Styles 1.0
 
 

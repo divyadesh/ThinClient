@@ -4,7 +4,6 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 ItemDelegate {
-    text: qsTr("Performance")
     font.pixelSize: 16
     palette.text: Colors.textPrimary
     leftPadding: 20
