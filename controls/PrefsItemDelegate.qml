@@ -4,6 +4,8 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 ItemDelegate {
+    id: control
+    property int radius: 8
     font.pixelSize: 16
     palette.text: Colors.textPrimary
     leftPadding: 20
@@ -12,7 +14,7 @@ ItemDelegate {
     background: Rectangle {
         implicitWidth: 100
         implicitHeight: 40
-        radius: 8
+        radius: control.radius
         color: Colors.steelGray
         border.width: 1
         border.color: Colors.borderColor

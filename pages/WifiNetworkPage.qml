@@ -64,34 +64,56 @@ BasicPage {
 
                         background: Rectangle {
                             implicitHeight: 36
-                            radius: height / 2
+                            radius: itemDelegate.radius
                             color: itemDelegate.hovered ? Colors.steelGray : "transparent"
                             border.width: 1
-                            border.color: itemDelegate.hovered ? Colors.borderColor : "transparent"
+                            border.color: "transparent"
                         }
 
                         contentItem: RowLayout {
-                            PrefsLabel {
-                                Layout.maximumWidth: itemDelegate.width / 2
+                            spacing: 10
+
+                            Rectangle {
+                                visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
                                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                horizontalAlignment: Text.AlignLeft
-                                verticalAlignment: Text.AlignVCenter
-                                text: wifiDetails.ssid
+                                width: 14
+                                height: 14
+                                radius: height / 2
+                                color: Colors.accentHover
                             }
 
-                            Item { Layout.fillWidth: true }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                PrefsLabel {
+                                    Layout.maximumWidth: itemDelegate.width / 2
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    horizontalAlignment: Text.AlignLeft
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: wifiDetails.ssid
+                                }
+
+                                PrefsLabel {
+                                    Layout.maximumWidth: itemDelegate.width / 2
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    horizontalAlignment: Text.AlignLeft
+                                    verticalAlignment: Text.AlignVCenter
+                                    visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
+                                    color: Colors.accentHover
+                                    text: qsTr("Connected")
+                                }
+                            }
+
+                            Item {Layout.fillWidth: true}
+                        }
+
+                        indicator: RowLayout {
+                            x: itemDelegate.width - width - itemDelegate.rightPadding
+                            y: itemDelegate.topPadding + (itemDelegate.availableHeight - height) / 2
 
                             RowLayout {
                                 spacing: 20
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
-                                PrefsBusyIndicator {
-                                    id: busyIndicator
-                                    radius: 10
-                                    running: false//processing
-                                    visible: running
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                }
                                 Connections {
                                     target: wifiNetworkDetails
 
@@ -113,22 +135,21 @@ BasicPage {
                                     }
                                 }
 
-                                PrefsDangerButton {
-                                    id: disconnectWifi
-                                    visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                    text: qsTr("Disconnect")
-                                    onClicked: {
-                                        wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
-                                    }
-                                }
-
                                 PrefsButton {
+                                    property bool forgotPassword: wifiSettings.hasSavedPassword(wifiDetails.ssid)
                                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                    text: qsTr("Connect")
-                                    visible: itemDelegate.hovered && wifiNetworkDetails.activeSsid !== wifiDetails.ssid
+                                    text: forgotPassword ? qsTr("Forgot") :  qsTr("Connect")
+                                    visible: itemDelegate.hovered && (wifiNetworkDetails.activeSsid !== wifiDetails.ssid || forgotPassword)
                                     radius: height / 2
                                     onClicked: {
+                                        if(forgotPassword) {
+                                            forgotNetwork()
+                                        }else {
+                                            connectWithSSID()
+                                        }
+                                    }
+
+                                    function connectWithSSID() {
                                         if(!wifiDetails.security) {
                                             wifiNetworkDetails.connectToSsid(wifiDetails.ssid, "")
                                             wifiControl.connectIndex = index
@@ -144,18 +165,30 @@ BasicPage {
                                         pageStack.push(setWifiPassword, {"connection_ssid" : wifiDetails.ssid})
                                         wifiControl.connectIndex = index
                                     }
-                                }
 
-                                PrefsButton {
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                    text: qsTr("Fotgot")
-                                    visible: wifiSettings.hasSavedPassword(wifiDetails.ssid) && itemDelegate.hovered
-                                    radius: height / 2
-                                    onClicked: {
+                                    function forgotNetwork() {
                                         wifiSettings.clearPassword(wifiDetails.ssid)
                                         if(disconnectWifi.visible) {
                                             wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
                                         }
+                                    }
+                                }
+
+                                PrefsBusyIndicator {
+                                    id: busyIndicator
+                                    radius: 10
+                                    running: false
+                                    visible: running
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                }
+
+                                PrefsDangerButton {
+                                    id: disconnectWifi
+                                    visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    text: qsTr("Disconnect")
+                                    onClicked: {
+                                        wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
                                     }
                                 }
                             }
