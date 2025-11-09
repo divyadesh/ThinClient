@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+
     // if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR"))
     //     qputenv("XDG_RUNTIME_DIR", "/run/user/0");
 

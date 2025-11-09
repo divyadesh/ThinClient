@@ -1,6 +1,8 @@
 #include "timezone_model.h"
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QTimeZone>
+#include <QDateTime>
 #include <algorithm>
 
 static bool shouldSkip(const QString &relPath) {
@@ -40,12 +42,15 @@ QVariant TimezoneModel::data(const QModelIndex &index, int role) const {
         return {};
 
     const auto &item = m_items.at(index.row());
-
     switch (role) {
     case TzIdRole:
         return item.tzId;
     case TzNameRole:
         return item.tzName;
+    case UtcOffsetRole:
+        return item.utcOffset;
+    case IsSectionRole:
+        return item.isSection;
     default:
         return {};
     }
@@ -54,7 +59,9 @@ QVariant TimezoneModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> TimezoneModel::roleNames() const {
     return {
         { TzIdRole, "tzId" },
-        { TzNameRole, "tzName" }
+        { TzNameRole, "tzName" },
+        { UtcOffsetRole, "utcOffset" },
+        { IsSectionRole, "isSection" }
     };
 }
 
@@ -70,6 +77,21 @@ void TimezoneModel::refresh() {
     load();
 }
 
+QString TimezoneModel::offsetString(const QString &tzId) const {
+    QTimeZone tz(tzId.toUtf8());
+    if (!tz.isValid())
+        return QStringLiteral("UTC±00:00");
+
+    int offsetSecs = tz.offsetFromUtc(QDateTime::currentDateTimeUtc());
+    int hours = offsetSecs / 3600;
+    int mins = qAbs(offsetSecs % 3600) / 60;
+
+    return QString("UTC%1%2:%3")
+        .arg(hours >= 0 ? "+" : "-")
+        .arg(qAbs(hours), 2, 10, QLatin1Char('0'))
+        .arg(mins, 2, 10, QLatin1Char('0'));
+}
+
 void TimezoneModel::load() {
     beginResetModel();
     m_items.clear();
@@ -79,6 +101,9 @@ void TimezoneModel::load() {
         endResetModel();
         return;
     }
+
+    // Collect zones grouped by offset
+    QMap<QString, QVector<TimezoneItem>> grouped;
 
     QDirIterator it(m_root,
                     QDir::Files | QDir::NoSymLinks | QDir::Readable,
@@ -91,22 +116,33 @@ void TimezoneModel::load() {
             continue;
 
         if (QFileInfo(rel).suffix().isEmpty()) {
+            QTimeZone tz(rel.toUtf8());
+            if (!tz.isValid())
+                continue;
+
+            QString offset = offsetString(rel);
             TimezoneItem item;
             item.tzId = rel;
-            // Human-readable name: last component after "/"
-            int slashIdx = rel.lastIndexOf('/');
-            item.tzName = (slashIdx >= 0) ? rel.mid(slashIdx + 1) : rel;
-            m_items.push_back(item);
+            item.tzName = rel.mid(rel.lastIndexOf('/') + 1);
+            item.utcOffset = offset;
+            item.isSection = false;
+
+            grouped[offset].append(item);
         }
     }
 
-    std::sort(m_items.begin(), m_items.end(), [](const TimezoneItem &a, const TimezoneItem &b) {
-        return QString::localeAwareCompare(a.tzId, b.tzId) < 0;
-    });
+    // Sort offsets and items
+    const auto sortedOffsets = grouped.keys();
+    for (const auto &offset : sortedOffsets) {
+        auto zones = grouped[offset];
+        std::sort(zones.begin(), zones.end(), [](const TimezoneItem &a, const TimezoneItem &b) {
+            return QString::localeAwareCompare(a.tzId, b.tzId) < 0;
+        });
+        m_items += zones;
+    }
 
     endResetModel();
 }
-
 
 QVariantMap TimezoneModel::get(int index) const {
     QVariantMap map;
@@ -116,5 +152,7 @@ QVariantMap TimezoneModel::get(int index) const {
     const auto &item = m_items.at(index);
     map["tzId"] = item.tzId;
     map["tzName"] = item.tzName;
+    map["utcOffset"] = item.utcOffset;
+    map["isSection"] = item.isSection;
     return map;
 }

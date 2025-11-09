@@ -129,22 +129,23 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Time Zone")
 
-                        indicator: PrefsComboBox {
+                        indicator: PrefsTimeZoneBox {
                             id: timeZoneComboBox
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
 
                             model: timezoneModel
-                            textRole: "tzId"
-                            //imezoneProxyModel.filterString = text
+                            textRole: "tzName"
+                            valueRole: "tzId"
 
                             Component.onCompleted: {
-                                let timeZone = persistData.getData("TimeZone")
-                                if(timeZone) {
-                                    for (var i = 0; i < timeZoneComboBox.count; ++i) {
-                                        if (timezoneModel.get(i).tzId === timeZone) {
-                                            currentIndex = i;
-                                            break;
+                                let saved = persistData.getData("TimeZone")
+                                if (saved) {
+                                    for (var i = 0; i < count; ++i) {
+                                        var obj = timezoneModel.get(i)
+                                        if (obj.tzId === saved) {
+                                            currentIndex = i
+                                            break
                                         }
                                     }
                                 }

@@ -80,5 +80,6 @@
         <file>assets/settingsIcons/ic_about.svg</file>
         <file>assets/settingsIcons/ic_rdserver.svg</file>
         <file>pages/EthernetNetworkPage.qml</file>
+        <file>controls/PrefsTimeZoneBox.qml</file>
     </qresource>
 </RCC>

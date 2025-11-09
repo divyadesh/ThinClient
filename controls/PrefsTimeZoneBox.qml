@@ -11,15 +11,13 @@ ComboBox {
     property int radius: 6
     hoverEnabled: true
 
-    // Text color
-    palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray
+    palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"
 
     background: Item {
         implicitWidth: 260
         implicitHeight: 40
 
         Rectangle {
-            id: bg
             anchors.fill: parent
             radius: 8
             color: Colors.btnBg
@@ -38,10 +36,11 @@ ComboBox {
         opacity: enabled ? 1 : 0.3
     }
 
-    // Drop-down popup
     popup: Popup {
         y: control.height
         width: control.width
+        implicitHeight: Math.min(listView.contentHeight, 260)
+        padding: 0
 
         background: Rectangle {
             color: Colors.btnBg
@@ -51,15 +50,41 @@ ComboBox {
         }
 
         contentItem: ListView {
+            id: listView
             clip: true
-            implicitHeight: Math.min(contentHeight, 254)
             model: control.delegateModel
             currentIndex: control.highlightedIndex
+            interactive: true
+
+            // --- SECTION HEADER SUPPORT ---
+            section.property: "utcOffset"         // use UTC offset from model
+            section.criteria: ViewSection.FullString
+            section.delegate: Control {
+                width: listView.width
+                leftPadding: 1
+                rightPadding: 1
+                background: Rectangle {
+                    implicitHeight: 32
+                    color: Colors.btnBgDisabled
+                }
+
+                contentItem: Text {
+                    text: section                // "UTC+05:30", etc.
+                    anchors.verticalCenter: parent.verticalCenter
+                    leftPadding: 10
+                    font.bold: true
+                    color: Colors.accentPrimary
+                    font.pixelSize: 14
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignLeft
+                }
+            }
 
             delegate: ItemDelegate {
-                width: control.width
-                text: modelData
-                font.pixelSize: 14
+                width: listView.width
+                visible: !isSection
+                text: tzName
+                font.pixelSize: 13
 
                 background: Rectangle {
                     radius: 6
@@ -67,13 +92,20 @@ ComboBox {
                 }
 
                 contentItem: Text {
-                    text: modelData
+                    text: tzName
                     color: highlighted ? "#FFFFFF" : "#ECECEC"
                     anchors.verticalCenter: parent.verticalCenter
-                    leftPadding: 10
+                    leftPadding: 16
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignLeft
+                }
+
+                onClicked: {
+                    control.currentIndex = index
+                    control.activated(index)
+                    control.popup.close()
                 }
             }
         }
     }
 }
-

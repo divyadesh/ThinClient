@@ -4,10 +4,13 @@
 #include <QAbstractListModel>
 #include <QVector>
 #include <QString>
+#include <QVariant>
 
 struct TimezoneItem {
-    QString tzId;   // Full zone identifier, e.g. "Asia/Kolkata"
-    QString tzName; // Display name, e.g. "Asia/Kolkata" or just "Kolkata"
+    QString tzId;       // e.g. "Asia/Kolkata"
+    QString tzName;     // e.g. "Kolkata"
+    QString utcOffset;  // e.g. "UTC+05:30"
+    bool isSection;     // true for group header
 };
 
 class TimezoneModel : public QAbstractListModel {
@@ -16,7 +19,9 @@ class TimezoneModel : public QAbstractListModel {
 public:
     enum Roles {
         TzIdRole = Qt::UserRole + 1,
-        TzNameRole
+        TzNameRole,
+        UtcOffsetRole,
+        IsSectionRole
     };
 
     explicit TimezoneModel(QObject *parent = nullptr);
@@ -36,6 +41,7 @@ signals:
 
 private:
     void load();
+    QString offsetString(const QString &tzId) const; // helper
 
     QString m_root = QStringLiteral("/usr/share/zoneinfo");
     QVector<TimezoneItem> m_items;
