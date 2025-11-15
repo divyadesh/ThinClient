@@ -67,13 +67,7 @@ BasicPage {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 400
                 Layout.maximumHeight: page.height /3
-
                 padding: 20
-
-                background: Rectangle {
-                    color: Colors.btnBg
-                    radius: 8
-                }
 
                 contentItem: ListView {
                     id: listView
@@ -91,56 +85,64 @@ BasicPage {
                             spacing: 20
 
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
-                                    font.weight: Font.DemiBold
                                     text: qsTr("Connection Name")
+                                    elide: Label.ElideRight
                                     font.pixelSize: 18
+                                    font.weight: Font.DemiBold
                                 }
                             }
 
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
                                     text: qsTr("Server IP")
+                                    elide: Label.ElideRight
                                     font.pixelSize: 18
                                     font.weight: Font.DemiBold
                                 }
                             }
 
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
                                     text: qsTr("Auto")
+                                    elide: Label.ElideRight
                                     font.pixelSize: 18
                                     font.weight: Font.DemiBold
                                 }
                             }
 
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
+                                    horizontalAlignment: Label.AlignHCenter
                                     verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Manage")
+                                    text: qsTr("Manage Connections")
+                                    elide: Label.ElideRight
                                     font.pixelSize: 18
                                     font.weight: Font.DemiBold
                                 }
@@ -148,7 +150,7 @@ BasicPage {
                         }
                     }
 
-                    delegate: Control {
+                    delegate: PrefsItemDelegate {
                         id: _controlDelegate
                         width: ListView.view.width
                         padding: 20
@@ -160,9 +162,7 @@ BasicPage {
                             implicitWidth: 100
                             implicitHeight: 28
                             radius: height / 2
-                            color: _controlDelegate.hovered ? Colors.steelGray : "transparent"
-                            border.width: 1
-                            border.color: _controlDelegate.hovered ? Colors.borderColor : "transparent"
+                            color: _controlDelegate.hovered ? "#2A2A2A" : "transparent"
                         }
 
                         contentItem: RowLayout {
@@ -170,66 +170,59 @@ BasicPage {
 
                             // Name
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
                                     horizontalAlignment: Label.AlignLeft
                                     verticalAlignment: Label.AlignVCenter
                                     text: connectionName
+                                    elide: Label.ElideRight
                                 }
                             }
 
                             // IP
+
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                RowLayout {
-                                    anchors.left: parent.left
+                                contentItem: PrefsLabel {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 20
-
-                                    PrefsLabel {
-                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        horizontalAlignment: Label.AlignLeft
-                                        verticalAlignment: Label.AlignVCenter
-                                        text: serverIp
-                                    }
-
-                                    PrefsBusyIndicator {
-                                        id: busyIndicator
-                                        radius: 10
-                                        running: false
-                                        visible: running
-                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                    }
+                                    horizontalAlignment: Label.Alignleft
+                                    verticalAlignment: Label.AlignVCenter
+                                    text: serverIp
+                                    elide: Label.ElideRight
                                 }
                             }
 
                             // Switch
                             Control {
-                                Layout.preferredWidth: listView.width / 4
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
 
-                                RadioButton {
-                                    id: autoConnectRadioButton
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    palette.text: Colors.accentPrimary
-                                    palette.windowText: Colors.textPrimary
-                                    text: qsTr("Auto-connect")
-                                    visible: !!text
-                                    font.weight: Font.Normal
-                                    spacing: 10
-                                    ButtonGroup.group: radioGroup
-                                    checked: autoConnect
+                                contentItem: Item {
+                                    anchors.centerIn: parent
 
-                                    onCheckedChanged: {
-                                        serverInfo.resetAutoConnect()
-                                        autoConnect = checked
+                                    RadioButton {
+                                        id: autoConnectRadioButton
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.left: parent.left
+                                        palette.text: Colors.accentPrimary
+                                        palette.windowText: Colors.textPrimary
+                                        text: qsTr("Auto-connect")
+                                        font.weight: Font.Normal
+                                        spacing: 10
+                                        ButtonGroup.group: radioGroup
+                                        checked: autoConnect
+
+                                        onCheckedChanged: {
+                                            serverInfo.resetAutoConnect()
+                                            autoConnect = checked
+                                        }
                                     }
                                 }
                             }
@@ -237,71 +230,75 @@ BasicPage {
                             // Action buttons
 
                             Control {
-                                Layout.preferredWidth: listView.width / 4
+                                Layout.maximumWidth: listView.width / 4
+                                Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-                                contentItem:  RowLayout {
-                                    spacing: 10
+                                contentItem:  Item {
+                                    RowLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 10
 
-                                    PrefsLink {
-                                        text: qsTr("Connect")
-                                        onClicked: {
-                                            serverInfo.connectRdServer(connectionId)
-                                        }
-                                    }
-
-                                    PrefsLink {
-                                        text: qsTr("Edit")
-                                        onClicked: {
-                                            page.connectionId = connectionId
-                                            populateConnectionFields()
+                                        PrefsLink {
+                                            text: qsTr("Connect")
+                                            onClicked: {
+                                                serverInfo.connectRdServer(connectionId)
+                                            }
                                         }
 
-                                        function populateConnectionFields() {
-                                            // --- Text fields ---
-                                            connectionField.text   = connectionName || ""
-                                            serverIpField.text     = serverIp || ""
-                                            deviceNameField.text   = deviceName || ""
-                                            usernameField.text     = userName || ""
-                                            passwordField.text     = password || ""
-
-                                            // --- Performance radio ---
-                                            performanceRadioButton.leftButton.checked  = (performance === "Best")
-                                            performanceRadioButton.rightButton.checked = (performance === "Auto")
-
-                                            // --- Feature toggles ---
-                                            audioButton.checked        = isTrue(enableAudio)
-                                            microphoneButton.checked   = isTrue(enableMicrophone)
-                                            driveButton.checked        = isTrue(redirectDrive)
-                                            usbDeviceButton.checked    = isTrue(redirectUsbDevice)
-                                            securityButton.checked     = isTrue(security)
-                                            rdGateWay.checked          = isTrue(gatewayValue)
-
-                                            // --- Gateway fields ---
-                                            if(gatewayValue) {
-                                                gatewayIp.text        = gatewayIpValue || ""
-                                                gatewayUserName.text  = gatewayUserNameValue || ""
-                                                gatewayPassword.text  = gatewayPasswordValue || ""
+                                        PrefsLink {
+                                            text: qsTr("Edit")
+                                            onClicked: {
+                                                page.connectionId = connectionId
+                                                populateConnectionFields()
                                             }
 
-                                            console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
+                                            function populateConnectionFields() {
+                                                // --- Text fields ---
+                                                connectionField.text   = connectionName || ""
+                                                serverIpField.text     = serverIp || ""
+                                                deviceNameField.text   = deviceName || ""
+                                                usernameField.text     = userName || ""
+                                                passwordField.text     = password || ""
+
+                                                // --- Performance radio ---
+                                                performanceRadioButton.leftButton.checked  = (performance === "Best")
+                                                performanceRadioButton.rightButton.checked = (performance === "Auto")
+
+                                                // --- Feature toggles ---
+                                                audioButton.checked        = isTrue(enableAudio)
+                                                microphoneButton.checked   = isTrue(enableMicrophone)
+                                                driveButton.checked        = isTrue(redirectDrive)
+                                                usbDeviceButton.checked    = isTrue(redirectUsbDevice)
+                                                securityButton.checked     = isTrue(security)
+                                                rdGateWay.checked          = isTrue(gatewayValue)
+
+                                                // --- Gateway fields ---
+                                                if(gatewayValue) {
+                                                    gatewayIp.text        = gatewayIpValue || ""
+                                                    gatewayUserName.text  = gatewayUserNameValue || ""
+                                                    gatewayPassword.text  = gatewayPasswordValue || ""
+                                                }
+
+                                                console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
+                                            }
+
+                                            function isTrue(value) {
+                                                return value === "true" || value === true
+                                            }
                                         }
 
-                                        function isTrue(value) {
-                                            return value === "true" || value === true
+                                        PrefsLink {
+                                            text: qsTr("Delete")
+                                            onClicked: {
+                                                page.connectionId = connectionId
+                                                pageStack.push(deleteConnection)
+                                            }
                                         }
-                                    }
 
-                                    PrefsLink {
-                                        text: qsTr("Delete")
-                                        onClicked: {
-                                            page.connectionId = connectionId
-                                            pageStack.push(deleteConnection)
+                                        Item {
+                                            Layout.fillWidth: true
                                         }
-                                    }
-
-                                    Item {
-                                        Layout.fillWidth: true
                                     }
                                 }
                             }
@@ -567,123 +564,139 @@ BasicPage {
                             Layout.fillWidth: true
                             rightPadding: 0
                             leftPadding: 0
+                            text: page.hasError ? page.errorMessage : ""
+                            palette.text: Colors.statusError
 
                             background: Item {
                                 implicitWidth: 100
                                 implicitHeight: 40
                             }
 
-                            indicator: PrefsButton {
+                            indicator: RowLayout {
                                 x: saveButton.width - width - saveButton.rightPadding
                                 y: saveButton.topPadding + (saveButton.availableHeight - height) / 2
 
-                                text: qsTr("Save")
-                                highlighted: true
-                                enabled: !page.hasError
-                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                spacing: 20
 
-                                onClicked: {
-                                    // 1️⃣ Validate form input
-                                    if (!validateRequiredFields()) {
-                                        console.warn("Validation failed — missing required fields.")
-                                        return
+                                PrefsButton {
+                                    text: qsTr("Clear")
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    onClicked: {
+                                        page.errorMessage = ""
+                                        saveBtn.clearEntryFields()
                                     }
-
-                                    // 2️⃣ Collect all field values in proper order
-                                    const newList = [
-                                                      connectionField.text.trim(),
-                                                      serverIpField.text.trim(),
-                                                      deviceNameField.text.trim(),
-                                                      usernameField.text.trim(),
-                                                      passwordField.text.trim(),
-                                                      performanceRadioButton.tabGroup.checkedButton
-                                                      ? performanceRadioButton.tabGroup.checkedButton.text
-                                                      : "Best",
-                                                      audioButton.checked,
-                                                      microphoneButton.checked,
-                                                      driveButton.checked,
-                                                      usbDeviceButton.checked,
-                                                      securityButton.checked,
-                                                      rdGateWay.checked,
-                                                      gatewayIp.text.trim(),
-                                                      gatewayUserName.text.trim(),
-                                                      gatewayPassword.text.trim()
-                                                  ]
-
-                                    dataBase.insertIntoValues = newList
-
-                                    // 3️⃣ Check if connection already exists (simple existence check)
-                                    const exists = dataBase.serverExists(page.connectionId)
-
-                                    if (exists) {
-                                        dataBase.qmlUpdateServerData(page.connectionId)
-                                        serverInfo.removeConnection(page.connectionId)
-                                        console.log("🔄 Existing connection updated:", connectionField.text.trim())
-                                    } else {
-                                        dataBase.qmlInsertServerData()
-                                        console.log("✅ New connection added:", connectionField.text.trim())
-                                    }
-
-                                    // 4️⃣ Refresh server list model
-                                    serverInfo.setServerInfo(page.connectionId)
-
-                                    // 5️⃣ Reset form
-                                    clearEntryFields()
                                 }
 
-                                function clearEntryFields() {
-                                    // --- Text Fields ---
-                                    const textFields = [
-                                        connectionField,
-                                        serverIpField,
-                                        deviceNameField,
-                                        usernameField,
-                                        passwordField,
-                                        gatewayIp,
-                                        gatewayUserName,
-                                        gatewayPassword
-                                    ]
+                                PrefsButton {
+                                    id: saveBtn
+                                    text: qsTr("Save")
+                                    highlighted: true
+                                    enabled: !page.hasError
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
-                                    for (const field of textFields)
-                                        field.text = ""
-
-                                    // --- Toggle / Check Buttons ---
-                                    const toggleButtons = [
-                                        audioButton,
-                                        microphoneButton,
-                                        driveButton,
-                                        usbDeviceButton,
-                                        securityButton,
-                                        rdGateWay
-                                    ]
-
-                                    for (const btn of toggleButtons)
-                                        btn.checked = false
-
-                                    // Optional: reset any displayed messages or validation
-                                    page.errorMessage = ""
-                                    page.connectionId = ""
-                                }
-
-                                function validateRequiredFields() {
-                                    page.errorMessage = ""
-
-                                    const fields = [
-                                        { value: connectionField.text, label: qsTr("Connection Name") },
-                                        { value: serverIpField.text,  label: qsTr("Server IP") },
-                                        { value: deviceNameField.text, label: qsTr("Device Name") },
-                                        { value: usernameField.text,   label: qsTr("Username") },
-                                        { value: passwordField.text,   label: qsTr("Password") }
-                                    ]
-
-                                    for (const field of fields) {
-                                        if (!field.value || field.value.trim() === "") {
-                                            page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
-                                            return false
+                                    onClicked: {
+                                        // 1️⃣ Validate form input
+                                        if (!validateRequiredFields()) {
+                                            console.warn("Validation failed — missing required fields.")
+                                            return
                                         }
+
+                                        // 2️⃣ Collect all field values in proper order
+                                        const newList = [
+                                                          connectionField.text.trim(),
+                                                          serverIpField.text.trim(),
+                                                          deviceNameField.text.trim(),
+                                                          usernameField.text.trim(),
+                                                          passwordField.text.trim(),
+                                                          performanceRadioButton.tabGroup.checkedButton
+                                                          ? performanceRadioButton.tabGroup.checkedButton.text
+                                                          : "Best",
+                                                          audioButton.checked,
+                                                          microphoneButton.checked,
+                                                          driveButton.checked,
+                                                          usbDeviceButton.checked,
+                                                          securityButton.checked,
+                                                          rdGateWay.checked,
+                                                          gatewayIp.text.trim(),
+                                                          gatewayUserName.text.trim(),
+                                                          gatewayPassword.text.trim()
+                                                      ]
+
+                                        dataBase.insertIntoValues = newList
+
+                                        // 3️⃣ Check if connection already exists (simple existence check)
+                                        const exists = dataBase.serverExists(page.connectionId)
+
+                                        if (exists) {
+                                            dataBase.qmlUpdateServerData(page.connectionId)
+                                            serverInfo.removeConnection(page.connectionId)
+                                            console.log("🔄 Existing connection updated:", connectionField.text.trim())
+                                        } else {
+                                            dataBase.qmlInsertServerData()
+                                            console.log("✅ New connection added:", connectionField.text.trim())
+                                        }
+
+                                        // 4️⃣ Refresh server list model
+                                        serverInfo.setServerInfo(page.connectionId)
+
+                                        // 5️⃣ Reset form
+                                        clearEntryFields()
                                     }
 
-                                    return true
+                                    function clearEntryFields() {
+                                        // --- Text Fields ---
+                                        const textFields = [
+                                                             connectionField,
+                                                             serverIpField,
+                                                             deviceNameField,
+                                                             usernameField,
+                                                             passwordField,
+                                                             gatewayIp,
+                                                             gatewayUserName,
+                                                             gatewayPassword
+                                                         ]
+
+                                        for (const field of textFields)
+                                            field.text = ""
+
+                                        // --- Toggle / Check Buttons ---
+                                        const toggleButtons = [
+                                                                audioButton,
+                                                                microphoneButton,
+                                                                driveButton,
+                                                                usbDeviceButton,
+                                                                securityButton,
+                                                                rdGateWay
+                                                            ]
+
+                                        for (const btn of toggleButtons)
+                                            btn.checked = false
+
+                                        // Optional: reset any displayed messages or validation
+                                        page.errorMessage = ""
+                                        page.connectionId = ""
+                                    }
+
+                                    function validateRequiredFields() {
+                                        page.errorMessage = ""
+
+                                        const fields = [
+                                                         { value: connectionField.text, label: qsTr("Connection Name") },
+                                                         { value: serverIpField.text,  label: qsTr("Server IP") },
+                                                         { value: deviceNameField.text, label: qsTr("Device Name") },
+                                                         { value: usernameField.text,   label: qsTr("Username") },
+                                                         { value: passwordField.text,   label: qsTr("Password") }
+                                                     ]
+
+                                        for (const field of fields) {
+                                            if (!field.value || field.value.trim() === "") {
+                                                page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
+                                                return false
+                                            }
+                                        }
+
+                                        return true
+                                    }
                                 }
                             }
                         }

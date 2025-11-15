@@ -38,25 +38,12 @@ BasicPage {
             spacing: 40
             clip: true
 
-
             Control {
                 Layout.fillWidth: true
                 padding: 20
 
-                background: Rectangle {
-                    color: Colors.btnBg
-                    radius: 8
-                }
-
                 contentItem: ColumnLayout {
                     spacing: 10
-
-                    PrefsLabel {
-                        font.pixelSize: 24
-                        text: qsTr("Device Settings")
-                    }
-
-                    Item {Layout.fillWidth: true}
 
                     PrefsItemDelegate {
                         id: audio
@@ -278,80 +265,83 @@ BasicPage {
 
                     Item {
                         Layout.fillWidth: true
+                        Layout.preferredHeight: 30
+                    }
+
+                    PrefsItemDelegate {
+                        Layout.fillWidth: true
+                        padding: 20
+
+                        background: Item {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                        }
+
+                        contentItem: ColumnLayout {
+                            spacing: 10
+
+                            PrefsLabel {
+                                font.pixelSize: 24
+                                text: qsTr("Device Restore & Upgrade")
+                            }
+
+                            Item {Layout.fillWidth: true}
+
+                            RowLayout {
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                spacing: 150
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    text: qsTr("Reset")
+                                    onClicked: pageStack.push(deviceReset)
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    enabled: usbMonitor.usbConnected
+                                    text: qsTr("Update From USB")
+                                    onClicked: pageStack.push(updateDialog)
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    text: exporter.busy ? "Exporting..." : "Export Logs to USB"
+                                    enabled: !exporter.busy && usbMonitor.usbConnected
+                                    onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
+                                }
+
+                                BusyIndicator {
+                                    running: exporter.busy
+                                    visible: exporter.busy
+                                }
+                            }
+
+                            Item {Layout.fillWidth: true}
+
+                            Label {
+                                id: messageLabel
+                                text: exporter.statusMessage
+                                visible: text
+                                wrapMode: Text.WordWrap
+                                font.pixelSize: 14
+                            }
+
+                            Item {Layout.fillWidth: true}
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
                         Layout.preferredHeight: 5
                     }
-                }
-            }
-
-            Control {
-                Layout.fillWidth: true
-                padding: 20
-
-                background: Rectangle {
-                    color: Colors.steelGray
-                    radius: 8
-                    border.width: 1
-                    border.color: Colors.borderColor
-                }
-
-                contentItem: ColumnLayout {
-                    spacing: 10
-
-                    PrefsLabel {
-                        font.pixelSize: 24
-                        text: qsTr("Device Restore & Upgrade")
-                    }
-
-                    Item {Layout.fillWidth: true}
-
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                        Layout.fillWidth: true
-                        spacing: 150
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            text: qsTr("Reset")
-                            onClicked: pageStack.push(deviceReset)
-                        }
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            enabled: usbMonitor.usbConnected
-                            text: qsTr("Update From USB")
-                            onClicked: pageStack.push(updateDialog)
-                        }
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            text: exporter.busy ? "Exporting..." : "Export Logs to USB"
-                            enabled: !exporter.busy && usbMonitor.usbConnected
-                            onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
-                        }
-
-                        BusyIndicator {
-                            running: exporter.busy
-                            visible: exporter.busy
-                        }
-                    }
-
-                    Item {Layout.fillWidth: true}
-
-                    Label {
-                        id: messageLabel
-                        text: exporter.statusMessage
-                        visible: text
-                        wrapMode: Text.WordWrap
-                        font.pixelSize: 14
-                    }
-
-                    Item {Layout.fillWidth: true}
                 }
             }
         }

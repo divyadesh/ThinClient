@@ -15,8 +15,6 @@ ItemDelegate {
         implicitWidth: 100
         implicitHeight: 40
         radius: control.radius
-        color: Colors.steelGray
-        border.width: 1
-        border.color: Colors.borderColor
+        color: "#2A2A2A"//Colors.steelGray
     }
 }

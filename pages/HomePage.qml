@@ -86,7 +86,7 @@ BasicPage {
 
                     background: Rectangle {
                         anchors.fill: parent
-                        color: tabButton.checked ? Colors.accentHover : Colors.surfaceBackground
+                        color: tabButton.checked ? Colors.accentHover : "#2A2A2A"
                         radius: 8
                     }
                 }

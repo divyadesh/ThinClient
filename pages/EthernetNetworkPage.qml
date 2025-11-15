@@ -44,21 +44,15 @@ BasicPage {
                 contentItem:  ColumnLayout {
                     spacing: 8
 
-                    ItemDelegate {
+                    PrefsItemDelegate {
                         id: switchDelegate
                         Layout.fillWidth: true
                         padding: 5
                         leftPadding: 20
                         rightPadding: 20
+                        radius: height / 2
 
                         property string ethPersistData: persistData ? persistData.getData("Ethernet") : ""
-
-                        background: Rectangle {
-                            color: Colors.steelGray
-                            radius: height /2
-                            border.width: 1
-                            border.color: Colors.borderColor
-                        }
 
                         indicator: RowLayout {
                             x: switchDelegate.width - width - switchDelegate.rightPadding
@@ -213,6 +207,23 @@ BasicPage {
                         }
                     }
 
+                    PrefsItemDelegate {
+                        id: macAddress
+                        Layout.fillWidth: true
+                        text: qsTr("Mac Address")
+                        enabled: dhcpRadio.checked
+                        visible: ethernetNetworkController.macAddress.length > 5
+
+                        indicator: PrefsTextField {
+                            x: macAddress.width - width - macAddress.rightPadding
+                            y: macAddress.topPadding + (macAddress.availableHeight - height) / 2
+
+                            text: ethernetNetworkController.macAddress
+                            readOnly: true
+                            background: null
+                        }
+                    }
+
                     ItemDelegate {
                         id: saveManual
                         Layout.fillWidth: true
@@ -241,26 +252,6 @@ BasicPage {
                     Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 20
-                    }
-
-                    PrefsItemDelegate {
-                        id: macAddress
-                        Layout.fillWidth: true
-                        text: qsTr("Mac Address")
-                        enabled: dhcpRadio.checked
-                        visible: ethernetNetworkController.macAddress.length > 5
-
-                        indicator: PrefsTextField {
-                            x: macAddress.width - width - macAddress.rightPadding
-                            y: macAddress.topPadding + (macAddress.availableHeight - height) / 2
-
-                            text: ethernetNetworkController.macAddress
-                            readOnly: true
-                            background: Item {
-                                implicitWidth: 260
-                                implicitHeight: 40
-                            }
-                        }
                     }
                 }
             }

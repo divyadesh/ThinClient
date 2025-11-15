@@ -11,7 +11,7 @@ BasicPage {
     property bool server: false
 
     background: Rectangle {
-        color: Colors.secondaryBackground
+        color: "#0F0E13"// Colors.secondaryBackground
     }
 
     ColumnLayout {
@@ -23,7 +23,7 @@ BasicPage {
             Layout.fillHeight: true
 
             background: Rectangle {
-                color: "#333333"
+                color: "#0F0E13"//"#333333"
             }
 
             contentItem: PrefsStackView {

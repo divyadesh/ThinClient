@@ -105,7 +105,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: deviceInfoSettings.cpu
+                    text: "ARM Quad-core @ 1.5 Ghz"
                 }
             }
 
@@ -122,7 +122,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: deviceInfoSettings.ram
+                    text: "2 GB"
                 }
             }
 
@@ -139,7 +139,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: deviceInfoSettings.gpu
+                    text: "Mail 450 | H264/AVC444 Decoding"
                 }
             }
         }

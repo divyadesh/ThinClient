@@ -36,7 +36,7 @@ QtObject {
     readonly property color borderColor: "#565869"
     readonly property color headerColor: Qt.rgba(45/ 255, 47/255, 47/255, 1.0)
 
-    property color btnBg: "#2A2A2A"
+    property color btnBg: "#4E4E53"
     property color btnBgHover: "#3E3E3E"
     property color btnBgDisabled: "#AAAAAA"
 

@@ -9,10 +9,11 @@ TabButton {
     icon.height: Theme.iconLarge
     display: AbstractButton.TextUnderIcon
     padding: 20
+    spacing: 20
 
     background: Rectangle {
         anchors.fill: parent
-        color: control.checked ? Colors.accentHover : Colors.surfaceBackground
+        color: control.checked ? Colors.accentHover : "#2A2A2A"
         radius: 6
     }
 }

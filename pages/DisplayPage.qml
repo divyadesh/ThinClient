@@ -22,27 +22,20 @@ BasicPage {
         }
     }
 
-
     contentItem: Flickable {
         width: parent.width
         clip: true
         contentHeight: layout.height
-        contentWidth: layout.width
-
+        contentWidth: parent.width
         ColumnLayout {
             id: layout
             width: page.width - 40
-            spacing: 20
+            spacing: 40
             clip: true
 
             Control {
                 Layout.fillWidth: true
                 padding: 20
-
-                background: Rectangle {
-                    color: Colors.btnBg
-                    radius: 8
-                }
 
                 contentItem: ColumnLayout {
                     spacing: 20

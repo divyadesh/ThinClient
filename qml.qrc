@@ -81,5 +81,16 @@
         <file>assets/settingsIcons/ic_rdserver.svg</file>
         <file>pages/EthernetNetworkPage.qml</file>
         <file>controls/PrefsTimeZoneBox.qml</file>
+        <file>assets/font/Rubik-Black.ttf</file>
+        <file>assets/font/Rubik-BlackItalic.ttf</file>
+        <file>assets/font/Rubik-Bold.ttf</file>
+        <file>assets/font/Rubik-BoldItalic.ttf</file>
+        <file>assets/font/Rubik-Italic.ttf</file>
+        <file>assets/font/Rubik-Light.ttf</file>
+        <file>assets/font/Rubik-LightItalic.ttf</file>
+        <file>assets/font/Rubik-Medium.ttf</file>
+        <file>assets/font/Rubik-MediumItalic.ttf</file>
+        <file>assets/font/Rubik-Regular.ttf</file>
+        <file>assets/icons/ic_refresh.svg</file>
     </qresource>
 </RCC>

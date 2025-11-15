@@ -22,6 +22,26 @@ BasicPage {
             }
             pageStack.pop()
         }
+
+        Control {
+            anchors.right: parent.right
+            anchors.rightMargin: 60
+            anchors.verticalCenter: parent.verticalCenter
+
+            contentItem: Image {
+                scale: mouseArea.pressed ? 0.95 : 1.0
+                sourceSize: Qt.size(38, 38)
+                source: Qt.resolvedUrl("qrc:/assets/icons/ic_refresh.svg")
+            }
+
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                onClicked: {
+                    wifiNetworkDetails.getWifiDetailsAsync()
+                }
+            }
+        }
     }
 
     contentItem: Flickable {
@@ -64,8 +84,8 @@ BasicPage {
 
                         background: Rectangle {
                             implicitHeight: 36
-                            radius: itemDelegate.radius
-                            color: itemDelegate.hovered ? Colors.steelGray : "transparent"
+                            radius: height / 2
+                            color: itemDelegate.hovered ? "#2A2A2A" : "transparent"
                             border.width: 1
                             border.color: "transparent"
                         }
