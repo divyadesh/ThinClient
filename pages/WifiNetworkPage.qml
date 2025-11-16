@@ -301,6 +301,6 @@ BasicPage {
 
     Component {
         id: ssidDetailsPage
-        WifiNetworkDetails {}
+        WifiNetworkDetailsDIalog {}
     }
 }

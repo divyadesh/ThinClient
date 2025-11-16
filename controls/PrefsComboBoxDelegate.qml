@@ -20,6 +20,8 @@ ItemDelegate {
     property alias currentIndex: combo.currentIndex
     property alias currentValue: combo.currentValue
 
+    signal activated(int index)
+
     contentItem: TextField {
         text: control.text
         background: null
@@ -35,6 +37,10 @@ ItemDelegate {
         z: 10
         palette.dark: Colors.inputText
         palette.light: Colors.inputText
+
+        onActivated: function(index) {
+            control.activated(index)
+        }
 
         contentItem: PrefsLabel {
             text: combo.displayText

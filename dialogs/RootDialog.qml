@@ -18,15 +18,13 @@ BasicPage {
     property string acceptedButtonText: "Save"
     property string rejectedButtonText: "Cancel"
 
-    // Declare default property!
-    default property alias content: layout.children
-
     signal accepted()
     signal rejected()
 
     background: BackgroundOverlay {}
 
     Page {
+        id: page
         anchors.centerIn: parent
         width: control.popupWidth
         height: control.popupHeight
@@ -46,6 +44,7 @@ BasicPage {
         }
 
         Flickable {
+            id: flickable
             anchors.fill: parent
             contentHeight: layout.height
             contentWidth: parent.width
@@ -57,7 +56,6 @@ BasicPage {
                 spacing: 20
             }
         }
-
 
         footer: Control {
             implicitHeight: 72
@@ -96,4 +94,5 @@ BasicPage {
             }
         }
     }
+
 }

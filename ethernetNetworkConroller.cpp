@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QBitArray>
 
 EthernetNetworkConroller::EthernetNetworkConroller(QObject *parent)
     : QObject(parent)
@@ -35,78 +36,164 @@ QString EthernetNetworkConroller::runCommandCollect(const QString &program, cons
     return QString::fromLocal8Bit(proc.readAllStandardOutput()).trimmed();
 }
 
-void EthernetNetworkConroller::refreshStatus() {
-    // --- IP + Subnet ---
-    QString ipOut = runCommandCollect("ip", {"-4", "addr", "show", "dev", m_interface});
+QString cidrToNetmask(int cidrMask)
+{
+    if ((cidrMask < 0) || (cidrMask > 32))
+        return QString(); // invalid
+
+    quint32 mask = cidrMask == 0 ? 0 : (~0u << (32 - cidrMask));
+
+    return QString("%1.%2.%3.%4")
+        .arg((mask >> 24) & 0xFF)
+        .arg((mask >> 16) & 0xFF)
+        .arg((mask >> 8) & 0xFF)
+        .arg(mask & 0xFF);
+}
+
+void EthernetNetworkConroller::refreshStatus()
+{
+    emit logMessage("─────────────── Ethernet Refresh Status ───────────────");
+    emit logMessage(QString("Interface: %1").arg(m_interface));
+
+    // ---------------------------------------------------------
+    // 1. Read IP Address & Prefix
+    // ---------------------------------------------------------
+    QString ipOut = runCommandCollect("ip", { "-4", "addr", "show", "dev", m_interface });
+    emit logMessage("Raw IP output:");
+    emit logMessage(ipOut);
+
     QRegularExpression rxIp(R"(\binet\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/([0-9]+))");
     auto m = rxIp.match(ipOut);
+
     if (m.hasMatch()) {
         QString ip = m.captured(1);
-        QString cidrMask = m.captured(2);
+        QString cidrStr = m.captured(2);
+        int cidr = cidrStr.toInt();
 
-        if (ip != m_ip) {
-            m_ip = ip;
-            emit ipAddressChanged();
-        }
-        if (cidrMask != m_subnetMask) {
-            m_subnetMask = cidrMask;
-            emit subnetMaskChanged();
-        }
+        QString mask = cidrToNetmask(cidr);
+
+        emit logMessage(QString("IP Address Found: %1").arg(ip));
+        emit logMessage(QString("CIDR: %1 → Subnet Mask: %2").arg(cidr).arg(mask));
+
+        setIpAddress(ip);
+        setSubnetMask(mask);
+    } else {
+        emit logMessage("❗ IP address not found!");
     }
 
-    // --- Gateway ---
-    QString routeOut = runCommandCollect("ip", {"route", "show", "default", "dev", m_interface});
+    // ---------------------------------------------------------
+    // 2. Read Gateway
+    // ---------------------------------------------------------
+    emit logMessage("---------------------------------------------------------");
+    QString routeOut = runCommandCollect("ip", {
+                                                   "route", "show", "default", "dev", m_interface
+                                               });
+
+    emit logMessage("Raw Route output:");
+    emit logMessage(routeOut);
+
     QRegularExpression rxGw(R"(default via ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+))");
     auto gwMatch = rxGw.match(routeOut);
+
     if (gwMatch.hasMatch()) {
         QString gw = gwMatch.captured(1);
-        if (gw != m_gateway) {
-            m_gateway = gw;
-            emit gatewayChanged();
-        }
+        emit logMessage(QString("Gateway Found: %1").arg(gw));
+        setGateway(gw);
+    } else {
+        emit logMessage("❗ Gateway not found!");
     }
 
-    // --- DNS ---
-    QStringList dnsList;
+    // ---------------------------------------------------------
+    // 3. Read DNS Servers
+    // ---------------------------------------------------------
+    emit logMessage("---------------------------------------------------------");
+    emit logMessage("Reading /etc/resolv.conf:");
+
+    QStringList dnsRecordsList;
     QFile file("/etc/resolv.conf");
+
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
         QTextStream in(&file);
-        QRegularExpression re("^\\s*nameserver\\s+([^#\\s]+)", QRegularExpression::CaseInsensitiveOption);
+        QRegularExpression re(
+            "^\\s*nameserver\\s+([^#\\s]+)",
+            QRegularExpression::CaseInsensitiveOption
+            );
+
         while (!in.atEnd()) {
             QString line = in.readLine();
+            emit logMessage("resolv.conf line: " + line);
+
             auto match = re.match(line);
-            if (match.hasMatch())
-                dnsList << match.captured(1);
+            if (match.hasMatch()) {
+                dnsRecordsList << match.captured(1);
+            }
         }
-    }
-    if (!dnsList.isEmpty() && dnsList[0] != m_dns) {
-        m_dns = dnsList[0];
-        emit dnsChanged();
+
+        file.close();
     }
 
-    // Read speed from sysfs
-    QString speed = runCommandCollect("cat", {QString("/sys/class/net/%1/speed").arg(m_interface)});
+    if (!dnsRecordsList.isEmpty()) {
+        emit logMessage("DNS Servers Found:");
+        for (int i = 0; i < dnsRecordsList.size(); i++)
+            emit logMessage(QString("  DNS%1: %2").arg(i + 1).arg(dnsRecordsList[i]));
+    } else {
+        emit logMessage("❗ No DNS servers found!");
+    }
+
+    setDnsRecords(dnsRecordsList);
+
+    // ---------------------------------------------------------
+    // 4. Read Link Speed
+    // ---------------------------------------------------------
+    emit logMessage("---------------------------------------------------------");
+    QString speed = runCommandCollect("cat", {
+        QString("/sys/class/net/%1/speed").arg(m_interface)
+    });
+
     if (!speed.isEmpty()) {
-        m_speed = speed + "Mb/s";
+        m_speed = speed.trimmed() + " Mb/s";
         emit linkSpeedChanged();
+        emit logMessage(QString("Link Speed: %1").arg(m_speed));
+    } else {
+        emit logMessage("❗ Link speed unavailable");
     }
 
-    // Read operstate from sysfs
-    QString linkState = runCommandCollect("cat", {QString("/sys/class/net/%1/operstate").arg(m_interface)});
-    QString newStatus = linkState.isEmpty() ? "unknown" : linkState.trimmed();
+    // ---------------------------------------------------------
+    // 5. Read Link Status
+    // ---------------------------------------------------------
+    QString linkState = runCommandCollect("cat", {
+        QString("/sys/class/net/%1/operstate").arg(m_interface)
+    });
+
+    QString newStatus = linkState.trimmed().isEmpty()
+                            ? "unknown"
+                            : linkState.trimmed();
+
     if (newStatus != m_status) {
         m_status = newStatus;
         emit statusChanged();
     }
 
-    // Read MAC address if needed
-    QString mac = runCommandCollect("cat", {QString("/sys/class/net/%1/address").arg(m_interface)});
-    if (!mac.isEmpty()) {
-        m_mac = mac;
-        emit macAddressChanged(); // add a new signal & property if you want to show it
-    }
-}
+    emit logMessage(QString("Link Status: %1").arg(m_status));
 
+    // ---------------------------------------------------------
+    // 6. Read MAC Address
+    // ---------------------------------------------------------
+    QString mac = runCommandCollect("cat", {
+        QString("/sys/class/net/%1/address").arg(m_interface)
+    });
+
+    if (!mac.isEmpty()) {
+        m_mac = mac.trimmed();
+        emit macAddressChanged();
+        emit logMessage(QString("MAC Address: %1").arg(m_mac));
+    } else {
+        emit logMessage("❗ MAC address not found");
+    }
+
+    emit logMessage("──────────────── End Refresh Status ────────────────");
+}
 
 void EthernetNetworkConroller::startDhcp() {
     emit logMessage(QStringLiteral("Starting DHCP client on %1").arg(m_interface));
@@ -124,6 +211,27 @@ void EthernetNetworkConroller::startDhcp() {
     m_dhcpRunning = true;
     emit dhcpRunningChanged();
     emit logMessage("DHCP client started");
+    refreshStatus();
+}
+
+void EthernetNetworkConroller::enableDhcp()
+{
+    emit logMessage("Switching interface to DHCP mode");
+
+    // 0. Stop any running DHCP
+    stopDhcp();
+
+    // 1. Remove static IP configuration
+    runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
+    runCommandCollect("ip", {"route", "flush", "dev", m_interface});
+
+    // 2. Bring interface UP
+    runCommandCollect("ip", {"link", "set", m_interface, "up"});
+
+    // 3. Start DHCP client
+    startDhcp();
+
+    // 4. Update UI
     refreshStatus();
 }
 
@@ -163,24 +271,71 @@ void EthernetNetworkConroller::disconnectClicked() {
     stopDhcp();
 }
 
-void EthernetNetworkConroller::setManualConfig(const QString &ip, int cidrMask, const QString &gateway, const QString &dns) {
-    emit logMessage(QStringLiteral("Applying manual config %1/%2").arg(ip).arg(cidrMask));
+void EthernetNetworkConroller::applyStaticConfig(
+    const QString &ip,
+    int cidrMask,
+    const QString &gateway,
+    const QString &dns1,
+    const QString &dns2) {
+
+    emit logMessage(QStringLiteral("Applying static IP: %1/%2").arg(ip).arg(cidrMask));
+
+    // 1. Stop DHCP client
     stopDhcp();
 
+    // 2. Remove any existing IPs
     runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
+
+    // 3. Apply new static IP
     QString cidr = QString("%1/%2").arg(ip).arg(QString::number(cidrMask));
     runCommandCollect("ip", {"addr", "add", cidr, "dev", m_interface});
+
+    // 4. Ensure interface is up
     runCommandCollect("ip", {"link", "set", m_interface, "up"});
+
+    // 5. Set default route
+    runCommandCollect("ip", {"route", "flush", "dev", m_interface});
     runCommandCollect("ip", {"route", "add", "default", "via", gateway, "dev", m_interface});
 
+    // 6. Rewrite resolv.conf with both DNS servers
     QFile file("/etc/resolv.conf");
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         QTextStream out(&file);
-        out << "nameserver " << dns << "\\n";
+
+        if (!dns1.trimmed().isEmpty())
+            out << "nameserver " << dns1.trimmed() << "\n";
+
+        if (!dns2.trimmed().isEmpty())
+            out << "nameserver " << dns2.trimmed() << "\n";
+
         file.close();
+    } else {
+        emit logMessage("Failed to open /etc/resolv.conf for writing");
     }
 
+    // 7. Refresh network status
     refreshStatus();
+}
+
+int EthernetNetworkConroller::maskToCidr(const QString &mask)
+{
+    QStringList parts = mask.split(".");
+    if (parts.size() != 4)
+        return -1;
+
+    int cidr = 0;
+
+    for (const QString &p : parts) {
+        bool ok = false;
+        int octet = p.toInt(&ok);
+        if ((!ok) || (octet < 0) || (octet > 255)) {
+            return -1;
+        }
+
+        // Count bits in each octet
+        cidr += QBitArray::fromBits((const char *)&octet, 8).count(true);
+    }
+    return cidr;
 }
 
 void EthernetNetworkConroller::onProcessOutput() {
@@ -193,44 +348,6 @@ void EthernetNetworkConroller::onProcessError(QProcess::ProcessError err) {
     Q_UNUSED(err);
     emit logMessage(QStringLiteral("Process error: %1").arg(m_proc.errorString()));
 }
-
-QString EthernetNetworkConroller::dns() const {
-    return m_dns;
-}
-
-void EthernetNetworkConroller::setDns(const QString &newDns) {
-    if (m_dns == newDns)
-        return;
-    m_dns = newDns;
-    emit dnsChanged();
-}
-
-// void EthernetNetworkConroller::fetchDns() {
-//     QStringList ips;
-//     QFile file("/etc/resolv.conf");
-//     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//         qWarning() << "Failed to open /etc/resolv.conf:" << file.errorString();
-//         return;
-//     }
-
-//     QTextStream in(&file);
-
-//     // Matches: nameserver <ip/host>, case-insensitive, ignores leading spaces
-//     QRegularExpression re("^\\s*nameserver\\s+([^#\\s]+)", QRegularExpression::CaseInsensitiveOption);
-
-//     while (!in.atEnd()) {
-//         const QString line = in.readLine();
-//         QRegularExpressionMatch m = re.match(line);
-//         if (m.hasMatch()) {
-//             QString value = m.captured(1);
-//             ips << value; // value can be IPv4, IPv6, or a hostname
-//         }
-//     }
-//     for(auto v:ips){
-//         qDebug()<<"::::>v="<<v;
-//     }
-//     setDns(ips[0]);
-// }
 
 QString EthernetNetworkConroller::subnetMask() const {
     return m_subnetMask;
@@ -252,4 +369,25 @@ void EthernetNetworkConroller::setGateway(const QString &newGateway) {
         return;
     m_gateway = newGateway;
     emit gatewayChanged();
+}
+
+QStringList EthernetNetworkConroller::dnsRecords() const
+{
+    return m_dnsRecords;
+}
+
+void EthernetNetworkConroller::setDnsRecords(const QStringList &newDnsRecords)
+{
+    if (m_dnsRecords == newDnsRecords)
+        return;
+    m_dnsRecords = newDnsRecords;
+    emit dnsRecordsChanged();
+}
+
+void EthernetNetworkConroller::setIpAddress(const QString &newIpAddress)
+{
+    if (m_ipAddress == newIpAddress)
+        return;
+    m_ipAddress = newIpAddress;
+    emit ipAddressChanged();
 }

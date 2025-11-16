@@ -200,7 +200,7 @@ BasicPage {
                     horizontalAlignment: Text.AlignLeft
                     verticalAlignment: Text.AlignVCenter
                     text: comboxControl.displayText
-                    font.pixelSize: control.font.pixelSize - 2
+                    font.pixelSize: selector.font.pixelSize - 2
                     color: Colors.accentPrimary
                     font.underline: true
                 }

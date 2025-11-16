@@ -15,8 +15,11 @@ ItemDelegate {
 
     property alias textFieldText: textField.text
     property string textFieldPlaceholderText: textField.text
+    property alias readOnly: textField.readOnly
 
     contentItem: ColumnLayout {
+        spacing: 2
+
         TextField {
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             text: control.text

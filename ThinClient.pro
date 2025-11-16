@@ -32,6 +32,7 @@ SOURCES += \
         systemresetmanager.cpp \
         timezone_filter_model.cpp \
         timezone_model.cpp \
+        wifimanager.cpp \
         wifimonitor.cpp \
         wifisettingsmanager.cpp \
         wifiworker.cpp
@@ -68,6 +69,7 @@ HEADERS += \
     systemresetmanager.h \
     timezone_filter_model.h \
     timezone_model.h \
+    wifimanager.h \
     wifimonitor.h \
     wifisettingsmanager.h \
     wifiworker.h

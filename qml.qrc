@@ -106,5 +106,8 @@
         <file>dialogs/BaseDialog.qml</file>
         <file>components/DialogBackground.qml</file>
         <file>components/BackgroundOverlay.qml</file>
+        <file>dialogs/AddNetworkEnums.qml</file>
+        <file>dialogs/WifiNetworkDetailsDIalog.qml</file>
+        <file>dialogs/RootDialog.qml</file>
     </qresource>
 </RCC>
