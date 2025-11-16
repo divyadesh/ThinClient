@@ -70,8 +70,6 @@ ServerInfoColl*         Application::serverInfo()               { return s_insta
 RdServerModel*          Application::serverModel()              { return s_instance ? s_instance->_serverModel             : nullptr; }
 DataBase*               Application::db()                       { return s_instance ? s_instance->_database                : nullptr; }
 
-WiFiManager *Application::wifiManager()                         { return s_instance ? s_instance->_wifi                : nullptr; }
-
 // ---------------------------
 // 🔹 Device Config / System
 // ---------------------------
@@ -151,7 +149,6 @@ void Application::initModels()
     _deviceInfoSettings = new DeviceInfoSettings(this);
     _resetManager  = new SystemResetManager(this);
     _serverModel   = new RdServerModel(this);
-    _wifi          = new WiFiManager(this);
 
     // Database singleton (assumed). Do not set parent / delete.
     _database = DataBase::instance(this);
@@ -235,11 +232,11 @@ void Application::registerTypesAndContext()
     qmlRegisterType<AppUnlockManager>("AppSecurity", 1, 0, "UnlockManager");
     qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
     qmlRegisterType<LogExporter>("G1.ThinClient", 1, 0, "LogExporter");
+    qmlRegisterType<WiFiManager>("App.Backend", 1, 0, "WiFiManager");
 
     // --- Context singletons (instances) ---
     auto *ctx = m_engine->rootContext();
 
-    ctx->setContextProperty("WiFiManager", _wifi);
     ctx->setContextProperty("wifiMonitor", m_wifiMonitor);
     ctx->setContextProperty("ethernetMonitor", m_ethMonitor);
     ctx->setContextProperty("logoLoader", m_logoLoader);

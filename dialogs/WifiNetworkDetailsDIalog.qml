@@ -6,6 +6,7 @@ import QtGraphicalEffects 1.3
 import App.Styles 1.0
 import AppSecurity 1.0
 import AddNetworkEnums 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
@@ -19,6 +20,7 @@ BasicPage {
 
     property string acceptedButtonText: "Save"
     property string rejectedButtonText: "Cancel"
+    property string wifiSSID: ""
 
     signal accepted()
     signal rejected()
@@ -27,116 +29,13 @@ BasicPage {
 
     pageTitle: qsTr("Network Details")
 
-    // ---------------------------
-    // FINAL RESULT HANDLER
-    // ---------------------------
-    // expose backend
-    readonly property var backend: WiFiManager
-
-    onAccepted: {
-        // run validation via backend first
-        var res = backend.validateInputs();
-        if (!res.valid) {
-            // show error to user
-            // validationDialog.text = res.message
-            // validationDialog.open()
-            return; // abort accept
-        }
-
-        // call backend apply
-        backend.apply()
+    WiFiManager {
+        id: wifi
+        ssid: wifiSSID
     }
 
-    // notification from backend
-    Connections {
-        target: backend
-        function onApplyResult() {
-            if (ok) {
-                console.log("[AddNetwork] apply ok:", message)
-                // infoDialog.text = qsTr("Network applied successfully")
-                // infoDialog.open()
-                pageStack.pop()
-            } else {
-                console.error("[AddNetwork] apply failed:", message)
-                // validationDialog.text = message
-                // validationDialog.open()
-            }
-        }
-
-        function onLogMessage() {
-            console.debug("[WiFiManager] " + line)
-        }
-    }
-
-    // ... UI fields like ssidField, securityCombo etc. unchanged
-    // Bind fields to backend automatically:
-    Component.onCompleted: {
-        ssidField.textFieldText = backend.ssid
-        passwordField.textFieldText = backend.password ? "••••••••" : ""
-        securityField.textFieldText = backend.securityName   // <-- FIX
-        statusField.textFieldText = backend.status
-        signalField.textFieldText = backend.signalStrength
-        linkSpeedField.textFieldText = backend.linkSpeed
-        macField.textFieldText = backend.macAddress
-        ipv4Field.textFieldText = backend.ipAddress
-
-        ipModeCombo.currentValue = backend.ipMode
-        ipField.textFieldText = backend.ipAddress
-        routerField.textFieldText = backend.gateway
-        prefixField.textFieldText = backend.prefix ? backend.prefix : "24"
-        dns1Field.textFieldText = backend.dns1
-        dns2Field.textFieldText = backend.dns2
-        macModeCombo.currentValue = backend.macMode
-        meteredCombo.currentValue = backend.metered
-        hiddenCombo.currentValue = backend.hidden
-    }
-
-    // ===================================================================
-    // SYNC: QML UI → Backend (WiFiManager)
-    // ===================================================================
-
-    // PROXY
-    Connections {
-        target: proxyCombo
-        function onCurrentValueChanged() { backend.proxyMode = Number(proxyCombo.currentValue) }
-    }
-
-    // IP MODE
-    Connections {
-        target: ipModeCombo
-        function onCurrentValueChanged() { backend.ipMode = Number(ipModeCombo.currentValue) }
-    }
-
-    // STATIC IP FIELDS
-    Connections { target: ipField; function onTextFieldTextChanged() { backend.ipAddress = ipField.textFieldText } }
-    Connections { target: routerField; function onTextFieldTextChanged() { backend.gateway = routerField.textFieldText } }
-    Connections { target: prefixField; function onTextFieldTextChanged() { backend.prefix = Number(prefixField.textFieldText) } }
-    Connections { target: dns1Field; function onTextFieldTextChanged() { backend.dns1 = dns1Field.textFieldText } }
-    Connections { target: dns2Field; function onTextFieldTextChanged() { backend.dns2 = dns2Field.textFieldText } }
-
-    // MAC MODE
-    Connections { target: macModeCombo; function onCurrentValueChanged() { backend.macMode = Number(macModeCombo.currentValue) } }
-
-    // METERED
-    Connections { target: meteredCombo; function onCurrentValueChanged() { backend.metered = Number(meteredCombo.currentValue) } }
-
-    // HIDDEN
-    Connections { target: hiddenCombo; function onCurrentValueChanged() { backend.hidden = Number(hiddenCombo.currentValue) } }
-
-    // Simple user dialogs
-    // MessageDialog {
-    //     id: validationDialog
-    //     title: qsTr("Validation error")
-    //     text: ""
-    //     icon: StandardIcon.Critical
-    // }
-    // MessageDialog {
-    //     id: infoDialog
-    //     title: qsTr("Info")
-    //     text: ""
-    //     icon: StandardIcon.Information
-    // }
-
+    Component.onCompleted: wifi.startAutoRefresh()
+    Component.onDestruction: wifi.stopAutoRefresh()
 
     Page {
         id: page
@@ -186,21 +85,8 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: ssidField
                             text: qsTr("SSID")
-                            textFieldText: ""
+                            textFieldText: wifiSSID
                             textFieldPlaceholderText: qsTr("Thin client ...")
-                            readOnly: true
-                        }
-
-                        PrefsSeparator {}
-
-                        /* ---------------------------
-                         * SIGNAL PASSWORD
-                         * --------------------------- */
-                        PrefsTextFieldSubDelegate {
-                            id: passwordField
-                            text: qsTr("Password")
-                            textFieldText: ""
-                            textFieldPlaceholderText: qsTr("*******")
                             readOnly: true
                         }
 
@@ -212,7 +98,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: statusField
                             text: qsTr("Status")
-                            textFieldText: ""
+                            textFieldText: wifi.status
                             textFieldPlaceholderText: qsTr("Connected / Disconnected")
                             readOnly: true
                         }
@@ -226,7 +112,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: signalField
                             text: qsTr("Signal strength")
-                            textFieldText: ""
+                            textFieldText: wifi.signalStrength
                             textFieldPlaceholderText: qsTr("-70 dBm")
                             readOnly: true
                         }
@@ -240,7 +126,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: linkSpeedField
                             text: qsTr("Link speed")
-                            textFieldText: ""
+                            textFieldText: wifi.linkSpeed
                             textFieldPlaceholderText: qsTr("72 Mbps")
                             readOnly: true
                         }
@@ -254,7 +140,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: securityField
                             text: qsTr("Security")
-                            textFieldText: ""
+                            textFieldText: wifi.security
                             textFieldPlaceholderText: qsTr("WPA2-PSK")
                             readOnly: true
                         }
@@ -268,7 +154,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: macField
                             text: qsTr("MAC address")
-                            textFieldText: ""
+                            textFieldText: wifi.macAddress
                             textFieldPlaceholderText: qsTr("AA:BB:CC:DD:EE:FF")
                             readOnly: true
                         }
@@ -282,7 +168,7 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: ipv4Field
                             text: qsTr("IPv4 address")
-                            textFieldText: ""
+                            textFieldText: wifi.ipAddress
                             textFieldPlaceholderText: qsTr("192.168.1.100")
                             readOnly: true
                         }
@@ -367,7 +253,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: ipField
                                 text: qsTr("IP address")
-                                textFieldText: ""
+                                textFieldText: wifi.ipAddress
                                 textFieldPlaceholderText: "192.168.10.1"
                             }
 
@@ -376,7 +262,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: routerField
                                 text: qsTr("Router")
-                                textFieldText: ""
+                                textFieldText: wifi.gateway
                                 textFieldPlaceholderText: "192.168.10.1"
                             }
 
@@ -385,7 +271,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: prefixField
                                 text: qsTr("Prefix length")
-                                textFieldText: ""
+                                textFieldText: wifi.subnetMask
                                 textFieldPlaceholderText: "24"
                             }
 
@@ -394,7 +280,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: ""
+                                textFieldText: wifi.dnsServers[0]
                                 textFieldPlaceholderText: "0.0.0.0"
                             }
 
@@ -403,7 +289,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: ""
+                                textFieldText: wifi.dnsServers[1]
                                 textFieldPlaceholderText: "0.0.0.0"
                             }
                         }

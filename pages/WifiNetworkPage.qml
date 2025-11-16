@@ -247,12 +247,12 @@ BasicPage {
                             }
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                icon: "qrc:/assets/icons/lock.svg"
+                                icon: "qrc:/assets/icons/menu.svg"
                                 visible: wifiDetails.security
 
                                 iconWidth: 20
                                 iconHeight: 20
-                                onClicked: { pageStack.push(ssidDetailsPage) }
+                                onClicked: { pageStack.push(ssidDetailsPage, {"wifiSSID": wifiDetails.ssid}) }
                             }
 
                         }
