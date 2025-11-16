@@ -41,25 +41,25 @@ BasicPage {
             onTabSelected: function(tabType, title) {
                 switch (tabType) {
                 case PrefsFooterLayout.TabType.RDServer:
-                    pageStack.replace(serverSettingsPage, {pageTitle: title })
+                    pageStack.replace(null, serverSettingsPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Ethernet:
-                    pageStack.replace(ethernetnetworkPage, {pageTitle: title })
+                    pageStack.replace(null,ethernetnetworkPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Wifi:
-                    pageStack.replace(wifinetworkPage, {pageTitle: title })
+                    pageStack.replace(null,wifinetworkPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Display:
-                    pageStack.replace(displayPage, {pageTitle: title })
+                    pageStack.replace(null,displayPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.Device:
-                    pageStack.replace(deviceSettingsPage, {pageTitle: title })
+                    pageStack.replace(null,deviceSettingsPage, {pageTitle: title })
                     break
                 case PrefsFooterLayout.TabType.About:
-                    pageStack.replace(deviceInfoPage, {pageTitle: title })
+                    pageStack.replace(null,deviceInfoPage, {pageTitle: title })
                     break
                 default:
-                    pageStack.replace(serverSettingsPage, {pageTitle: title })
+                    pageStack.replace(null,serverSettingsPage, {pageTitle: title })
                 }
             }
         }

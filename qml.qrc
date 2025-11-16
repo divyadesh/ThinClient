@@ -92,5 +92,19 @@
         <file>assets/font/Rubik-MediumItalic.ttf</file>
         <file>assets/font/Rubik-Regular.ttf</file>
         <file>assets/icons/ic_refresh.svg</file>
+        <file>pages/WifiNetworkDetails.qml</file>
+        <file>dialogs/AddNetwork.qml</file>
+        <file>assets/icons/ic_eye-off.svg</file>
+        <file>assets/icons/ic_eye-on.svg</file>
+        <file>controls/PrefsSeparator.qml</file>
+        <file>controls/PrefsTextFieldDelegate.qml</file>
+        <file>controls/PrefsTextFieldPasswordDelegate.qml</file>
+        <file>controls/PrefsComboBoxDelegate.qml</file>
+        <file>controls/PrefsFrame.qml</file>
+        <file>controls/PrefsGroupBox.qml</file>
+        <file>controls/PrefsTextFieldSubDelegate.qml</file>
+        <file>dialogs/BaseDialog.qml</file>
+        <file>components/DialogBackground.qml</file>
+        <file>components/BackgroundOverlay.qml</file>
     </qresource>
 </RCC>

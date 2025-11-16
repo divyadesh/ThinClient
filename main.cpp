@@ -107,8 +107,9 @@ int main(int argc, char *argv[])
     //         qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
     // }
 
-    qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
-    qputenv("QT_VNC_SIZE", "1920x1080");
+    qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
+    // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
+    // qputenv("QT_VNC_SIZE", "1920x1080");
 
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
     Application::initialize(&engine);
 
     // --- Update Weston Config in background (only once) ---
-    // ensureWestonConfig();
+    ensureWestonConfig();
 
     // --- Load Main UI ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));

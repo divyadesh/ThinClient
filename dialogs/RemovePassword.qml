@@ -17,10 +17,7 @@ import "../controls"
 
 BasicPage {
     id: control
-    background: Rectangle {
-        color: "#000000"
-        opacity: 0.3
-    }
+    background: BackgroundOverlay {}
 
     UnlockManager {
         id: unlockManager
@@ -29,13 +26,7 @@ BasicPage {
     Page {
         anchors.centerIn: parent
         width: 480
-
-        background: Rectangle {
-            radius: 8
-            color: Colors.steelGray
-            border.width: 1
-            border.color: Colors.borderColor
-        }
+        background: DialogBackground{}
 
         header: Control {
             implicitHeight: 52

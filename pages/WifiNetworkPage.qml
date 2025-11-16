@@ -245,8 +245,41 @@ BasicPage {
                                     }
                                 }
                             }
+                            Icon {
+                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                icon: "qrc:/assets/icons/lock.svg"
+                                visible: wifiDetails.security
+
+                                iconWidth: 20
+                                iconHeight: 20
+                                onClicked: { pageStack.push(ssidDetailsPage) }
+                            }
+
                         }
                     }
+
+                    footer:  PrefsItemDelegate {
+                        id: addSSIDDelegate
+                        width: ListView.view.width
+                        hoverEnabled: true
+                        text: qsTr("Add Network")
+
+                        background: Rectangle {
+                            implicitHeight: 36
+                            radius: height / 2
+                            color: addSSIDDelegate.hovered ? "#2A2A2A" : "transparent"
+                        }
+
+                        indicator: PrefsButton {
+                            x: addSSIDDelegate.width - width - addSSIDDelegate.rightPadding
+                            y: addSSIDDelegate.topPadding + (addSSIDDelegate.availableHeight - height) / 2
+                            text: qsTr("Add")
+                            onClicked: {
+                                pageStack.push(addNetwork)
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -259,5 +292,15 @@ BasicPage {
     Component {
         id: setWifiPassword
         SetWifiPassword {}
+    }
+
+    Component {
+        id: addNetwork
+        AddNetwork {}
+    }
+
+    Component {
+        id: ssidDetailsPage
+        WifiNetworkDetails {}
     }
 }

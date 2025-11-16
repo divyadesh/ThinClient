@@ -1,14 +1,9 @@
-/*
-Title: Update Password
-Message: "Would you like to set a new password or remove the existing one?"
-Buttons: Cancel | Set Password | Remove Password
-*/
-
 import QtQuick 2.15
 import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
-import AppSecurity 1.0
+import QtGraphicalEffects 1.3
 import App.Styles 1.0
+import AppSecurity 1.0
 
 import "../pages"
 import "../components"
@@ -16,18 +11,25 @@ import "../controls"
 
 BasicPage {
     id: control
-    signal setPassword()
-    signal removePassword()
+    StackView.visible: true
+    property real popupHeight: 450
+    property real popupWidth: 512
+
+    property string acceptedButtonText: "Save"
+    property string rejectedButtonText: "Cancel"
+
+    // Declare default property!
+    default property alias content: layout.children
+
+    signal accepted()
+    signal rejected()
 
     background: BackgroundOverlay {}
 
-    UnlockManager {
-        id: unlockManager
-    }
-
     Page {
         anchors.centerIn: parent
-        width: 600
+        width: control.popupWidth
+        height: control.popupHeight
         background: DialogBackground{}
 
         header: Control {
@@ -36,21 +38,23 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Update Password")
+                text: control.pageTitle
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
         }
 
-        contentItem: Control {
-            padding: 20
+        Flickable {
+            anchors.fill: parent
+            contentHeight: layout.height
+            contentWidth: parent.width
+            clip: true
 
-            contentItem: PrefsLabel {
-                text: qsTr("Would you like to set a new password or remove the existing one?")
-                font.pixelSize: 16
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            ColumnLayout {
+                id: layout
+                width: parent.width
+                spacing: 20
             }
         }
 
@@ -66,29 +70,24 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Cancel")
+                    text: control.acceptedButtonText
                     radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: pageStack.pop()
-                }
-
-                PrefsButton {
-                    text: unlockManager.hasPassword ? qsTr("Update Password") : qsTr("Set Password")
-                    radius: height / 2
-                    highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        setPassword()
+                        control.accepted()
+                        pageStack.pop()
                     }
                 }
 
-                PrefsDangerButton {
-                    visible: unlockManager.hasPassword
-                    text: qsTr("Remove Password")
+                PrefsButton {
+                    text: control.rejectedButtonText
+                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-
-                    onClicked: {removePassword()}
+                    onClicked: {
+                        control.rejected()
+                        pageStack.pop()
+                    }
                 }
 
                 Item {

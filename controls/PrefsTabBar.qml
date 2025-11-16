@@ -4,4 +4,5 @@ import QtQuick.Controls 2.0
 TabBar {
     id: control
     background: null
+    spacing: 0
 }
