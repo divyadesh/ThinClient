@@ -22,7 +22,7 @@ public:
     enum ServerInfoCollRole {
         eServerInfoCollectionRole = Qt::UserRole + 1
     };
-    Q_ENUM(ServerInfoCollRole)
+    Q_ENUM(ServerInfoCollRole);
 
     // QAbstractListModel overrides
     QHash<int, QByteArray> roleNames() const override;

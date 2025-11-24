@@ -112,39 +112,6 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
     _rdpWatcher.setFuture(future);
 }
 
-// void ServerInfoColl::startRdp(const QString &ip,
-//                               const QString &username,
-//                               const QString &password)
-// {
-//     QString cmd = "wlfreerdp";
-
-//     QStringList args;
-//     args << "/f"
-//          << "/bpp:32"
-//          << "/cert-ignore"
-//          << "+auto-reconnect"
-//          << "+auto-reconnect-max-retries:6"
-//          << QString("/v:%1").arg(ip)
-//          << QString("/u:%1").arg(username)
-//          << QString("/p:%1").arg(password);
-
-//     // Build environment
-//     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-//     env.insert("XDG_RUNTIME_DIR", "/run/user/0");
-//     env.insert("WAYLAND_DISPLAY", "wayland-0");
-//     env.insert("QT_QPA_PLATFORM", "wayland-egl");
-//     env.insert("QT_QUICK_BACKEND", "software");
-
-//     // Launch detached
-//     bool ok = QProcess::startDetached(cmd, args, QString(), nullptr);
-
-//     if (!ok) {
-//         qWarning() << "Failed to start wlfreerdp";
-//     } else {
-//         qInfo() << "RDP started successfully";
-//     }
-// }
-
 QString buildFreerdpParams(const SystemSettings &settings)
 {
     QStringList params;
@@ -270,7 +237,7 @@ void ServerInfoColl::startRdp(ServerInfoStruct info)
 
     // ----------- Logging (Professional) -----------
     qInfo() << "-------------------------------------------";
-    qInfo() << "[RDP] Starting RDP Connection for device name : "<< deviceName;
+    qInfo() << "[RDP] Starting RDP Connection for device name : " << deviceName;
     qInfo() << " ID:              " << id;
     qInfo() << " Name:            " << name;
     qInfo() << " Server IP:       " << server;
@@ -287,14 +254,13 @@ void ServerInfoColl::startRdp(ServerInfoStruct info)
         qInfo() << " Gateway IP:     " << gatewayIp;
         qInfo() << " Gateway User:   " << gatewayUser;
     }
-
     qInfo() << "-------------------------------------------";
 
     // ----------- Build FreeRDP Command -----------
     QString cmd = "wlfreerdp";
     QStringList args;
 
-    // Basic required options
+    // Base flags
     args << "/f"
          << "/bpp:32"
          << "/cert-ignore"
@@ -317,57 +283,53 @@ void ServerInfoColl::startRdp(ServerInfoStruct info)
         args << "/network:auto";
     }
 
-    // Graphics
-    args << "/gfx"
-         << "+gfx-progressive";
+    // Graphics (optimized)
+    args << "/gfx:avc420"
+         << "+gfx-progressive"
+         << "+gfx-thin-client"
+         << "+gfx-small-cache"
+         << "+fast-path";
 
-    // Audio
+    // ---- Audio (Optimized with Large Buffer) ----
     if (audio)
-        args << "/sound:sys:alsa,latency:250";
+        args << "/sound:sys:alsa,latency:450,rate:44100,channel:2";
 
-    // Microphone
     if (mic)
         args << "/microphone:sys:alsa";
 
-    // Drive redirect
     if (redirectDrive)
         args << "/drives";
 
-    // USB redirect
     if (redirectUsb)
         args << "/usb:auto";
 
-    // RD Gateway options
     if (useGateway) {
         args << QString("/g:%1").arg(gatewayIp);
         args << QString("/gu:%1").arg(gatewayUser);
         args << QString("/gp:%1").arg(gatewayPass);
     }
 
-    // Authentication + target server
     args << QString("/v:%1").arg(server)
          << QString("/u:%1").arg(username)
          << QString("/p:%1").arg(password);
 
     // ----------- Print Final Command -----------
     qInfo() << "[RDP] Final Command:";
-    qInfo() << "wlfreerdp " << args.join(" ");
+    qInfo() << "wlfreerdp" << args.join(" ");
     qInfo() << "-------------------------------------------";
 
-    // ----------- Environment variables ----------
+    // Environment setup
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("XDG_RUNTIME_DIR", "/run/user/0");
     env.insert("WAYLAND_DISPLAY", "wayland-0");
     env.insert("QT_QPA_PLATFORM", "wayland-egl");
     env.insert("QT_QUICK_BACKEND", "software");
 
-    // ----------- Start RDP Process -----------
+    // Start RDP
     bool ok = QProcess::startDetached(cmd, args, QString(), nullptr);
 
-    if (!ok) {
+    if (!ok)
         qWarning() << "[RDP] Failed to start wlfreerdp!";
-    } else {
+    else
         qInfo() << "[RDP] RDP started successfully.";
-    }
 }
-
