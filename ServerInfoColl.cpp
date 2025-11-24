@@ -54,7 +54,6 @@ int ServerInfoColl::getIndexToBeRemoved(const QString &connectionId)
 
 void ServerInfoColl::setAutoConnect(const QString &connectionId)
 {
-//need to impement in better way
 }
 
 void ServerInfoColl::setServerInfo(const QString &connectionId)
@@ -79,8 +78,6 @@ void ServerInfoColl::removeConnection(const QString &connectionId)
 void ServerInfoColl::resetAutoConnect()
 {
 }
-
-// === RDP logic ===
 
 void ServerInfoColl::connectRdServer(const QString &connectionId)
 {
@@ -168,42 +165,6 @@ QString buildFreerdpParams(const SystemSettings &settings)
     params << "/printer";
 
     return params.join(" ");
-}
-
-void ServerInfoColl::launchRDPSequence(const QString &server, const QString &username, const QString &password)
-{
-    QString script = "/usr/bin/run_rdp.sh";
-
-    // Run the RDP launcher as an independent systemd scope
-    SystemSettings settings = Application::persistData()->systemSettings();
-    QString freerdpArgs = buildFreerdpParams(settings);
-
-    qDebug()<<"Display and Device Settings Parameter :: "<<freerdpArgs;
-
-    QStringList args;
-    args << "--scope"
-         << "--slice=rdp"
-         << script
-         << server
-         << username
-         << password;
-
-    QProcess *process = new QProcess(this);
-    process->setProgram("systemd-run");
-    process->setArguments(args);
-
-    qInfo() << "Starting RDP launcher via systemd-run:" << args.join(" ");
-
-    // Start detached so it won’t be killed when this Qt process stops
-    bool started = process->startDetached();
-
-    if (!started) {
-        qWarning() << "Failed to start RDP launcher using systemd-run.";
-        delete process;
-        return;
-    }
-
-    qInfo() << "RDP launcher started successfully in separate scope.";
 }
 
 void ServerInfoColl::onRdpFinished()

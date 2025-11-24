@@ -48,9 +48,6 @@ private slots:
     void startRdp(ServerInfoStruct info);
 
 private:
-    void launchRDPSequence(const QString &server, const QString &username, const QString &password);
-
-private:
     std::deque<std::shared_ptr<ServerInfo>> m_ServerInfoColl;
     DataBase *_database{nullptr};
 
