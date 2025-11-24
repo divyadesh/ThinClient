@@ -102,19 +102,48 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
         return;
     }
 
-    const QString server   = info.ip.trimmed();
-    const QString username = info.username.trimmed();
-    const QString password = info.password.trimmed();
-
     _already_running.store(true);
     emit rdpSessionStarted();
 
-    QFuture<void> future = QtConcurrent::run([this, server, username, password]() {
-        launchRDPSequence(server, username, password);
+    QFuture<void> future = QtConcurrent::run([this, info]() {
+        startRdp(info);
     });
 
     _rdpWatcher.setFuture(future);
 }
+
+// void ServerInfoColl::startRdp(const QString &ip,
+//                               const QString &username,
+//                               const QString &password)
+// {
+//     QString cmd = "wlfreerdp";
+
+//     QStringList args;
+//     args << "/f"
+//          << "/bpp:32"
+//          << "/cert-ignore"
+//          << "+auto-reconnect"
+//          << "+auto-reconnect-max-retries:6"
+//          << QString("/v:%1").arg(ip)
+//          << QString("/u:%1").arg(username)
+//          << QString("/p:%1").arg(password);
+
+//     // Build environment
+//     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+//     env.insert("XDG_RUNTIME_DIR", "/run/user/0");
+//     env.insert("WAYLAND_DISPLAY", "wayland-0");
+//     env.insert("QT_QPA_PLATFORM", "wayland-egl");
+//     env.insert("QT_QUICK_BACKEND", "software");
+
+//     // Launch detached
+//     bool ok = QProcess::startDetached(cmd, args, QString(), nullptr);
+
+//     if (!ok) {
+//         qWarning() << "Failed to start wlfreerdp";
+//     } else {
+//         qInfo() << "RDP started successfully";
+//     }
+// }
 
 QString buildFreerdpParams(const SystemSettings &settings)
 {
@@ -216,3 +245,129 @@ void ServerInfoColl::onRdpFinished()
     emit rdpSessionFinished(true);
     qCInfo(lcServerInfo) << "RDP session completed and flag reset.";
 }
+
+void ServerInfoColl::startRdp(ServerInfoStruct info)
+{
+    // ----------- Parse Struct Values -----------
+    const QString id          = info.id.trimmed();
+    const QString name        = info.name.trimmed();
+    const QString server      = info.ip.trimmed();
+    const QString deviceName  = info.deviceName.trimmed();
+    const QString username    = info.username.trimmed();
+    const QString password    = info.password.trimmed();
+    const QString performance = info.performance.trimmed();
+
+    const bool audio          = info.audio;
+    const bool mic            = info.mic;
+    const bool redirectDrive  = info.redirectDrive;
+    const bool redirectUsb    = info.redirectUsb;
+    const bool securityNla    = info.security;
+    const bool useGateway     = info.gateway;
+
+    const QString gatewayIp   = info.gatewayIp.trimmed();
+    const QString gatewayUser = info.gatewayUser.trimmed();
+    const QString gatewayPass = info.gatewayPass.trimmed();
+
+    // ----------- Logging (Professional) -----------
+    qInfo() << "-------------------------------------------";
+    qInfo() << "[RDP] Starting RDP Connection for device name : "<< deviceName;
+    qInfo() << " ID:              " << id;
+    qInfo() << " Name:            " << name;
+    qInfo() << " Server IP:       " << server;
+    qInfo() << " Username:        " << username;
+    qInfo() << " Performance:     " << performance;
+    qInfo() << " Audio:           " << audio;
+    qInfo() << " Microphone:      " << mic;
+    qInfo() << " Drive Redirect:  " << redirectDrive;
+    qInfo() << " USB Redirect:    " << redirectUsb;
+    qInfo() << " Security (NLA):  " << securityNla;
+    qInfo() << " Gateway Enabled: " << useGateway;
+
+    if (useGateway) {
+        qInfo() << " Gateway IP:     " << gatewayIp;
+        qInfo() << " Gateway User:   " << gatewayUser;
+    }
+
+    qInfo() << "-------------------------------------------";
+
+    // ----------- Build FreeRDP Command -----------
+    QString cmd = "wlfreerdp";
+    QStringList args;
+
+    // Basic required options
+    args << "/f"
+         << "/bpp:32"
+         << "/cert-ignore"
+         << "+auto-reconnect"
+         << "/auto-reconnect-max-retries:6";
+
+    // Security
+    if (securityNla)
+        args << "/sec:nla";
+    else
+        args << "-sec-nla";
+
+    // Performance mode
+    if (performance.compare("best", Qt::CaseInsensitive) == 0) {
+        args << "/network:lan";
+        args << "+bitmap-cache";
+        args << "+offscreen-cache";
+        args << "+glyph-cache";
+    } else {
+        args << "/network:auto";
+    }
+
+    // Graphics
+    args << "/gfx"
+         << "+gfx-progressive";
+
+    // Audio
+    if (audio)
+        args << "/sound:sys:alsa,latency:250";
+
+    // Microphone
+    if (mic)
+        args << "/microphone:sys:alsa";
+
+    // Drive redirect
+    if (redirectDrive)
+        args << "/drives";
+
+    // USB redirect
+    if (redirectUsb)
+        args << "/usb:auto";
+
+    // RD Gateway options
+    if (useGateway) {
+        args << QString("/g:%1").arg(gatewayIp);
+        args << QString("/gu:%1").arg(gatewayUser);
+        args << QString("/gp:%1").arg(gatewayPass);
+    }
+
+    // Authentication + target server
+    args << QString("/v:%1").arg(server)
+         << QString("/u:%1").arg(username)
+         << QString("/p:%1").arg(password);
+
+    // ----------- Print Final Command -----------
+    qInfo() << "[RDP] Final Command:";
+    qInfo() << "wlfreerdp " << args.join(" ");
+    qInfo() << "-------------------------------------------";
+
+    // ----------- Environment variables ----------
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("XDG_RUNTIME_DIR", "/run/user/0");
+    env.insert("WAYLAND_DISPLAY", "wayland-0");
+    env.insert("QT_QPA_PLATFORM", "wayland-egl");
+    env.insert("QT_QUICK_BACKEND", "software");
+
+    // ----------- Start RDP Process -----------
+    bool ok = QProcess::startDetached(cmd, args, QString(), nullptr);
+
+    if (!ok) {
+        qWarning() << "[RDP] Failed to start wlfreerdp!";
+    } else {
+        qInfo() << "[RDP] RDP started successfully.";
+    }
+}
+

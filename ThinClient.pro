@@ -1,4 +1,4 @@
-QT += quick quickcontrols2 core qml sql #virtualkeyboard
+QT += quick quickcontrols2 core qml sql virtualkeyboard
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -8,6 +8,7 @@ SOURCES += \
         Application.cpp \
         Database.cpp \
         DeviceInfo.cpp \
+        DisplaySettings.cpp \
         PersistData.cpp \
         ServerInfo.cpp \
         ServerInfoColl.cpp \
@@ -32,6 +33,7 @@ SOURCES += \
         systemresetmanager.cpp \
         timezone_filter_model.cpp \
         timezone_model.cpp \
+        wifiaddnetworkmanager.cpp \
         wifimanager.cpp \
         wifimonitor.cpp \
         wifisettingsmanager.cpp \
@@ -44,6 +46,7 @@ HEADERS += \
     AudioSettingsOptions.h \
     Database.h \
     DeviceInfo.h \
+    DisplaySettings.h \
     PersistData.h \
     RdpMonitorThread.h \
     ServerInfo.h \
@@ -69,6 +72,7 @@ HEADERS += \
     systemresetmanager.h \
     timezone_filter_model.h \
     timezone_model.h \
+    wifiaddnetworkmanager.h \
     wifimanager.h \
     wifimonitor.h \
     wifisettingsmanager.h \

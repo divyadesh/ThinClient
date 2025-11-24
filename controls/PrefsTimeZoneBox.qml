@@ -56,7 +56,7 @@ ComboBox {
             currentIndex: control.highlightedIndex
             interactive: true
 
-            // --- SECTION HEADER SUPPORT ---
+            // // --- SECTION HEADER SUPPORT ---
             section.property: "utcOffset"         // use UTC offset from model
             section.criteria: ViewSection.FullString
             section.delegate: Control {

@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../components"
 import "../controls"
@@ -9,7 +10,10 @@ import "../controls"
 BasicPage {
     id: page
     padding: 20
-    property bool addNewServer: false
+
+    DisplaySettings {
+        id: backend
+    }
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -22,11 +26,54 @@ BasicPage {
         }
     }
 
+    ListModel {
+        id: resolutionModel
+
+        ListElement { text: "Auto";        value: "auto" }
+        ListElement { text: "1024 x 768";  value: "1024x768" }
+        ListElement { text: "1280 x 720";  value: "1280x720" }
+        ListElement { text: "1366 x 768";  value: "1366x768" }
+        ListElement { text: "1440 x 900";  value: "1440x900" }
+        ListElement { text: "1600 x 900";  value: "1600x900" }
+        ListElement { text: "1680 x 1050"; value: "1680x1050" }
+        ListElement { text: "1920 x 1080"; value: "1920x1080" }
+    }
+
+    ListModel {
+        id: orientationModel
+
+        ListElement { text: "Landscape";              value: 0;   apply: "normal" }
+        ListElement { text: "Portrait";               value: 90;  apply: "rotate-90" }
+        ListElement { text: "Landscape (Flipped)";    value: 180; apply: "rotate-180" }
+        ListElement { text: "Portrait (Flipped)";     value: 270; apply: "rotate-270" }
+    }
+
+    ListModel {
+        id: displayOffModel
+
+        ListElement { text: "None";         value: 0 }
+        ListElement { text: "10 Minutes";   value: 10 }
+        ListElement { text: "30 Minutes";   value: 30 }
+        ListElement { text: "60 Minutes";   value: 60 }
+    }
+
+    ListModel {
+        id: devicePowerOffModel
+
+        ListElement { text: "None";      value: 0 }
+        ListElement { text: "1 Hour";    value: 1 }
+        ListElement { text: "5 Hours";   value: 5 }
+        ListElement { text: "10 Hours";  value: 10 }
+        ListElement { text: "24 Hours";  value: 24 }
+        ListElement { text: "48 Hours";  value: 48 }
+    }
+
     contentItem: Flickable {
         width: parent.width
         clip: true
         contentHeight: layout.height
         contentWidth: parent.width
+
         ColumnLayout {
             id: layout
             width: page.width - 40
@@ -50,29 +97,20 @@ BasicPage {
                             x: resolution.width - width - resolution.rightPadding
                             y: resolution.topPadding + (resolution.availableHeight - height) / 2
 
-                            property bool initialized: true
+                            model: resolutionModel
+                            textRole: "text"
+                            valueRole: "value"
 
-                            model: [
-                                "Auto",
-                                "1024 x 768",    // XGA
-                                "1280 x 720",    // HD
-                                "1366 x 768",    // HD+
-                                "1440 x 900",    // WXGA+
-                                "1600 x 900",    // HD+
-                                "1680 x 1050",   // WSXGA+
-                                "1920 x 1080",   // Full HD
-                            ]
-                            onCurrentIndexChanged: {
-                                if(currentIndex > 0) {
-                                    persistData.saveData("Resolution", model[currentIndex])
-                                }
+                            onActivated: {
+                                logSelection("Resolution", currentIndex, resolutionModel)
                             }
+
                             Component.onCompleted: {
-                                let savedResolution = persistData.getData("Resolution")
-                                if(savedResolution !== undefined) {
-                                    let index = resolutionComboBox.find(savedResolution)
-                                    if(index > 0)
-                                        resolutionComboBox.currentIndex = index
+                                for (var i = 0; i < resolutionModel.count; i++) {
+                                    if (resolutionModel.get(i).value === backend.resolution) {
+                                        resolutionComboBox.currentIndex = i
+                                        break
+                                    }
                                 }
                             }
                         }
@@ -88,30 +126,20 @@ BasicPage {
                             x: orientation.width - width - orientation.rightPadding
                             y: orientation.topPadding + (orientation.availableHeight - height) / 2
 
-                            // ✅ Updated model: each item has a label (text) and numeric value
-                            model: [
-                                { text: "Landscape", value: 0 },
-                                { text: "Portrait", value: 90 },
-                                { text: "Landscape (Flipped)", value: 180 },
-                                { text: "Portrait (Flipped)", value: 270 }
-                            ]
+                            model: orientationModel
 
-                            // ✅ Tell ComboBox which property to display
                             textRole: "text"
                             valueRole: "value"
 
-                            // ✅ Save numeric value when changed
                             onActivated: {
-                                persistData.saveData("Orientation", currentValue)
+                                logSelection("Orientation", currentIndex, orientationModel)
                             }
 
-                            // ✅ Restore saved numeric orientation
                             Component.onCompleted: {
-                                let savedOrientation = persistData.getData("Orientation")
-                                if (savedOrientation !== undefined) {
-                                    let index = model.findIndex(item => item.value === parseInt(savedOrientation, 10))
-                                    if (index >= 0) {
-                                        orientationComboBox.currentIndex = index
+                                for (var i = 0; i < orientationModel.count; i++) {
+                                    if (orientationModel.get(i).apply === backend.orientation) {
+                                        orientationComboBox.currentIndex = i
+                                        break
                                     }
                                 }
                             }
@@ -136,38 +164,21 @@ BasicPage {
                                 PrefsComboBox {
                                     id: displayOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                    // ✅ Updated model: each item has a label (text) and numeric value (in minutes)
-                                    model: [
-                                        { text: "None", value: 0 },
-                                        { text: "10 Minutes", value: 10 },
-                                        { text: "30 Minutes", value: 30 },
-                                        { text: "60 Minutes", value: 60 }
-                                    ]
-
-                                    // ✅ Tell ComboBox which roles to use
+                                    model: displayOffModel
                                     textRole: "text"
                                     valueRole: "value"
 
-                                    // Default selection = "None"
-                                    currentIndex: 0
 
-                                    // ✅ When user changes the selection
                                     onActivated: {
-                                        let selectedValue = model[currentIndex].value
-                                        console.log("Display Off:", selectedValue === 0 ? "None" : `${selectedValue} min`)
-                                        persistData.saveData("DisplayOff", selectedValue)
+                                        logSelection("Display-Off", currentIndex, displayOffModel)
                                     }
 
-                                    // ✅ Restore saved setting
                                     Component.onCompleted: {
-                                        let savedDisplayOff = persistData.getData("DisplayOff")
-                                        console.log("Restored DisplayOff:", savedDisplayOff)
-                                        if (savedDisplayOff !== undefined) {
-                                            // 🔍 Find matching index by numeric value
-                                            let index = model.findIndex(item => item.value === parseInt(savedDisplayOff, 10))
-                                            if (index >= 0) {
-                                                displayOffComboBox.currentIndex = index
+                                        for (let i = 0; i < displayOffModel.count; i++) {
+                                            let minutes = displayOffModel.get(i).value
+                                            if (minutes === backend.idleTimeSeconds / 60) {
+                                                displayOffComboBox.currentIndex = i
+                                                break
                                             }
                                         }
                                     }
@@ -183,39 +194,19 @@ BasicPage {
                                 PrefsComboBox {
                                     id: deviceOffComboBox
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                    // ✅ Each item has a display label (text) and numeric value (in hours)
-                                    model: [
-                                        { text: "None", value: 0 },
-                                        { text: "1 Hour", value: 1 },
-                                        { text: "5 Hours", value: 5 },
-                                        { text: "10 Hours", value: 10 },
-                                        { text: "24 Hours", value: 24 },
-                                        { text: "48 Hours", value: 48 }
-                                    ]
-
+                                    model: devicePowerOffModel
                                     textRole: "text"
                                     valueRole: "value"
 
-                                    // Default = "None"
-                                    currentIndex: 0
-
-                                    // ✅ Handle user change
                                     onActivated: {
-                                        let selectedValue = model[currentIndex].value
-                                        console.log("Device Off:", selectedValue === 0 ? "None" : `${selectedValue} hour(s)`)
-                                        persistData.saveData("DeviceOff", selectedValue)
+                                        logSelection("Device-Off", currentIndex, devicePowerOffModel)
                                     }
 
-                                    // ✅ Restore saved value
                                     Component.onCompleted: {
-                                        let savedDeviceOff = persistData.getData("DeviceOff")
-                                        console.log("Restored DeviceOff:", savedDeviceOff)
-                                        if (savedDeviceOff !== undefined) {
-                                            // Find index based on stored numeric value
-                                            let index = model.findIndex(item => item.value === parseInt(savedDeviceOff, 10))
-                                            if (index >= 0) {
-                                                deviceOffComboBox.currentIndex = index
+                                        for (var i = 0; i < devicePowerOffModel.count; i++) {
+                                            if (devicePowerOffModel.get(i).value === backend.deviceAutoPowerOffHours) {
+                                                deviceOffComboBox.currentIndex = i
+                                                break
                                             }
                                         }
                                     }
@@ -223,8 +214,156 @@ BasicPage {
                             }
                         }
                     }
+
+                    // --- Enable On Screen Keyboard ---
+                    PrefsItemDelegate {
+                        id: enableOnScreenKeyboard
+                        Layout.fillWidth: true
+                        text: qsTr("Enable On Screen Keyboard")
+
+                        indicator: RowLayout {
+                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
+                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
+
+                            PrefsButton {
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                font.weight: Font.Normal
+                                checked: persistData.enableOnScreenKeyboard
+
+                                onClicked: {
+                                    persistData.enableOnScreenKeyboard = checked
+                                }
+                            }
+                        }
+                    }
+
+                    // --- Enable Touch Screen ---
+                    PrefsItemDelegate {
+                        id: enableTouchScreen
+                        Layout.fillWidth: true
+                        text: qsTr("Enable Touch Screen")
+
+                        indicator: RowLayout {
+                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
+                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
+
+                            PrefsButton {
+                                id: enableTouch
+                                checkable: true
+                                implicitWidth: 260
+                                text: qsTr("Enable")
+                                font.weight: Font.Normal
+                                checked: persistData.enableTouchScreen
+                            }
+                        }
+                    }
+
+                    PrefsItemDelegate {
+                        id: saveButton
+                        Layout.fillWidth: true
+                        rightPadding: 0
+                        leftPadding: 0
+
+                        background: Item {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                        }
+
+                        indicator: PrefsButton {
+                            id: saveBtn
+                            x: saveButton.width - width - saveButton.rightPadding
+                            y: saveButton.topPadding + (saveButton.availableHeight - height) / 2
+                            Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                            text: qsTr("Save")
+                            highlighted: true
+                            onClicked: {
+
+                                console.log("=== APPLY SETTINGS START ===")
+
+                                /* -----------------------------
+                                   RESOLUTION
+                                ----------------------------- */
+                                const resolution = resolutionModel.get(resolutionComboBox.currentIndex).value
+                                backend.resolution = resolution
+                                persistData.saveData("Resolution", resolution)
+                                console.log("Resolution:", resolution)
+
+                                /* -----------------------------
+                                   ORIENTATION
+                                ----------------------------- */
+                                const orientation = orientationModel.get(orientationComboBox.currentIndex).apply
+                                backend.orientation = orientation
+                                persistData.saveData("Orientation", orientation)
+                                console.log("Orientation:", orientation)
+
+                                /* -----------------------------
+                                   DISPLAY OFF (Minutes)
+                                ----------------------------- */
+                                const displayOffMin = displayOffModel.get(displayOffComboBox.currentIndex).value
+                                backend.idleTimeSeconds = displayOffMin
+                                persistData.saveData("DisplayOff", displayOffMin)
+                                console.log("Display Idle (min):", displayOffMin)
+
+                                /* -----------------------------
+                                   DEVICE AUTO POWER-OFF (Hours)
+                                ----------------------------- */
+                                const deviceOffHours = devicePowerOffModel.get(deviceOffComboBox.currentIndex).value
+                                backend.deviceAutoPowerOffHours = deviceOffHours
+                                persistData.saveData("DeviceOff", deviceOffHours)
+                                console.log("Device Auto Power-Off (hours):", deviceOffHours)
+
+                                /* -----------------------------
+                                   TOUCH ENABLE
+                                ----------------------------- */
+                                backend.touchEnabled = enableTouch.checked
+                                persistData.enableTouchScreen = enableTouch.checked
+                                console.log("Touch Enabled:", enableTouch.checked)
+
+                                /* -----------------------------
+                                   APPLY TO WESTON
+                                ----------------------------- */
+                                const ok = backend.applyDisplaySettings(
+                                                backend.resolution,
+                                                backend.orientation,
+                                                backend.idleTimeSeconds * 60,   // convert minutes → seconds
+                                                backend.touchEnabled
+                                            )
+
+                                if (!ok) {
+                                    console.warn("❌ Failed to apply settings")
+                                } else {
+                                    console.log("Settings applied successfully")
+                                }
+
+                                console.log("=== APPLY SETTINGS END ===")
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    function logSelection(category, index, model) {
+        if (index < 0 || index >= model.count) {
+            console.warn("[UI][" + category + "] Invalid index:", index)
+            return
+        }
+
+        const item = model.get(index)
+
+        console.log(
+                    "\n==============================",
+                    "\n  UI Selection Changed",
+                    "\n------------------------------",
+                    "\n Category:", category,
+                    "\n Index   :", index,
+                    "\n Text    :", item.text,
+                    "\n Value   :", item.value !== undefined ? item.value : "(none)",
+                    "\n Apply   :", item.apply !== undefined ? item.apply : "(none)",
+                    "\n==============================\n"
+                    )
     }
 }

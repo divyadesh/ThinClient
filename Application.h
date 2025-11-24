@@ -35,6 +35,8 @@
 #include "UdevMonitor.h"
 #include "wifisettingsmanager.h"
 #include "logexporter.h"
+#include "wifiaddnetworkmanager.h"
+#include "DisplaySettings.h"
 
 class Application : public QObject
 {
@@ -69,6 +71,7 @@ public:
     static SystemResetManager *resetManager();
     static RdServerModel *serverModel();
     static DataBase *db();
+    static WiFiAddNetworkManager* wiFiAddNetworkManager();
 
 private:
     explicit Application(QQmlApplicationEngine *engine, QObject *parent = nullptr);
@@ -115,6 +118,7 @@ private:
     SystemResetManager *_resetManager = nullptr;
     RdServerModel *_serverModel = nullptr;
     DataBase *_database = nullptr; // assumed singleton; do not delete
+    WiFiAddNetworkManager *_wiFiAddNetworkManager;
 
     // Threads
     QThread *m_wifiThread = nullptr;

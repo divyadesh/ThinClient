@@ -17,6 +17,9 @@ BasicPage {
 
     property string acceptedButtonText: "Save"
     property string rejectedButtonText: "Cancel"
+    property alias layout: layout
+    property alias saveButton: saveButton
+    property alias cancelButton: cancelButton
 
     // Declare default property!
     default property alias content: layout.children
@@ -70,23 +73,23 @@ BasicPage {
                 }
 
                 PrefsButton {
+                    id: cancelButton
                     text: control.rejectedButtonText
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
                         control.rejected()
-                        pageStack.pop()
                     }
                 }
 
                 PrefsButton {
+                    id: saveButton
                     text: control.acceptedButtonText
                     radius: height / 2
                     highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
                         control.accepted()
-                        pageStack.pop()
                     }
                 }
 

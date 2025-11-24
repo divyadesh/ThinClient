@@ -21,6 +21,7 @@ BasicPage {
     property string acceptedButtonText: "Save"
     property string rejectedButtonText: "Cancel"
     property string wifiSSID: ""
+    property string errorMessage: ""
 
     signal accepted()
     signal rejected()
@@ -32,16 +33,22 @@ BasicPage {
     WiFiManager {
         id: wifi
         ssid: wifiSSID
+        onLogMessage: {
+            console.log("[WiFi]", message)
+        }
     }
 
-    Component.onCompleted: wifi.startAutoRefresh()
+    Component.onCompleted: {
+        wifi.updateIpMode()
+        wifi.startAutoRefresh()
+    }
     Component.onDestruction: wifi.stopAutoRefresh()
 
     Page {
         id: page
         anchors.centerIn: parent
         width: control.popupWidth
-        height: control.popupHeight
+        height: Math.min(control.popupHeight, layout.height + 125)
         background: DialogBackground{}
 
         header: Control {
@@ -86,7 +93,7 @@ BasicPage {
                             id: ssidField
                             text: qsTr("SSID")
                             textFieldText: wifiSSID
-                            textFieldPlaceholderText: qsTr("Thin client ...")
+                            textFieldPlaceholderText: qsTr("e.g. ThinClient")
                             readOnly: true
                         }
 
@@ -99,40 +106,11 @@ BasicPage {
                             id: statusField
                             text: qsTr("Status")
                             textFieldText: wifi.status
-                            textFieldPlaceholderText: qsTr("Connected / Disconnected")
+                            textFieldPlaceholderText: qsTr("e.g. Connected / Disconnected")
                             readOnly: true
                         }
 
                         PrefsSeparator {}
-
-
-                        /* ---------------------------
-                         * SIGNAL STRENGTH
-                         * --------------------------- */
-                        PrefsTextFieldSubDelegate {
-                            id: signalField
-                            text: qsTr("Signal strength")
-                            textFieldText: wifi.signalStrength
-                            textFieldPlaceholderText: qsTr("-70 dBm")
-                            readOnly: true
-                        }
-
-                        PrefsSeparator {}
-
-
-                        /* ---------------------------
-                         * LINK SPEED
-                         * --------------------------- */
-                        PrefsTextFieldSubDelegate {
-                            id: linkSpeedField
-                            text: qsTr("Link speed")
-                            textFieldText: wifi.linkSpeed
-                            textFieldPlaceholderText: qsTr("72 Mbps")
-                            readOnly: true
-                        }
-
-                        PrefsSeparator {}
-
 
                         /* ---------------------------
                          * SECURITY TYPE
@@ -141,7 +119,7 @@ BasicPage {
                             id: securityField
                             text: qsTr("Security")
                             textFieldText: wifi.security
-                            textFieldPlaceholderText: qsTr("WPA2-PSK")
+                            textFieldPlaceholderText: qsTr("e.g. WPA2-PSK")
                             readOnly: true
                         }
 
@@ -155,7 +133,7 @@ BasicPage {
                             id: macField
                             text: qsTr("MAC address")
                             textFieldText: wifi.macAddress
-                            textFieldPlaceholderText: qsTr("AA:BB:CC:DD:EE:FF")
+                            textFieldPlaceholderText: qsTr("e.g. AA:BB:CC:DD:EE:FF")
                             readOnly: true
                         }
 
@@ -189,6 +167,7 @@ BasicPage {
                         // ---------------------------
                         PrefsComboBoxDelegate {
                             id: proxyCombo
+                            visible: false
                             text: qsTr("Proxy")
 
                             model: [
@@ -213,7 +192,9 @@ BasicPage {
                             }
                         }
 
-                        PrefsSeparator {}
+                        PrefsSeparator {
+                            visible: false
+                        }
 
                         // ---------------------------
                         // IP MODE (DHCP / STATIC)
@@ -229,16 +210,40 @@ BasicPage {
 
                             textRole: "name"
                             valueRole: "typeId"
+                            currentIndex: wifi.isStaticIp ? 1 : 0
 
                             onCurrentValueChanged: {
                                 console.log("[ADD NETWORK] IP Mode changed:", currentValue)
 
                                 if (currentValue === AppEnums.ipDHCP) {
                                     console.log(" → DHCP Enabled")
+                                    wifi.startAutoRefresh()
                                 } else if (currentValue === AppEnums.ipStatic) {
                                     console.log(" → Static IP Enabled")
+                                    wifi.stopAutoRefresh()
                                 }
                             }
+
+                            // Set initial mode
+                             Component.onCompleted: {
+                                 currentIndex = wifi.isStaticIp ? 1 : 0
+                             }
+
+                             // Update instantly when WiFiManager changes mode
+                             Connections {
+                                 target: wifi
+                                 function onIsStaticIpChanged() {
+                                     ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
+                                 }
+                             }
+
+                             // NEW: Listen for immediate programmatic change
+                             Connections {
+                                 target: wifi
+                                 function onIpModeChanged() {
+                                     ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
+                                 }
+                             }
                         }
 
                         // ---------------------------
@@ -252,27 +257,27 @@ BasicPage {
 
                             PrefsTextFieldSubDelegate {
                                 id: ipField
-                                text: qsTr("IP address")
+                                text: qsTr("IP Address")
                                 textFieldText: wifi.ipAddress
-                                textFieldPlaceholderText: "192.168.10.1"
+                                textFieldPlaceholderText: "e.g. 192.168.29.50"
                             }
 
                             PrefsSeparator {}
 
                             PrefsTextFieldSubDelegate {
-                                id: routerField
-                                text: qsTr("Router")
+                                id: gatewayField
+                                text: qsTr("Gateway")
                                 textFieldText: wifi.gateway
-                                textFieldPlaceholderText: "192.168.10.1"
+                                textFieldPlaceholderText: "e.g. 192.168.29.1"
                             }
 
                             PrefsSeparator {}
 
                             PrefsTextFieldSubDelegate {
-                                id: prefixField
-                                text: qsTr("Prefix length")
+                                id: subnetField
+                                text: qsTr("Subnet Mask")
                                 textFieldText: wifi.subnetMask
-                                textFieldPlaceholderText: "24"
+                                textFieldPlaceholderText: "e.g. 255.255.255.0"
                             }
 
                             PrefsSeparator {}
@@ -281,7 +286,7 @@ BasicPage {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
                                 textFieldText: wifi.dnsServers[0]
-                                textFieldPlaceholderText: "0.0.0.0"
+                                textFieldPlaceholderText: "e.g. 0.0.0.0"
                             }
 
                             PrefsSeparator {}
@@ -290,94 +295,7 @@ BasicPage {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
                                 textFieldText: wifi.dnsServers[1]
-                                textFieldPlaceholderText: "0.0.0.0"
-                            }
-                        }
-
-                        PrefsSeparator {}
-
-                        // ---------------------------
-                        // MAC RANDOMIZATION
-                        // ---------------------------
-                        PrefsComboBoxDelegate {
-                            id: macModeCombo
-                            text: qsTr("Privacy")
-
-                            model: [
-                                { name: "Use device MAC address", typeId: AppEnums.macDevice },
-                                { name: "Use random MAC address", typeId: AppEnums.macRandom }
-                            ]
-
-                            textRole: "name"
-                            valueRole: "typeId"
-
-                            onCurrentValueChanged: {
-                                console.log("[ADD NETWORK] MAC Mode changed:", currentValue)
-
-                                if (currentValue === AppEnums.macDevice) {
-                                    console.log(" → Using Device MAC Address")
-                                } else if (currentValue === AppEnums.macRandom) {
-                                    console.log(" → Using Randomized MAC Address")
-                                }
-                            }
-                        }
-
-                        PrefsSeparator {}
-
-                        // ---------------------------
-                        // METERED CONNECTION TYPE
-                        // ---------------------------
-                        PrefsComboBoxDelegate {
-                            id: meteredCombo
-                            text: qsTr("Metered")
-
-                            model: [
-                                { name: "Detect automatically", typeId: AppEnums.meteredAuto },
-                                { name: "Metered",              typeId: AppEnums.meteredYes },
-                                { name: "Unmetered",            typeId: AppEnums.meteredNo }
-                            ]
-
-                            textRole: "name"
-                            valueRole: "typeId"
-
-                            onCurrentValueChanged: {
-                                console.log("[ADD NETWORK] Metered changed:", currentValue)
-
-                                if (currentValue === AppEnums.meteredAuto) {
-                                    console.log(" → Detect Automatically")
-                                } else if (currentValue === AppEnums.meteredYes) {
-                                    console.log(" → Metered (Data Sensitive)")
-                                } else if (currentValue === AppEnums.meteredNo) {
-                                    console.log(" → Unmetered (Unlimited)")
-                                }
-                            }
-                        }
-
-                        PrefsSeparator {}
-
-                        // ---------------------------
-                        // HIDDEN NETWORK OPTION
-                        // ---------------------------
-                        PrefsComboBoxDelegate {
-                            id: hiddenCombo
-                            text: qsTr("Hidden network")
-
-                            model: [
-                                { name: "No",  typeId: AppEnums.hiddenNo },
-                                { name: "Yes", typeId: AppEnums.hiddenYes }
-                            ]
-
-                            textRole: "name"
-                            valueRole: "typeId"
-
-                            onCurrentValueChanged: {
-                                console.log("[ADD NETWORK] Hidden Network changed:", currentValue)
-
-                                if (currentValue === AppEnums.hiddenNo) {
-                                    console.log(" → Network is Visible")
-                                } else if (currentValue === AppEnums.hiddenYes) {
-                                    console.log(" → Hidden Network (SSID not broadcast)")
-                                }
+                                textFieldPlaceholderText: "e.g. 0.0.0.0"
                             }
                         }
                     }
@@ -385,8 +303,25 @@ BasicPage {
             }
         }
 
-        footer: Control {
-            implicitHeight: 72
+        footer: Page {
+            background: Item {
+                implicitHeight: 72
+            }
+
+            header: Control {
+                visible: errorMessage.length > 0
+                topPadding: 10
+                bottomPadding: 10
+                padding: 20
+
+                contentItem: Text {
+                    id: errorText
+                    font.pixelSize: 12
+                    color: Colors.statusError
+                    text: errorMessage
+                    visible: !!text
+                }
+            }
 
             contentItem: RowLayout {
                 spacing: 20
@@ -398,6 +333,7 @@ BasicPage {
                 PrefsButton {
                     text: control.rejectedButtonText
                     radius: height / 2
+                    enabled: !busyIndicator.visible
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
                         control.rejected()
@@ -405,14 +341,81 @@ BasicPage {
                     }
                 }
 
+                PrefsBusyIndicator {
+                    id: busyIndicator
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    visible: false
+                    radius: 10
+
+                    Connections {
+                        target: wifi
+                        function onProcessStarted() {
+                            busyIndicator.visible  = true
+                        }
+                        function onProcessEnded() {
+                            busyIndicator.visible  = false
+                        }
+                    }
+                }
+
                 PrefsButton {
                     text: control.acceptedButtonText
                     radius: height / 2
                     highlighted: true
+                    visible: !busyIndicator.visible
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        control.accepted()
-                        pageStack.pop()
+                        if (ipModeCombo.currentValue === AppEnums.ipStatic) {
+
+                            if (!validateIp(ipField.textFieldText)) {
+                                errorMessage = qsTr("Invalid IP address")
+                                return
+                            }
+
+                            if (!validateIp(subnetField.textFieldText)) {
+                                errorMessage = qsTr("Invalid subnet mask")
+                                return
+                            }
+
+                            if (!validateIp(gatewayField.textFieldText)) {
+                                errorMessage = qsTr("Invalid gateway")
+                                return
+                            }
+
+                            wifi.setStaticIp(
+                                ipField.textFieldText.trim(),
+                                subnetField.textFieldText.trim(),
+                                gatewayField.textFieldText.trim(),
+                                [ dns1Field.text.trim(), dns2Field.text.trim() ]
+                            )
+
+                        } else {
+                            wifi.setDhcp()
+                        }
+
+                        Qt.callLater(function() {
+                            control.accepted()
+                            pageStack.pop()
+                            wifi.refresh()
+                            wifi.updateIpMode()
+                        })
+                    }
+
+                    function validateIp(ip) {
+                        let parts = ip.split(".")
+                        if (parts.length !== 4)
+                            return false
+
+                        for (let p of parts) {
+                            if (p === "" || isNaN(p))
+                                return false
+
+                            let n = Number(p)
+                            if (n < 0 || n > 255)
+                                return false
+                        }
+
+                        return true
                     }
                 }
 

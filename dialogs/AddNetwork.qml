@@ -5,6 +5,7 @@ import QtGraphicalEffects 1.3
 
 import App.Styles 1.0
 import AppSecurity 1.0
+import App.Backend 1.0
 import AddNetworkEnums 1.0
 
 import "../pages"
@@ -13,8 +14,9 @@ import "../controls"
 
 BaseDialog {
     id: control
-    popupHeight: parent.height * 0.55
+    popupHeight: Math.min(parent.height * 0.7, layout.height + 125)
     pageTitle: qsTr("Add Network")
+    saveButton.enabled:  addNetworkManager.saveEnabled && !addNetworkManager.busy
 
     // ---------------------------
     // FINAL RESULT HANDLER
@@ -36,7 +38,20 @@ BaseDialog {
         console.log("MAC Mode:", macModeCombo.currentValue)
         console.log("Metered:", meteredCombo.currentValue)
         console.log("Hidden:", hiddenCombo.currentValue)
+
+        console.log("HTTP Proxy:", httpProxyField.textFieldText)
+        console.log("HTTPS Proxy:", httpsProxyField.textFieldText)
+        console.log("SOCKS Proxy:", socksProxyField.textFieldText)
+        console.log("Ignore Hosts:", ignoreHostsField.textFieldText)
+        console.log("PAC URL:", pacUrlField.textFieldText)
+
         console.log("================================")
+
+        addNetworkManager.addNetwork()
+    }
+
+    onRejected: {
+        control.pageStack.pop()
     }
 
     // ============================================================================
@@ -44,6 +59,18 @@ BaseDialog {
     // ============================================================================
     PrefsFrame {
         Layout.fillWidth: true
+
+        WiFiAddNetworkManager {
+            id: addNetworkManager
+
+            onLogMessage: console.log("[WiFiAddNetwork]", msg)
+            onAddNetworkResult: function(success, message) {
+                console.log("Add result:", success, message)
+                if (success) {
+                    control.pageStack.pop()
+                }
+            }
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -53,7 +80,8 @@ BaseDialog {
             // ---------------------------
             PrefsTextFieldDelegate {
                 id: ssidField
-                textFieldText: ""
+                textFieldText: addNetworkManager.ssid
+                onTextFieldTextChanged: addNetworkManager.ssid = textFieldText
                 textFieldPlaceholderText: qsTr("Hotspot name (required)")
                 Layout.fillWidth: true
             }
@@ -68,15 +96,15 @@ BaseDialog {
                 text: qsTr("Security")
 
                 model: [
-                    { name: "None (Open)",              typeId: AppEnums.securityOpen },
-                    { name: "WEP",                      typeId: AppEnums.securityWEP },
-                    { name: "WPA-PSK",                  typeId: AppEnums.securityWPA },
-                    { name: "WPA2-PSK",                 typeId: AppEnums.securityWPA2 },
-                    { name: "WPA/WPA2 Mixed",           typeId: AppEnums.securityWPAMixed },
-                    { name: "WPA3-SAE",                 typeId: AppEnums.securityWPA3 },
-                    { name: "WPA2/WPA3 Mixed",          typeId: AppEnums.securityWPA2WPA3 },
-                    { name: "WPA2-Enterprise (EAP)",    typeId: AppEnums.securityEAP },
-                    { name: "WPA3-Enterprise (EAP)",    typeId: AppEnums.securityEAP3 }
+                    { name: "None (Open)",              typeId: AppEnums.securityOpen,      nmValue: "none" },
+                    { name: "WEP",                      typeId: AppEnums.securityWEP,       nmValue: "wep" },
+                    { name: "WPA-PSK",                  typeId: AppEnums.securityWPA,       nmValue: "wpa-psk" },
+                    { name: "WPA2-PSK",                 typeId: AppEnums.securityWPA2,      nmValue: "wpa-psk" },
+                    { name: "WPA/WPA2 Mixed",           typeId: AppEnums.securityWPAMixed,  nmValue: "wpa-psk" },
+                    { name: "WPA3-SAE",                 typeId: AppEnums.securityWPA3,      nmValue: "sae" },
+                    { name: "WPA2/WPA3 Mixed",          typeId: AppEnums.securityWPA2WPA3,  nmValue: "wpa-psk sae" },
+                    { name: "WPA2-Enterprise (EAP)",    typeId: AppEnums.securityEAP,       nmValue: "eap" },
+                    { name: "WPA3-Enterprise (EAP3)",   typeId: AppEnums.securityEAP3,      nmValue: "eap" }
                 ]
 
                 textRole: "name"
@@ -99,22 +127,28 @@ BaseDialog {
                         console.log(" → WPA3-SAE")
                     } else if (currentValue === AppEnums.securityWPA2WPA3) {
                         console.log(" → WPA2/WPA3 Mixed")
-                    } else if (currentValue === AppEnums.securityEAP) {
-                        console.log(" → WPA2-Enterprise (EAP)")
-                    } else if (currentValue === AppEnums.securityEAP3) {
-                        console.log(" → WPA3-Enterprise (EAP)")
                     }
+
+                    addNetworkManager.securityType = currentValue
+                }
+
+                onActivated: function(index) {
+                    addNetworkManager.securityType = securityCombo.currentValue
                 }
             }
 
-            PrefsSeparator {}
+            PrefsSeparator {
+                visible: securityCombo.currentValue !== AppEnums.securityOpen
+            }
 
             // ---------------------------
             // PASSWORD FIELD
             // ---------------------------
             PrefsTextFieldPasswordDelegate {
                 id: passwordField
-                textFieldText: ""
+                visible: securityCombo.currentValue !== AppEnums.securityOpen
+                textFieldText: addNetworkManager.password
+                onTextFieldTextChanged: addNetworkManager.password = textFieldText
                 textFieldPlaceholderText: qsTr("Password")
             }
         }
@@ -155,6 +189,71 @@ BaseDialog {
                     } else if (currentValue === AppEnums.proxyAuto) {
                         console.log(" → Auto Proxy (PAC)")
                     }
+                    addNetworkManager.proxyMode = currentValue
+                }
+
+                onActivated: function(index) {
+                    addNetworkManager.proxyMode = proxyCombo.currentValue
+                }
+            }
+
+            ColumnLayout {
+                visible: proxyCombo.currentValue === AppEnums.proxyManual
+                Layout.fillWidth: true
+
+                PrefsSeparator {}
+
+                PrefsTextFieldSubDelegate {
+                    id: httpProxyField
+                    text: qsTr("HTTP Proxy (host:port)")
+                    textFieldText: addNetworkManager.httpProxy
+                    onTextFieldTextChanged: addNetworkManager.httpProxy = textFieldText
+                    textFieldPlaceholderText: "e.g. 192.168.0.1:8080"
+                }
+
+                PrefsSeparator {}
+
+                PrefsTextFieldSubDelegate {
+                    id: httpsProxyField
+                    text: qsTr("HTTPS Proxy (host:port)")
+                    textFieldText: addNetworkManager.httpsProxy
+                    onTextFieldTextChanged: addNetworkManager.httpsProxy = textFieldText
+                    textFieldPlaceholderText: "e.g. 192.168.0.1:8443"
+                }
+
+                PrefsSeparator {}
+
+                PrefsTextFieldSubDelegate {
+                    id: socksProxyField
+                    text: qsTr("SOCKS Proxy (host:port)")
+                    textFieldText: addNetworkManager.socksProxy
+                    onTextFieldTextChanged: addNetworkManager.socksProxy = textFieldText
+                    textFieldPlaceholderText: "e.g. 192.168.0.1:1080"
+                }
+
+                PrefsSeparator {}
+
+                PrefsTextFieldSubDelegate {
+                    id: ignoreHostsField
+                    text: qsTr("Ignore Hosts")
+                    textFieldText: addNetworkManager.ignoreHosts
+                    onTextFieldTextChanged: addNetworkManager.ignoreHosts = textFieldText
+                    textFieldPlaceholderText: "e.g. localhost, 127.0.0.1"
+                }
+            }
+
+            ColumnLayout {
+                visible: proxyCombo.currentValue === AppEnums.proxyAuto
+                Layout.fillWidth: true
+
+                PrefsSeparator {}
+
+                PrefsTextFieldSubDelegate {
+                    id: pacUrlField
+                    text: qsTr("PAC URL")
+                    textFieldText: addNetworkManager.pacUrl
+                    onTextFieldTextChanged: addNetworkManager.pacUrl = textFieldText
+                    textFieldPlaceholderText: "http://example.com/proxy.pac"
                 }
             }
 
@@ -168,8 +267,8 @@ BaseDialog {
                 text: qsTr("IP settings")
 
                 model: [
-                    { name: "DHCP",  typeId: AppEnums.ipDHCP },
-                    { name: "Static", typeId: AppEnums.ipStatic }
+                    { name: "DHCP",   typeId: AppEnums.ipDHCP,   nmValue: "auto" },
+                    { name: "Static", typeId: AppEnums.ipStatic, nmValue: "manual" }
                 ]
 
                 textRole: "name"
@@ -183,11 +282,16 @@ BaseDialog {
                     } else if (currentValue === AppEnums.ipStatic) {
                         console.log(" → Static IP Enabled")
                     }
+                    addNetworkManager.ipMode = currentValue
+                }
+
+                onActivated: function(index) {
+                    addNetworkManager.ipMode = ipModeCombo.currentValue
                 }
             }
 
             // ---------------------------
-            // IP CONFIG (Visible when Static)
+            // IP CONFIG (Visible when Static) // --- STATIC IP BLOCK ---
             // ---------------------------
             ColumnLayout {
                 Layout.fillWidth: true
@@ -198,8 +302,9 @@ BaseDialog {
                 PrefsTextFieldSubDelegate {
                     id: ipField
                     text: qsTr("IP address")
-                    textFieldText: ""
-                    textFieldPlaceholderText: "192.168.10.1"
+                    textFieldText: addNetworkManager.ipAddress
+                    onTextFieldTextChanged: addNetworkManager.ipAddress = textFieldText
+                    textFieldPlaceholderText: "eg. 192.168.10.1"
                 }
 
                 PrefsSeparator {}
@@ -207,8 +312,9 @@ BaseDialog {
                 PrefsTextFieldSubDelegate {
                     id: routerField
                     text: qsTr("Router")
-                    textFieldText: ""
-                    textFieldPlaceholderText: "192.168.10.1"
+                    textFieldText: addNetworkManager.gateway
+                    onTextFieldTextChanged: addNetworkManager.gateway = textFieldText
+                    textFieldPlaceholderText: "eg. 192.168.10.1"
                 }
 
                 PrefsSeparator {}
@@ -216,8 +322,9 @@ BaseDialog {
                 PrefsTextFieldSubDelegate {
                     id: prefixField
                     text: qsTr("Prefix length")
-                    textFieldText: ""
-                    textFieldPlaceholderText: "24"
+                    textFieldText: addNetworkManager.prefixLength
+                    onTextFieldTextChanged: addNetworkManager.prefixLength = textFieldText
+                    textFieldPlaceholderText: "eg. 24"
                 }
 
                 PrefsSeparator {}
@@ -225,8 +332,9 @@ BaseDialog {
                 PrefsTextFieldSubDelegate {
                     id: dns1Field
                     text: qsTr("DNS 1")
-                    textFieldText: ""
-                    textFieldPlaceholderText: "0.0.0.0"
+                    textFieldText: addNetworkManager.dns1
+                    onTextFieldTextChanged: addNetworkManager.dns1 = textFieldText
+                    textFieldPlaceholderText: "eg. 0.0.0.0"
                 }
 
                 PrefsSeparator {}
@@ -234,8 +342,9 @@ BaseDialog {
                 PrefsTextFieldSubDelegate {
                     id: dns2Field
                     text: qsTr("DNS 2")
-                    textFieldText: ""
-                    textFieldPlaceholderText: "0.0.0.0"
+                    textFieldText: addNetworkManager.dns2
+                    onTextFieldTextChanged: addNetworkManager.dns2 = textFieldText
+                    textFieldPlaceholderText: "eg. 0.0.0.0"
                 }
             }
 
@@ -249,8 +358,8 @@ BaseDialog {
                 text: qsTr("Privacy")
 
                 model: [
-                    { name: "Use device MAC address", typeId: AppEnums.macDevice },
-                    { name: "Use random MAC address", typeId: AppEnums.macRandom }
+                    { name: "Use device MAC address", typeId: AppEnums.macDevice, nmValue: "never" },
+                    { name: "Use random MAC address", typeId: AppEnums.macRandom, nmValue: "default" }
                 ]
 
                 textRole: "name"
@@ -264,6 +373,10 @@ BaseDialog {
                     } else if (currentValue === AppEnums.macRandom) {
                         console.log(" → Using Randomized MAC Address")
                     }
+                    addNetworkManager.macMode = currentValue
+                }
+                onActivated: function(index) {
+                    addNetworkManager.macMode = macModeCombo.currentValue
                 }
             }
 
@@ -277,9 +390,9 @@ BaseDialog {
                 text: qsTr("Metered")
 
                 model: [
-                    { name: "Detect automatically", typeId: AppEnums.meteredAuto },
-                    { name: "Metered",              typeId: AppEnums.meteredYes },
-                    { name: "Unmetered",            typeId: AppEnums.meteredNo }
+                    { name: "Detect automatically", typeId: AppEnums.meteredAuto, nmValue: "auto" },
+                    { name: "Metered",              typeId: AppEnums.meteredYes,  nmValue: "yes" },
+                    { name: "Unmetered",            typeId: AppEnums.meteredNo,   nmValue: "no"  }
                 ]
 
                 textRole: "name"
@@ -295,6 +408,12 @@ BaseDialog {
                     } else if (currentValue === AppEnums.meteredNo) {
                         console.log(" → Unmetered (Unlimited)")
                     }
+
+                    addNetworkManager.meteredMode = currentValue
+                }
+
+                onActivated: function(index) {
+                    addNetworkManager.meteredMode = meteredCombo.currentValue
                 }
             }
 
@@ -308,8 +427,8 @@ BaseDialog {
                 text: qsTr("Hidden network")
 
                 model: [
-                    { name: "No",  typeId: AppEnums.hiddenNo },
-                    { name: "Yes", typeId: AppEnums.hiddenYes }
+                    { name: "No",  typeId: AppEnums.hiddenNo ,  nmValue: "no" },
+                    { name: "Yes", typeId: AppEnums.hiddenYes,  nmValue: "yes" }
                 ]
 
                 textRole: "name"
@@ -323,6 +442,11 @@ BaseDialog {
                     } else if (currentValue === AppEnums.hiddenYes) {
                         console.log(" → Hidden Network (SSID not broadcast)")
                     }
+
+                    addNetworkManager.hiddenMode = currentValue
+                }
+                onActivated: function(index) {
+                    addNetworkManager.hiddenMode = hiddenCombo.currentValue
                 }
             }
         }

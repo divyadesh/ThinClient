@@ -70,6 +70,8 @@ ServerInfoColl*         Application::serverInfo()               { return s_insta
 RdServerModel*          Application::serverModel()              { return s_instance ? s_instance->_serverModel             : nullptr; }
 DataBase*               Application::db()                       { return s_instance ? s_instance->_database                : nullptr; }
 
+WiFiAddNetworkManager *Application::wiFiAddNetworkManager()     { return s_instance ? s_instance->_wiFiAddNetworkManager   : nullptr; }
+
 // ---------------------------
 // 🔹 Device Config / System
 // ---------------------------
@@ -144,6 +146,7 @@ void Application::initModels()
     _persistData   = new PersistData(this);
     _wifiNetworkDetailsColl = new WifiNetworkDetailsColl(this);
     _ethernetNetworkController = new EthernetNetworkConroller(this);
+    _wiFiAddNetworkManager = new WiFiAddNetworkManager(this);
     _deviceInfo    = new DeviceInfo(this);
     _serverInfoColl= new ServerInfoColl(this);
     _deviceInfoSettings = new DeviceInfoSettings(this);
@@ -233,6 +236,8 @@ void Application::registerTypesAndContext()
     qmlRegisterType<ImageUpdater>("App.Backend", 1, 0, "ImageUpdater");
     qmlRegisterType<LogExporter>("G1.ThinClient", 1, 0, "LogExporter");
     qmlRegisterType<WiFiManager>("App.Backend", 1, 0, "WiFiManager");
+    qmlRegisterType<WiFiAddNetworkManager>("App.Backend", 1, 0, "WiFiAddNetworkManager");
+    qmlRegisterType<DisplaySettings>("App.Backend", 1, 0, "DisplaySettings");
 
     // --- Context singletons (instances) ---
     auto *ctx = m_engine->rootContext();

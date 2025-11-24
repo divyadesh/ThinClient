@@ -13,7 +13,6 @@ BasicPage {
     id: page
     StackView.visible: true
     padding: 20
-    property bool addNewServer: false
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -75,6 +74,7 @@ BasicPage {
                                     if (audio.audioSelection !== Audio.Jack) {
                                         audio.audioSelection = Audio.Jack;
                                         persistData.saveData("Audio", audio.audioSelection); // ✅ persist
+                                        DeviceSettings.setAudioOutput("jack");
                                     }
                                 }
                             }
@@ -90,6 +90,7 @@ BasicPage {
                                     if (audio.audioSelection !== Audio.Usb) {
                                         audio.audioSelection = Audio.Usb;
                                         persistData.saveData("Audio", audio.audioSelection);
+                                        DeviceSettings.setAudioOutput("usb");
                                     }
                                 }
                             }
@@ -105,6 +106,7 @@ BasicPage {
                                     if (audio.audioSelection !== Audio.Hdmi) {
                                         audio.audioSelection = Audio.Hdmi;
                                         persistData.saveData("Audio", audio.audioSelection);
+                                        DeviceSettings.setAudioOutput("hdmi");
                                     }
                                 }
                             }
@@ -186,6 +188,7 @@ BasicPage {
                     PrefsItemDelegate {
                         id: enableOnScreenKeyboard
                         Layout.fillWidth: true
+                        visible: false
                         text: qsTr("Enable On Screen Keyboard")
 
                         indicator: RowLayout {
@@ -197,20 +200,11 @@ BasicPage {
                                 implicitWidth: 260
                                 text: qsTr("Enable")
                                 font.weight: Font.Normal
-
-                                Component.onCompleted: {
-                                    // Load saved setting
-                                    let savedValue = persistData.getData("EnableOnScreenKeyboard")
-                                    if (savedValue === "true" || savedValue === true) {
-                                        checked = true
-                                    } else {
-                                        checked = false
-                                    }
-                                }
+                                checked: persistData.enableOnScreenKeyboard
 
                                 onClicked: {
                                     // Toggle and save persistently
-                                    persistData.saveData("EnableOnScreenKeyboard", checked)
+                                    persistData.enableOnScreenKeyboard = checked
                                 }
                             }
                         }
@@ -220,6 +214,7 @@ BasicPage {
                     PrefsItemDelegate {
                         id: enableTouchScreen
                         Layout.fillWidth: true
+                        visible: false
                         text: qsTr("Enable Touch Screen")
 
                         indicator: RowLayout {
@@ -231,19 +226,8 @@ BasicPage {
                                 implicitWidth: 260
                                 text: qsTr("Enable")
                                 font.weight: Font.Normal
-
-                                Component.onCompleted: {
-                                    let savedValue = persistData.getData("EnableTouchScreen")
-                                    if (savedValue === "true" || savedValue === true) {
-                                        checked = true
-                                    } else {
-                                        checked = false
-                                    }
-                                }
-
-                                onClicked: {
-                                    persistData.saveData("EnableTouchScreen", checked)
-                                }
+                                checked: persistData.enableTouchScreen
+                                onClicked: persistData.enableTouchScreen = checked
                             }
                         }
                     }

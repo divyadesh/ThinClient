@@ -18,6 +18,7 @@ class WiFiManager : public QObject
     Q_PROPERTY(int signalStrength READ signalStrength NOTIFY signalStrengthChanged)
     Q_PROPERTY(QString linkSpeed READ linkSpeed NOTIFY linkSpeedChanged)
     Q_PROPERTY(QString macAddress READ macAddress NOTIFY macAddressChanged)
+    Q_PROPERTY(bool isStaticIp READ isStaticIp WRITE setIsStaticIp NOTIFY isStaticIpChanged)
 
     // --------- IP DETAILS ----------
     Q_PROPERTY(QString ipAddress READ ipAddress NOTIFY ipAddressChanged)
@@ -45,12 +46,32 @@ public:
     // setters
     void setSsid(const QString &ssid);
 
+    bool isStaticIp() const;
+
+    void setIsStaticIp(bool newIsStaticIp);
+
+    void runAsync(
+        const QString &cmd,
+        const QStringList &args,
+        std::function<void(QString)> callback);
+
 public slots:
     void refresh();
     void startAutoRefresh();
     void stopAutoRefresh();
+    bool setStaticIp(const QString &ip,
+                     const QString &subnetMask,
+                     const QString &gateway,
+                     const QStringList &dns);
+    bool setDhcp();
+    void updateIpMode();
 
 signals:
+    void ipModeChanged();
+
+    void processStarted();
+    void processEnded();
+
     void ssidChanged();
     void securityChanged();
     void passwordChanged();
@@ -64,13 +85,16 @@ signals:
     void gatewayChanged();
     void dnsServersChanged();
 
-    void logMessage(const QString &msg);
+    void logMessage(const QString &message);
+
+    void isStaticIpChanged();
 
 private:
     QString run(const QString &cmd, const QStringList &args) const;
     QString cidrToNetmask(int cidr) const;
 
 private:
+    QString getCurrentConnectionName() const;
     QString m_ssid;
     QString m_security;
     QString m_password;
@@ -86,6 +110,7 @@ private:
     QStringList m_dnsServers;
 
     QTimer m_timer;
+    bool m_isStaticIp;
 };
 
 #endif // WIFI_MANAGER_H

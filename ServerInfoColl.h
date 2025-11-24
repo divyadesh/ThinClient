@@ -45,6 +45,7 @@ signals:
 
 private slots:
     void onRdpFinished();
+    void startRdp(ServerInfoStruct info);
 
 private:
     void launchRDPSequence(const QString &server, const QString &username, const QString &password);

@@ -12,6 +12,8 @@
 #include <QTextStream>
 #include <QFont>
 #include <QFontDatabase>
+#include<QQuickWindow>
+#include <QSGRendererInterface>
 
 #include "Application.h"
 #include "logger.h"
@@ -95,33 +97,17 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
-    // qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    // if (qEnvironmentVariableIsEmpty("XDG_RUNTIME_DIR"))
-    //     qputenv("XDG_RUNTIME_DIR", "/run/user/0");
-
-    // if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
-    //     if (QFile::exists("/run/user/0/wayland-0"))
-    //         qputenv("QT_QPA_PLATFORM", QByteArray("wayland"));
-    //     else
-    //         qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
-    // }
-
-    qputenv("QT_QPA_PLATFORM", QByteArray("eglfs"));
+    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
     // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
     // qputenv("QT_VNC_SIZE", "1920x1080");
 
+    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
+    qputenv("QT_QUICK_BACKEND", "software");  // double-ensure
+
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");
-
-    // int id = QFontDatabase::addApplicationFont(":/assets/font/Rubik-Regular.ttf");
-    // QFontDatabase::addApplicationFont(":/assets/font/Rubik-Bold.ttf");
-    // QFontDatabase::addApplicationFont(":/assets/font/Rubik-Medium.ttf");
-    // QFontDatabase::addApplicationFont(":/assets/font/Rubik-Italic.ttf");
-    // QFontDatabase::addApplicationFont(":/assets/font/Rubik-Light.ttf");
-
-    // // Get real family name that Qt registered
-    // QString family = QFontDatabase::applicationFontFamilies(id).value(0, "Rubik");
 
     // Set global application font
     QFont rubik("Arial", 12);

@@ -248,7 +248,7 @@ BasicPage {
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                 icon: "qrc:/assets/icons/menu.svg"
-                                visible: wifiDetails.security
+                                visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
 
                                 iconWidth: 20
                                 iconHeight: 20
