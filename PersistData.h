@@ -20,6 +20,7 @@ class PersistData : public QObject {
     Q_PROPERTY(QString orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
     Q_PROPERTY(QString deviceOff READ deviceOff WRITE setDeviceOff NOTIFY deviceOffChanged)
     Q_PROPERTY(QString displayOff READ displayOff WRITE setDisplayOff NOTIFY displayOffChanged)
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged FINAL)
 
 public:
     explicit PersistData(QObject *parent = nullptr);
@@ -62,6 +63,9 @@ public:
     QString displayOff() const;
     void setDisplayOff(const QString &value);
 
+    QString language() const;
+    void setLanguage(const QString &newLanguage);
+
 signals:
     void audioChanged();
     void timeZoneChanged();
@@ -74,7 +78,10 @@ signals:
     void deviceOffChanged();
     void displayOffChanged();
 
+    void languageChanged();
+
 private:
+    QString getSystemTimezone();
     QSettings m_setting;
     QString m_group = "ThinClient";
 
@@ -91,6 +98,7 @@ private:
     QString m_displayOff;
 
     void logChange(const QString &key, const QString &value);
+    QString m_language;
 };
 
 #endif // PERSISTDATA_H

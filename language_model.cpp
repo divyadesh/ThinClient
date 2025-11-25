@@ -1,6 +1,11 @@
 #include "language_model.h"
 #include <QDebug>
 #include <QSet>
+#include <QFile>
+#include<QVariant>
+#include <QString>
+#include <QVariantMap>
+#include <QHash>
 
 LanguageModel::LanguageModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -25,6 +30,11 @@ QVariant LanguageModel::data(const QModelIndex &index, int role) const {
         return item.localeId;
     case DisplayNameRole:
         return item.displayName;
+    case NativeNameRole:
+        return QLocale(item.localeId).nativeLanguageName();
+    case FullNameRole:
+        return QLocale(item.localeId).nativeLanguageName() +
+               " (" + QLocale(item.localeId).nativeCountryName() + ")";
     default:
         return {};
     }
@@ -33,7 +43,9 @@ QVariant LanguageModel::data(const QModelIndex &index, int role) const {
 QHash<int, QByteArray> LanguageModel::roleNames() const {
     return {
         { LocaleIdRole, "localeId" },
-        { DisplayNameRole, "displayName" }
+        { DisplayNameRole, "displayName" },
+        { NativeNameRole, "nativeName" },
+        { FullNameRole, "fullDisplayName" },
     };
 }
 
@@ -51,6 +63,18 @@ QVariantMap LanguageModel::get(int index) const {
 
 void LanguageModel::refresh() {
     load();
+}
+
+bool LanguageModel::setSystemLanguage(const QString &locale)
+{
+    QFile file("/etc/locale.conf");
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        return false;
+
+    QTextStream out(&file);
+    out << "LANG=" << locale << ".UTF-8\n";
+
+    return true;
 }
 
 void LanguageModel::load() {

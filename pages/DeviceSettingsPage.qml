@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 import App.Enums 1.0
 import G1.ThinClient 1.0
+import App.Backend 1.0
 
 import "../components"
 import "../controls"
@@ -118,31 +119,16 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Time Zone")
 
-                        indicator: PrefsTimeZoneBox {
+                        indicator:  TimeZoneSelector {
                             id: timeZoneComboBox
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
 
+                            initialTimezone: persistData.timeZone
                             model: timezoneModel
-                            textRole: "tzName"
-                            valueRole: "tzId"
-
-                            Component.onCompleted: {
-                                let saved = persistData.getData("TimeZone")
-                                if (saved) {
-                                    for (var i = 0; i < count; ++i) {
-                                        var obj = timezoneModel.get(i)
-                                        if (obj.tzId === saved) {
-                                            currentIndex = i
-                                            break
-                                        }
-                                    }
-                                }
-                            }
-
                             onActivated: {
-                                var obj = timezoneModel.get(currentIndex)
-                                persistData.saveData("TimeZone", obj.tzId)
+                                persistData.timeZone = currentValue
+                                timezoneModel.setSystemTimezone(currentValue)
                             }
                         }
                     }
@@ -159,22 +145,37 @@ BasicPage {
 
                             model: languageModel
                             textRole: "displayName"
+                            valueRole: "localeId"
 
                             Component.onCompleted: {
-                                let language = persistData.getData("Language")
-                                if(language) {
-                                    for (var i = 0; i < languageComboBox.count; ++i) {
-                                        if (languageModel.get(i).displayName === language) {
-                                            currentIndex = i;
-                                            break;
-                                        }
+                                let saved = persistData.language
+
+                                if (!saved || saved === "") {
+                                    // Fallback to English
+                                    saved = "en_US"
+                                }
+
+                                // Step 1: search by valueRole (localeId)
+                                let indexFound = -1
+                                for (let i = 0; i < languageComboBox.count; i++) {
+                                    let obj = languageComboBox.model.get(i)
+                                    if (obj.localeId === saved) {
+                                        indexFound = i
+                                        break
                                     }
+                                }
+
+                                if (indexFound >= 0)
+                                    languageComboBox.currentIndex = indexFound
+                                else {
+                                    // fallback: English
+                                    languageComboBox.currentIndex = 0
                                 }
                             }
 
                             onActivated: {
-                                var obj = languageModel.get(currentIndex)
-                                persistData.saveData("Language", obj.displayName)
+                                let obj = languageComboBox.model.get(currentIndex)
+                                persistData.language = obj.localeId
                             }
                         }
                     }
@@ -182,54 +183,6 @@ BasicPage {
                     Item {
                         Layout.preferredHeight: 20
                         Layout.fillWidth: true
-                    }
-
-                    // --- Enable On Screen Keyboard ---
-                    PrefsItemDelegate {
-                        id: enableOnScreenKeyboard
-                        Layout.fillWidth: true
-                        visible: false
-                        text: qsTr("Enable On Screen Keyboard")
-
-                        indicator: RowLayout {
-                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
-                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
-
-                            PrefsButton {
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                font.weight: Font.Normal
-                                checked: persistData.enableOnScreenKeyboard
-
-                                onClicked: {
-                                    // Toggle and save persistently
-                                    persistData.enableOnScreenKeyboard = checked
-                                }
-                            }
-                        }
-                    }
-
-                    // --- Enable Touch Screen ---
-                    PrefsItemDelegate {
-                        id: enableTouchScreen
-                        Layout.fillWidth: true
-                        visible: false
-                        text: qsTr("Enable Touch Screen")
-
-                        indicator: RowLayout {
-                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
-                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
-
-                            PrefsButton {
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                font.weight: Font.Normal
-                                checked: persistData.enableTouchScreen
-                                onClicked: persistData.enableTouchScreen = checked
-                            }
-                        }
                     }
 
                     PrefsItemDelegate {

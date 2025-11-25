@@ -72,6 +72,8 @@ public:
     QStringList insertIntoValues() const;
     QStringList queryResultList() const;
 
+    QString getPath();
+
     void setInsertIntoValues(QStringList newInsertIntoValues);
     void setQueryResultList(QStringList newQueryResultList);
 
@@ -105,6 +107,7 @@ private:
     QSqlDatabase db;                ///< SQLite database connection
     QStringList m_insertIntoValues; ///< Stores temporary insert/update values
     QStringList m_queryResultList;  ///< Stores results from last executed query
+    QString m_path;
 };
 
 #endif // DATABASE_H

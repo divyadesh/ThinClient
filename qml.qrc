@@ -109,5 +109,6 @@
         <file>dialogs/AddNetworkEnums.qml</file>
         <file>dialogs/WifiNetworkDetailsDIalog.qml</file>
         <file>dialogs/RootDialog.qml</file>
+        <file>components/TimeZoneSelector.qml</file>
     </qresource>
 </RCC>

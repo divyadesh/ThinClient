@@ -37,6 +37,8 @@
 #include "logexporter.h"
 #include "wifiaddnetworkmanager.h"
 #include "DisplaySettings.h"
+#include "timezonemodel.h"
+#include "resolutionlistmodel.h"
 
 class Application : public QObject
 {
@@ -60,7 +62,7 @@ public:
     static LogoLoader *logoLoader();
     static DNSNetworkInfo *dnsNetworkInfo();
     static LanguageModel *languageModel();
-    static TimezoneModel *timezoneModel();
+    static TimeZoneModel *timezoneModel();
     static TimezoneFilterModel *timezoneProxy();
     static UdevMonitor *usbMonitor();
     static WifiNetworkDetailsColl *wifiNetworkDetails();
@@ -72,6 +74,7 @@ public:
     static RdServerModel *serverModel();
     static DataBase *db();
     static WiFiAddNetworkManager* wiFiAddNetworkManager();
+    static ResolutionListModel* resolutionListModel();
 
 private:
     explicit Application(QQmlApplicationEngine *engine, QObject *parent = nullptr);
@@ -105,7 +108,7 @@ private:
     DeviceSettings *_deviceSettings = nullptr;
     UdevMonitor *_monitor = nullptr;
 
-    TimezoneModel *_tzModel = nullptr;
+    TimeZoneModel *_tzModel = nullptr;
     TimezoneFilterModel *_proxy = nullptr;
     WiFiSettingsManager *_wifiSettings = nullptr;
 
@@ -119,6 +122,7 @@ private:
     RdServerModel *_serverModel = nullptr;
     DataBase *_database = nullptr; // assumed singleton; do not delete
     WiFiAddNetworkManager *_wiFiAddNetworkManager;
+    ResolutionListModel *_resolutionListModel;
 
     // Threads
     QThread *m_wifiThread = nullptr;

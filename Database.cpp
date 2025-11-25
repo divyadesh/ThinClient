@@ -31,10 +31,11 @@ DataBase *DataBase::s_instance = nullptr;
  * @param path Absolute path to the SQLite database file.
  */
 DataBase::DataBase(QObject *parent, const QString &path)
-    : QObject{parent}
+    : QObject{parent},
+    m_path{path}
 {
     db = QSqlDatabase::addDatabase("QSQLITE", "ThinClientConnection");
-    db.setDatabaseName(path);
+    db.setDatabaseName(m_path);
 }
 
 /**
@@ -569,6 +570,8 @@ QStringList DataBase::queryResultList() const
 {
     return m_queryResultList;
 }
+
+QString DataBase::getPath() { return m_path; }
 
 void DataBase::setQueryResultList(QStringList newQueryResultList)
 {

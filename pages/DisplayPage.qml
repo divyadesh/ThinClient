@@ -27,19 +27,6 @@ BasicPage {
     }
 
     ListModel {
-        id: resolutionModel
-
-        ListElement { text: "Auto";        value: "auto" }
-        ListElement { text: "1024 x 768";  value: "1024x768" }
-        ListElement { text: "1280 x 720";  value: "1280x720" }
-        ListElement { text: "1366 x 768";  value: "1366x768" }
-        ListElement { text: "1440 x 900";  value: "1440x900" }
-        ListElement { text: "1600 x 900";  value: "1600x900" }
-        ListElement { text: "1680 x 1050"; value: "1680x1050" }
-        ListElement { text: "1920 x 1080"; value: "1920x1080" }
-    }
-
-    ListModel {
         id: orientationModel
 
         ListElement { text: "Landscape";              value: 0;   apply: "normal" }
@@ -97,17 +84,17 @@ BasicPage {
                             x: resolution.width - width - resolution.rightPadding
                             y: resolution.topPadding + (resolution.availableHeight - height) / 2
 
-                            model: resolutionModel
+                            model: resolutionListModel
                             textRole: "text"
                             valueRole: "value"
 
                             onActivated: {
-                                logSelection("Resolution", currentIndex, resolutionModel)
+                                logSelection("Resolution", currentIndex, resolutionListModel)
                             }
 
                             Component.onCompleted: {
-                                for (var i = 0; i < resolutionModel.count; i++) {
-                                    if (resolutionModel.get(i).value === backend.resolution) {
+                                for (var i = 0; i < resolutionComboBox.count; i++) {
+                                    if (resolutionListModel.get(i).value === backend.resolution) {
                                         resolutionComboBox.currentIndex = i
                                         break
                                     }
@@ -285,7 +272,7 @@ BasicPage {
                                 /* -----------------------------
                                    RESOLUTION
                                 ----------------------------- */
-                                const resolution = resolutionModel.get(resolutionComboBox.currentIndex).value
+                                const resolution = resolutionListModel.get(resolutionComboBox.currentIndex).value
                                 backend.resolution = resolution
                                 persistData.saveData("Resolution", resolution)
                                 console.log("Resolution:", resolution)

@@ -1,5 +1,6 @@
 #include "PersistData.h"
 #include <QTimeZone>
+#include <QFile>
 
 PersistData::PersistData(QObject *parent)
     : QObject{parent},
@@ -10,7 +11,7 @@ PersistData::PersistData(QObject *parent)
     m_setting.beginGroup(m_group);
 
     m_audio = m_setting.value("Audio", "0").toString();
-    m_timeZone = m_setting.value("TimeZone", "").toString();
+    m_timeZone = m_setting.value("TimeZone", getSystemTimezone()).toString();
     m_enableOnScreenKeyboard = m_setting.value("EnableOnScreenKeyboard", false).toBool();
     m_enableTouchScreen = m_setting.value("EnableTouchScreen", false).toBool();
     m_resolution = m_setting.value("Resolution", "1600 x 900").toString();
@@ -19,8 +20,20 @@ PersistData::PersistData(QObject *parent)
     m_orientation = m_setting.value("Orientation", "0").toString();
     m_deviceOff = m_setting.value("DeviceOff", "0").toString();
     m_displayOff = m_setting.value("DisplayOff", "0").toString();
+    m_language = m_setting.value("Language", "en_US").toString();
 
     m_setting.endGroup();
+}
+
+QString PersistData::getSystemTimezone()
+{
+    QFile file("/etc/timezone");
+    if (file.open(QIODevice::ReadOnly)) {
+        QString tz = QString::fromUtf8(file.readAll()).trimmed();
+        if (!tz.isEmpty())
+            return tz;
+    }
+    return "Asia/Kolkata";
 }
 
 PersistData::~PersistData() {}
@@ -159,4 +172,18 @@ void PersistData::setDisplayOff(const QString &value) {
     m_displayOff = value;
     saveData("DisplayOff", value);
     emit displayOffChanged();
+}
+
+QString PersistData::language() const
+{
+    return m_language;
+}
+
+void PersistData::setLanguage(const QString &newLanguage)
+{
+    if (m_language == newLanguage)
+        return;
+    m_language = newLanguage;
+    saveData("Language", m_language);
+    emit languageChanged();
 }

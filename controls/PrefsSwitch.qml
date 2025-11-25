@@ -32,14 +32,5 @@ Switch {
                 NumberAnimation { duration: 200 }
             }
         }
-
-
-        layer.enabled: root.hovered
-        layer.effect: DropShadow {
-            id: dropShadow
-            transparentBorder: true
-            color: root.checked ? root.checkedColor : "#E5E5E5"
-            samples: 10 /*20*/
-        }
     }
 }

@@ -15,7 +15,9 @@ class LanguageModel : public QAbstractListModel {
 public:
     enum Roles {
         LocaleIdRole = Qt::UserRole + 1,
-        DisplayNameRole
+        DisplayNameRole,
+        NativeNameRole,
+        FullNameRole
     };
 
     explicit LanguageModel(QObject *parent = nullptr);
@@ -27,6 +29,7 @@ public:
     Q_INVOKABLE QVariantMap get(int index) const;
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE bool setSystemLanguage(const QString &locale);
 
 private:
     void load();

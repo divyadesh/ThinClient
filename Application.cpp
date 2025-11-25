@@ -54,7 +54,7 @@ LogoLoader*             Application::logoLoader()               { return s_insta
 // 🔹 Models & Language Support
 // ---------------------------
 LanguageModel*          Application::languageModel()            { return s_instance ? s_instance->_languageModel            : nullptr; }
-TimezoneModel*          Application::timezoneModel()            { return s_instance ? s_instance->_tzModel                 : nullptr; }
+TimeZoneModel*          Application::timezoneModel()            { return s_instance ? s_instance->_tzModel                 : nullptr; }
 TimezoneFilterModel*    Application::timezoneProxy()            { return s_instance ? s_instance->_proxy                   : nullptr; }
 
 // ---------------------------
@@ -71,6 +71,8 @@ RdServerModel*          Application::serverModel()              { return s_insta
 DataBase*               Application::db()                       { return s_instance ? s_instance->_database                : nullptr; }
 
 WiFiAddNetworkManager *Application::wiFiAddNetworkManager()     { return s_instance ? s_instance->_wiFiAddNetworkManager   : nullptr; }
+
+ResolutionListModel *Application::resolutionListModel()         { return s_instance ? s_instance->_resolutionListModel   : nullptr; }
 
 // ---------------------------
 // 🔹 Device Config / System
@@ -137,7 +139,7 @@ void Application::initModels()
     _deviceSettings= new DeviceSettings(this);
     _monitor       = new UdevMonitor(this);
 
-    _tzModel       = new TimezoneModel(this);
+    _tzModel       = new TimeZoneModel(this);
     _proxy         = new TimezoneFilterModel(this);
     _proxy->setSourceModel(_tzModel);
 
@@ -155,6 +157,7 @@ void Application::initModels()
 
     // Database singleton (assumed). Do not set parent / delete.
     _database = DataBase::instance(this);
+    _resolutionListModel = new ResolutionListModel(this);
 }
 
 void Application::initControllers()
@@ -166,6 +169,8 @@ void Application::initControllers()
         _database->createTable();
         // fixed: use the correct member pointer
         _database->getServerList(_serverInfoColl);
+
+        _resolutionListModel->init(_database->getPath());
     }
 
     // Device info and Wi-Fi cache
@@ -265,4 +270,5 @@ void Application::registerTypesAndContext()
     ctx->setContextProperty("persistData", _persistData);
     ctx->setContextProperty("deviceInfoSettings", _deviceInfoSettings);
     ctx->setContextProperty("resetManager", _resetManager);
+    ctx->setContextProperty("resolutionListModel", _resolutionListModel);
 }

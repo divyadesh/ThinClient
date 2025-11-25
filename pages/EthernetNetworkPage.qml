@@ -138,23 +138,13 @@ BasicPage {
                                 textRole: "name"
                                 valueRole: "typeId"
 
-                                // default: based on saved state
-                                currentIndex: persistData
-                                              ? (persistData.getData("Ethernet") === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic)
-                                              : AppEnums.ipDHCP
-
-                                //------------------------------------
-                                // DHCP <-> STATIC MODE SWITCH HANDLER
-                                //------------------------------------
-                                onCurrentValueChanged: {
-                                    console.log("[IP Mode Changed] New mode =", currentValue)
-                                }
-
+                                currentIndex: persistData.ethernet === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic
                                 onActivated: function(index) {
                                     if (currentValue === AppEnums.ipDHCP) {
-                                        updateIPMode(currentValue);
                                         ethernetNetworkController.enableDhcp()
                                     }
+
+                                    updateIPMode(currentValue);
                                 }
                             }
 
@@ -276,11 +266,11 @@ BasicPage {
 
     function updateIPMode(typeId) {
         if (typeId === AppEnums.ipDHCP) {
-            persistData.saveData("Ethernet", "DHCP")
+            persistData.ethernet = "DHCP"
             console.log("→ Switched to DHCP — restoring original values")
         }
         else {
-            persistData.saveData("Ethernet", "Static")
+            persistData.ethernet = "Static"
             console.log("→ Switched to Manual — ready for manual input")
         }
     }

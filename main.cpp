@@ -18,79 +18,6 @@
 #include "Application.h"
 #include "logger.h"
 
-bool updateWestonConfig()
-{
-    const QString targetPath = "/etc/xdg/weston/weston.ini";
-    const QString sourcePath = "/etc/xdg/weston/thinclient/weston.ini";
-
-    QFile sourceFile(sourcePath);
-    QFile targetFile(targetPath);
-
-    // Check if source exists
-    if (!sourceFile.exists()) {
-        qWarning() << "Source Weston config not found:" << sourcePath;
-        return false;
-    }
-
-    // Remove old Weston config if present
-    if (targetFile.exists()) {
-        if (!targetFile.remove()) {
-            qWarning() << "Failed to remove old Weston config:" << targetPath;
-            return false;
-        } else {
-            qInfo() << "Removed old Weston config:" << targetPath;
-        }
-    }
-
-    // Ensure target directory exists
-    QDir dir(QFileInfo(targetPath).absolutePath());
-    if (!dir.exists()) {
-        if (!dir.mkpath(".")) {
-            qWarning() << "Failed to create Weston config directory:" << dir.absolutePath();
-            return false;
-        }
-    }
-
-    // Copy new config
-    if (!QFile::copy(sourcePath, targetPath)) {
-        qWarning() << "Failed to copy new Weston config from" << sourcePath << "to" << targetPath;
-        return false;
-    }
-
-    // Set proper permissions (optional but good practice)
-    QFile::setPermissions(targetPath, QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther);
-
-    qInfo() << "Weston config successfully updated from" << sourcePath << "to" << targetPath;
-    return true;
-}
-
-// called at application startup
-void ensureWestonConfig()
-{
-    QSettings settings("/var/lib/thinclient/settings.ini", QSettings::IniFormat);
-    bool alreadyUpdated = settings.value("WestonConfigUpdated", false).toBool();
-
-    if (!alreadyUpdated) {
-        qInfo() << "Updating Weston config for the first time...";
-        (void)QtConcurrent::run([=]() {
-            if (updateWestonConfig()) {
-                QSettings s("/var/lib/thinclient/settings.ini", QSettings::IniFormat);
-                s.setValue("WestonConfigUpdated", true);
-                s.sync();
-                qInfo() << "Weston config updated and marked as done.";
-            } else {
-                qWarning() << "Weston config update failed!";
-            }
-        });
-    } else {
-        qInfo() << "Weston config already updated previously — skipping.";
-    }
-}
-
-// -------------------------------------------------------------------
-// 🔹 Application Entry Point
-// -------------------------------------------------------------------
-
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -99,9 +26,9 @@ int main(int argc, char *argv[])
 #endif
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
-    // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
-    // qputenv("QT_VNC_SIZE", "1920x1080");
+    // qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
+    qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
+    qputenv("QT_VNC_SIZE", "1920x1080");
 
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
     qputenv("QT_QUICK_BACKEND", "software");  // double-ensure
@@ -152,9 +79,6 @@ int main(int argc, char *argv[])
 
     // --- Initialize our global Application Singleton ---
     Application::initialize(&engine);
-
-    // --- Update Weston Config in background (only once) ---
-    ensureWestonConfig();
 
     // --- Load Main UI ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));

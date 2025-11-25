@@ -30,16 +30,32 @@ SOURCES += \
         logoloader.cpp \
         main.cpp \
         rdservermodel.cpp \
+        resolutionlistmodel.cpp \
         systemresetmanager.cpp \
         timezone_filter_model.cpp \
         timezone_model.cpp \
+        timezonemodel.cpp \
         wifiaddnetworkmanager.cpp \
         wifimanager.cpp \
         wifimonitor.cpp \
         wifisettingsmanager.cpp \
         wifiworker.cpp
 
-RESOURCES += qml.qrc
+RESOURCES += qml.qrc \
+    translation.qrc
+
+# /home/rajni/Qt/5.15.2/gcc_64/bin/lupdate ThinClient.pro
+# /home/rajni/Qt/5.15.2/gcc_64/bin/lrelease ThinClient.pro
+
+
+TRANSLATIONS += \
+    translations/en_US.ts \
+    translations/fr_FR.ts \
+    translations/es_ES.ts \
+    translations/de_DE.ts \
+    translations/ru_RU.ts \
+    translations/ar_SA.ts \
+    translations/zh_CN.ts
 
 HEADERS += \
     Application.h \
@@ -69,9 +85,11 @@ HEADERS += \
     logger.h \
     logoloader.h \
     rdservermodel.h \
+    resolutionlistmodel.h \
     systemresetmanager.h \
     timezone_filter_model.h \
     timezone_model.h \
+    timezonemodel.h \
     wifiaddnetworkmanager.h \
     wifimanager.h \
     wifimonitor.h \
