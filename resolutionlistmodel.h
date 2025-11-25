@@ -53,8 +53,10 @@ class ResolutionListModel : public QAbstractListModel
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
-    Q_PROPERTY(bool hasError READ hasError NOTIFY hasErrorChanged)
+    Q_PROPERTY(QString errorMessage READ errorMessage WRITE setErrorMessage NOTIFY errorMessageChanged)
+    Q_PROPERTY(bool hasError READ hasError WRITE setHasError NOTIFY hasErrorChanged)
+    Q_PROPERTY(QSize minimumSize READ minimumSize WRITE setMinimumSize NOTIFY minimumSizeChanged FINAL)
+    Q_PROPERTY(QSize maximumSize READ maximumSize WRITE setMaximumSize NOTIFY maximumSizeChanged FINAL)
 
 public:
     /**
@@ -102,12 +104,12 @@ public:
     /**
      * @brief Return minimum allowed resolution.
      */
-    QSize minimumSize() const { return m_minSize; }
+    QSize minimumSize() const { return m_minimumSize; }
 
     /**
      * @brief Return maximum allowed resolution.
      */
-    QSize maximumSize() const { return m_maxSize; }
+    QSize maximumSize() const { return m_maximumSize; }
 
     // --- Error state ---
 
@@ -168,10 +170,15 @@ public:
     Q_INVOKABLE bool setActiveByRow(int row);
 
     Q_INVOKABLE QVariantMap get(int index) const;
+    Q_INVOKABLE bool resolutionExists(int width, int height);
 
     Q_INVOKABLE bool builtinExists(int w, int h, int refreshHz);
 
     void init(const QString &dbPath);
+
+    void setErrorMessage(const QString &newErrorMessage);
+
+    void setHasError(bool newHasError);
 
 signals:
     /**
@@ -184,6 +191,9 @@ signals:
      */
     void hasErrorChanged();
 
+    void minimumSizeChanged();
+    void maximumSizeChanged();
+
 private:
     void clearError();
     void setError(const QString &message);
@@ -193,8 +203,8 @@ private:
     bool updateActiveFlagInDatabase(int activeId);
 
     QSqlDatabase            m_db;
-    QSize                   m_minSize { 640, 480 };
-    QSize                   m_maxSize { 3840, 2160 };
+    QSize                   m_minimumSize { 640, 480 };
+    QSize                   m_maximumSize { 3840, 2160 };
     QVector<ResolutionRow>  m_rows;
 
     QString                 m_errorMessage;

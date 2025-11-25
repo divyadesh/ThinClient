@@ -104,6 +104,27 @@ BasicPage {
                     }
 
                     PrefsItemDelegate {
+                        id: addCustomResolution
+                        Layout.fillWidth: true
+                        implicitHeight: resolution.implicitHeight
+                        text: qsTr("Add Custom Resolution")
+
+                        indicator: Image {
+                            x: addCustomResolution.width - width - addCustomResolution.rightPadding
+                            y: addCustomResolution.topPadding + (addCustomResolution.availableHeight - height) / 2
+                            source: "qrc:/assets/icons/ic_aux.svg"
+                            sourceSize: Qt.size(24, 24)
+                        }
+
+                        onClicked: {
+                            const w = resolutionListModel.get(resolutionComboBox.currentIndex).width
+                            const h = resolutionListModel.get(resolutionComboBox.currentIndex).height
+
+                            pageStack.push(addCustomResolutionPage, {resolutionWidth: w, resolutionHeight: h});
+                        }
+                    }
+
+                    PrefsItemDelegate {
                         id: orientation
                         Layout.fillWidth: true
                         text: qsTr("Orientation")
@@ -352,5 +373,15 @@ BasicPage {
                     "\n Apply   :", item.apply !== undefined ? item.apply : "(none)",
                     "\n==============================\n"
                     )
+    }
+
+    Component {
+        id: addCustomResolutionPage
+        AddCustomResolution {
+            onBackToHome: { root.pageStack.pop() }
+            onCreated: {
+                resolutionListModel.reloadFromDatabase()
+            }
+        }
     }
 }

@@ -148,12 +148,22 @@ void ResolutionListModel::setDatabase(const QSqlDatabase &db)
 
 void ResolutionListModel::setMinimumSize(const QSize &size)
 {
-    m_minSize = size;
+    if(m_minimumSize == size) {
+        return;
+    }
+
+    m_minimumSize = size;
+    emit minimumSizeChanged();
 }
 
 void ResolutionListModel::setMaximumSize(const QSize &size)
 {
-    m_maxSize = size;
+    if(m_maximumSize == size) {
+        return;
+    }
+
+    m_maximumSize = size;
+    emit maximumSizeChanged();
 }
 
 // --- Error handling ------------------------------------------------------- //
@@ -190,16 +200,16 @@ void ResolutionListModel::setError(const QString &message)
 
 bool ResolutionListModel::validateCustomResolution(int width, int height)
 {
-    if (width < m_minSize.width() || height < m_minSize.height() ||
-        width > m_maxSize.width() || height > m_maxSize.height()) {
+    if (width < m_minimumSize.width() || height < m_minimumSize.height() ||
+        width > m_maximumSize.width() || height > m_maximumSize.height()) {
 
         setError(tr("Resolution %1x%2 is outside allowed range (%3x%4 - %5x%6).")
                      .arg(width)
                      .arg(height)
-                     .arg(m_minSize.width())
-                     .arg(m_minSize.height())
-                     .arg(m_maxSize.width())
-                     .arg(m_maxSize.height()));
+                     .arg(m_minimumSize.width())
+                     .arg(m_minimumSize.height())
+                     .arg(m_maximumSize.width())
+                     .arg(m_maximumSize.height()));
         return false;
     }
 
@@ -213,6 +223,28 @@ bool ResolutionListModel::validateCustomResolution(int width, int height)
 
     clearError();
     return true;
+}
+
+bool ResolutionListModel::resolutionExists(int width, int height)
+{
+    if (!m_db.isOpen())
+        return false;
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT id FROM resolutions WHERE width = :w AND height = :h LIMIT 1");
+    q.bindValue(":w", width);
+    q.bindValue(":h", height);
+
+    if (!q.exec()) {
+        qWarning() << "resolutionExists(): query failed:" << q.lastError();
+        return false;
+    }
+
+    if (q.next()) {
+        return true;
+    }
+
+    return false;
 }
 
 // --- DB operations for rows ---------------------------------------------- //
@@ -331,6 +363,13 @@ bool ResolutionListModel::reloadFromDatabase()
 bool ResolutionListModel::addCustomResolution(int width, int height, int refreshHz)
 {
     if (!validateCustomResolution(width, height)) {
+        return false;
+    }
+
+    if (resolutionExists(width, height)) {
+        setError(tr("Resolution %1x%2 already exists.")
+                     .arg(width)
+                     .arg(height));
         return false;
     }
 
@@ -509,4 +548,20 @@ void ResolutionListModel::init(const QString &dbPath)
     addBuiltinResolution(1600, 900, 60, false);
     addBuiltinResolution(1680, 1050,60, false);
     addBuiltinResolution(1920, 1080,60, false);
+}
+
+void ResolutionListModel::setErrorMessage(const QString &newErrorMessage)
+{
+    if (m_errorMessage == newErrorMessage)
+        return;
+    m_errorMessage = newErrorMessage;
+    emit errorMessageChanged();
+}
+
+void ResolutionListModel::setHasError(bool newHasError)
+{
+    if (m_hasError == newHasError)
+        return;
+    m_hasError = newHasError;
+    emit hasErrorChanged();
 }
