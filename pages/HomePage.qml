@@ -21,6 +21,42 @@ BasicPage {
         id: unlockManager
     }
 
+    Connections {
+        target: wifiMonitor
+
+        // Fired when WiFi connects
+        function onWifiConnected(ssid) {
+            console.log("📶 WiFi Connected:", ssid)
+        }
+
+        // Fired when WiFi disconnects
+        function onWifiDisconnected() {
+            console.log("❌ WiFi Disconnected")
+        }
+
+        // Fired on ANY state change
+        function onWifiStateChanged(state) {
+            console.log("⚙ WiFi State Changed:", state)
+        }
+    }
+
+    Connections {
+        target: ethernetMonitor
+
+        function onConnectedChanged(connected) {
+            console.log("[Ethernet] Connected:", connected)
+        }
+
+        function onCablePlugged() {
+            console.log("[Ethernet] Cable inserted!")
+        }
+
+        function onCableUnplugged() {
+            console.log("[Ethernet] Cable removed!")
+        }
+    }
+
+
     ButtonGroup { id: tabGroup }
 
     Timer {

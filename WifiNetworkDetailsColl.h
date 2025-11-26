@@ -30,7 +30,7 @@ public:
     enum WifiListCollRole {
         eWifiListCollectionRole = Qt::UserRole + 1
     };
-    Q_ENUM(WifiListCollRole)
+    Q_ENUM(WifiListCollRole);
 
     enum SignalStrength {
         StrengthNone = 0,
@@ -39,7 +39,7 @@ public:
         StrengthGood,
         StrengthExcellent
     };
-    Q_ENUM(SignalStrength)
+    Q_ENUM(SignalStrength);
 
     explicit WifiNetworkDetailsColl(QObject *parent = nullptr);
 
@@ -57,6 +57,8 @@ public:
     Q_INVOKABLE void getWifiDetailsAsync();              // async one-shot refresh
     Q_INVOKABLE void startAutoRefresh(int intervalMs = 5000);   // start periodic background scanning
     Q_INVOKABLE void stopAutoRefresh();                  // stop it
+    Q_INVOKABLE QString getActiveWifiDevice();
+    Q_INVOKABLE bool disconnectWifi();
 
     QString activeSsid() const;
     void setActiveSsid(const QString &newActiveSsid);

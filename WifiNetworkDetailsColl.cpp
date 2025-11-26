@@ -361,3 +361,38 @@ bool WifiNetworkDetailsColl::scanning() const
 {
     return m_scanning;
 }
+
+QString WifiNetworkDetailsColl::getActiveWifiDevice()
+{
+    QProcess p;
+    p.start("sh", QStringList() << "-c" <<
+                      "nmcli -t -f DEVICE,TYPE,STATE device status | grep ':wifi:connected' | cut -d: -f1");
+    p.waitForFinished();
+
+    QString dev = QString(p.readAllStandardOutput()).trimmed();
+    qDebug() << "[WifiNetworkDetailsColl] Active WiFi device:" << dev;
+
+    return dev;
+}
+
+bool WifiNetworkDetailsColl::disconnectWifi()
+{
+    QString device = getActiveWifiDevice();
+
+    if (device.isEmpty()) {
+        qWarning() << "[WifiNetworkDetailsColl] No active WiFi device found.";
+        return false;
+    }
+
+    QString cmd = QString("nmcli device disconnect %1").arg(device);
+
+    QProcess p;
+    p.start("sh", QStringList() << "-c" << cmd);
+    p.waitForFinished();
+
+    QString out = p.readAllStandardError() + p.readAllStandardOutput();
+    qDebug() << "[WifiNetworkDetailsColl] Disconnect result:" << out.trimmed();
+
+    return true;
+}
+
