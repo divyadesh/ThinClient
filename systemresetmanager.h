@@ -14,6 +14,7 @@ public:
     Q_INVOKABLE bool reboot();
     Q_INVOKABLE bool shutdown();
     Q_INVOKABLE bool factoryReset(const QString &resetScript = "/usr/bin/factory_reset.sh");
+    static void resetNetwork();
 
 signals:
     void commandExecuted(const QString &command, bool success);

@@ -67,6 +67,7 @@ public:
     bool open();
     void close();
     bool createTable();
+    bool resetDatabase();
 
     // --- Accessors ---
     QStringList insertIntoValues() const;

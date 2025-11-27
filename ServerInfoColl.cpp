@@ -109,64 +109,6 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
     _rdpWatcher.setFuture(future);
 }
 
-QString buildFreerdpParams(const SystemSettings &settings)
-{
-    QStringList params;
-
-    // --- AUDIO ---
-    switch (settings.audio.toInt()) {
-    case 0: // Jack (analog)
-        params << "/sound:sys:alsa,dev:0";
-        params << "/microphone:sys:alsa,dev:0";
-        break;
-    case 1: // USB
-        params << "/sound:sys:alsa,dev:1";
-        params << "/microphone:sys:alsa,dev:1";
-        break;
-    case 2: // HDMI
-        params << "/sound:sys:alsa,dev:2";
-        params << "/microphone:sys:alsa,dev:2";
-        break;
-    default:
-        // fallback if something is wrong
-        params << "-sound";
-        break;
-    }
-
-    // --- RESOLUTION ---
-    if (!settings.resolution.isEmpty() && settings.resolution != "Auto")
-        params << QString("/size:%1").arg(settings.resolution);
-    // if "Auto", skip — FreeRDP uses default display resolution automatically
-
-    // --- ORIENTATION ---
-    // Always pass orientation (since 0 = Landscape is valid)
-    params << QString("/orientation:%1").arg(settings.orientation);
-
-    // --- TOUCH + OSK ---
-    if (settings.enableOnScreenKeyboard)
-        params << "+osk"; // or your custom flag
-    if (settings.enableTouchScreen)
-        params << "+multitouch";
-
-    // --- DEVICE / DISPLAY OFF ---
-    // Only add if > 0 (meaning enabled for X mins/hours)
-    if (settings.deviceOff > 0)
-        params << QString("/device-off:%1").arg(settings.deviceOff);
-    if (settings.displayOff > 0)
-        params << QString("/display-off:%1").arg(settings.displayOff);
-
-    // --- TIMEZONE ---
-    if (!settings.timeZone.isEmpty())
-        params << QString("/tz:%1").arg(settings.timeZone);
-
-    // --- DEFAULT FIXED PARAMS ---
-    params << "+clipboard";
-    params << "/drive:home,/home/user";
-    params << "/printer";
-
-    return params.join(" ");
-}
-
 void ServerInfoColl::onRdpFinished()
 {
     _already_running.store(false);

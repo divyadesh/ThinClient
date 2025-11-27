@@ -104,9 +104,15 @@ public:
     Q_INVOKABLE bool shutdownDevice();
 
     int displayIdleMinutes() const;
-    void setDisplayIdleMinutes(int newDisplayIdleMinutes);
-
     int deviceAutoPowerOffHours() const;
+
+    // --- STATIC RESET METHODS ---
+    Q_INVOKABLE static bool factoryReset();
+    static bool writeDefaultWestonIni();
+    static bool restartWestonService();
+
+public slots:
+    void setDisplayIdleMinutes(int newDisplayIdleMinutes);
     void setDeviceAutoPowerOffHours(int newDeviceAutoPowerOffHours);
 
 signals:

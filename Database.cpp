@@ -634,3 +634,26 @@ bool DataBase::serverExists(const QString &connectionId)
     return (query.next() && query.value(0).toInt() > 0);
 }
 
+bool DataBase::resetDatabase()
+{
+    QSqlDatabase m_db = QSqlDatabase::database("ThinClientConnection");
+    if (m_db.isOpen()) {
+        m_db.close();
+    }
+
+    QFile dbFile(m_path);
+
+    if (!dbFile.exists()) {
+        qInfo() << "[FactoryReset] DB file does not exist, skipping.";
+        return true;
+    }
+
+    if (!dbFile.remove()) {
+        qWarning() << "[FactoryReset] Failed to delete database: " << m_path;
+        return false;
+    }
+
+    qInfo() << "[FactoryReset] Database deleted:" << m_path;
+    return true;
+}
+

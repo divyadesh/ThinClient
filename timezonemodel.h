@@ -38,7 +38,6 @@ public:
     };
 
     Q_INVOKABLE bool setSystemTimezone(const QString &tzId);
-    Q_INVOKABLE QString getSystemTimezone();
 
 private:
     QByteArrayList _timeZones;

@@ -24,6 +24,7 @@ SOURCES += \
         ethernetworker.cpp \
         ethernetNetworkConroller.cpp \
         imageupdater.cpp \
+        inputactivityfilter.cpp \
         language_model.cpp \
         logexporter.cpp \
         logger.cpp \
@@ -80,6 +81,7 @@ HEADERS += \
     ethernetworker.h \
     ethernetNetworkConroller.h \
     imageupdater.h \
+    inputactivityfilter.h \
     language_model.h \
     logexporter.h \
     logger.h \

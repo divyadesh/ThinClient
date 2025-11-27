@@ -3,6 +3,13 @@
 #include <QTimer>
 #include "wifimanager.h"
 
+#include <QFile>
+#include <QDir>
+#include <QProcess>
+#include <QDebug>
+#include <QtConcurrent/QtConcurrent>
+
+
 Application *Application::s_instance = nullptr;
 
 // ----------------------
@@ -73,6 +80,66 @@ DataBase*               Application::db()                       { return s_insta
 WiFiAddNetworkManager *Application::wiFiAddNetworkManager()     { return s_instance ? s_instance->_wiFiAddNetworkManager   : nullptr; }
 
 ResolutionListModel *Application::resolutionListModel()         { return s_instance ? s_instance->_resolutionListModel   : nullptr; }
+
+void Application::resetAllAsync()
+{
+    if (m_resetInProgress)
+        return;
+
+    setResetInProgress(true);
+    emit resetStarted();
+    emit resetProgress("Starting factory reset...");
+
+    // Run all operations in a background task
+    QtConcurrent::run([this]() {
+
+        // Step 1: QSettings
+        emit resetProgress("Clearing device settings...");
+        persistData()->resetSettings();
+
+        // Step 2: Database
+        emit resetProgress("Removing local database...");
+        db()->resetDatabase();
+
+        // Step 3: Weston config
+        emit resetProgress("Resetting display configuration...");
+        DisplaySettings::factoryReset();
+
+        // Step 4: Network configs
+        emit resetProgress("Resetting network configuration...");
+        SystemResetManager::resetNetwork();
+
+        // Step 5: Timezone
+        emit resetProgress("Resetting system timezone...");
+
+        QFile::remove("/etc/localtime");
+        QFile::remove("/etc/timezone");
+
+        QFile::link("/usr/share/zoneinfo/Asia/Kolkata", "/etc/localtime");
+
+        QFile tz("/etc/timezone");
+        if (tz.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            tz.write("Asia/Kolkata");
+            tz.close();
+        }
+
+        // Step 6: Sync filesystem
+        emit resetProgress("Syncing filesystem...");
+        QProcess::execute("sync");
+
+        emit resetProgress("Factory reset completed successfully.");
+        emit resetFinished(true);
+
+        // Step 7: Reboot
+        emit resetProgress("Rebooting device...");
+        emit resetRebooting();
+
+        QProcess::startDetached("systemctl", {"reboot"});
+
+        setResetInProgress(false);
+    });
+}
+
 
 // ---------------------------
 // 🔹 Device Config / System
@@ -211,7 +278,7 @@ void Application::setupNetworkMonitors()
             m_ethWorker, &EthernetWorker::checkConnection);
 
     connect(m_ethWorker, &EthernetWorker::connectedChanged,
-            m_ethMonitor, &EthernetMonitor::setConnected,
+            m_ethMonitor, &EthernetMonitor::setIsConnected,
             Qt::QueuedConnection);
 
     connect(m_ethThread, &QThread::finished,
@@ -271,4 +338,17 @@ void Application::registerTypesAndContext()
     ctx->setContextProperty("deviceInfoSettings", _deviceInfoSettings);
     ctx->setContextProperty("resetManager", _resetManager);
     ctx->setContextProperty("resolutionListModel", _resolutionListModel);
+}
+
+bool Application::resetInProgress() const
+{
+    return m_resetInProgress;
+}
+
+void Application::setResetInProgress(bool v)
+{
+    if (m_resetInProgress == v)
+        return;
+    m_resetInProgress = v;
+    emit resetInProgressChanged();
 }

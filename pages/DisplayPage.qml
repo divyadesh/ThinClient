@@ -176,15 +176,15 @@ BasicPage {
                                     textRole: "text"
                                     valueRole: "value"
 
-
                                     onActivated: {
                                         logSelection("Display-Off", currentIndex, displayOffModel)
                                     }
 
                                     Component.onCompleted: {
+                                        const previous_minutes = backend.idleTimeSeconds / 60
                                         for (let i = 0; i < displayOffModel.count; i++) {
                                             let minutes = displayOffModel.get(i).value
-                                            if (minutes === backend.idleTimeSeconds / 60) {
+                                            if (minutes === previous_minutes) {
                                                 displayOffComboBox.currentIndex = i
                                                 break
                                             }
@@ -211,8 +211,9 @@ BasicPage {
                                     }
 
                                     Component.onCompleted: {
+                                        const hours = persistData.deviceOff / (60 * 60 * 1000)
                                         for (var i = 0; i < devicePowerOffModel.count; i++) {
-                                            if (devicePowerOffModel.get(i).value === backend.deviceAutoPowerOffHours) {
+                                            if (devicePowerOffModel.get(i).value === hours) {
                                                 deviceOffComboBox.currentIndex = i
                                                 break
                                             }
@@ -310,17 +311,22 @@ BasicPage {
                                    DISPLAY OFF (Minutes)
                                 ----------------------------- */
                                 const displayOffMin = displayOffModel.get(displayOffComboBox.currentIndex).value
+                                const displayOffSec = displayOffMin * 60
                                 backend.idleTimeSeconds = displayOffMin
-                                persistData.saveData("DisplayOff", displayOffMin)
-                                console.log("Display Idle (min):", displayOffMin)
+                                persistData.displyOff = displayOffMin
+                                console.log("Display Idle (min, sec):", displayOffMin, displayOffSec)
 
                                 /* -----------------------------
                                    DEVICE AUTO POWER-OFF (Hours)
                                 ----------------------------- */
                                 const deviceOffHours = devicePowerOffModel.get(deviceOffComboBox.currentIndex).value
-                                backend.deviceAutoPowerOffHours = deviceOffHours
-                                persistData.saveData("DeviceOff", deviceOffHours)
-                                console.log("Device Auto Power-Off (hours):", deviceOffHours)
+                                const deviceOffMSSec = deviceOffHours * 60 * 60 * 1000
+
+                                backend.deviceAutoPowerOffHours = deviceOffMSSec
+                                ActivityMonitor.idleTimeoutMs = deviceOffMSSec
+                                persistData.deviceOff = deviceOffMSSec
+
+                                console.log("Device Auto Power-Off (hours, seconds):", deviceOffHours, deviceOffMSSec)
 
                                 /* -----------------------------
                                    TOUCH ENABLE
@@ -333,11 +339,11 @@ BasicPage {
                                    APPLY TO WESTON
                                 ----------------------------- */
                                 const ok = backend.applyDisplaySettings(
-                                                backend.resolution,
-                                                backend.orientation,
-                                                backend.idleTimeSeconds * 60,   // convert minutes → seconds
-                                                backend.touchEnabled
-                                            )
+                                             backend.resolution,
+                                             backend.orientation,
+                                             backend.idleTimeSeconds * 60,   // convert minutes → seconds
+                                             backend.touchEnabled
+                                             )
 
                                 if (!ok) {
                                     console.warn("❌ Failed to apply settings")
@@ -384,4 +390,49 @@ BasicPage {
             }
         }
     }
+
+    // Catch ALL signals from C++ class
+    Connections {
+        target: ActivityMonitor
+
+        // User Activity
+        function onUserActivity() {
+            log("User activity detected: keys/mouse/touch.")
+        }
+
+        // User Idle Before Suspend
+        function onUserIdle() {
+            log("Inactivity detected → system will suspend soon.")
+        }
+
+        // Application Inactive
+        function onAppInactive() {
+            log("Application declared inactive before suspend.")
+        }
+
+        // Application Active After Resume
+        function onAppActive() {
+            log("Application resumed and active after system wake.")
+        }
+
+        // System Suspend Triggered
+        function onPowerSuspend() {
+            log("C++ notified: system suspend initiated.")
+        }
+
+        // System Resume Triggered
+        function onPowerResume() {
+            log("C++ notified: system resumed from suspend.")
+        }
+
+        // Idle Timeout Updated (from UI)
+        function onIdleTimeoutMsChanged() {
+            log("Idle timeout updated: " + ActivityMonitor.idleTimeoutMs + " ms")
+        }
+    }
+
+    function log(msg) {
+        console.log("[ActivityMonitor][QML]", msg)
+    }
+
 }

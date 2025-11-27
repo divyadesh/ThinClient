@@ -515,3 +515,59 @@ void DisplaySettings::normalizeWestonIniSpacing()
         qInfo() << "Normalized weston.ini (removed excessive blank lines)";
     }
 }
+
+bool DisplaySettings::factoryReset()
+{
+    qInfo() << "===============================";
+    qInfo() << "  DisplaySettings::factoryReset";
+    qInfo() << "===============================";
+
+    QFile f(WESTON_CONFIG);
+
+    // Delete old file
+    if (f.exists()) {
+        if (!f.remove()) {
+            qWarning() << "[FactoryReset] Failed to delete:" << WESTON_CONFIG;
+            return false;
+        }
+        qInfo() << "[FactoryReset] Deleted old weston.ini";
+    }
+
+    // Write new default config
+    if (!writeDefaultWestonIni()) {
+        qWarning() << "[FactoryReset] Failed to write default weston.ini";
+        return false;
+    }
+
+    qInfo() << "[FactoryReset] Default weston.ini created.";
+    return true;
+}
+
+
+bool DisplaySettings::writeDefaultWestonIni()
+{
+    QFile f(WESTON_CONFIG);
+
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+        qWarning() << "[DisplaySettings] Cannot create new weston.ini";
+        return false;
+    }
+
+    QTextStream ts(&f);
+
+    ts << "[core]\n";
+    ts << "idle-time=0\n\n";
+
+    ts << "[output]\n";
+    ts << "name=HDMI-A-1\n";
+    ts << "mode=1920x1080\n";
+    ts << "transform=normal\n\n";
+
+    ts << "[shell]\n";
+    ts << "locking=false\n";
+
+    f.close();
+
+    qInfo() << "[DisplaySettings] Default weston.ini written.";
+    return true;
+}

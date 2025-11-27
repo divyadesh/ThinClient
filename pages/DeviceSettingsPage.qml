@@ -52,7 +52,7 @@ BasicPage {
 
                         // keep it simple: store as int (0 Jack, 1 USB, 2 HDMI)
                         property int audioSelection: {
-                            const v = persistData.getData("Audio");
+                            const v = persistData.audio;
                             if (v === "" || v === undefined) return Audio.Jack; // default
                             return parseInt(v);
                         }
@@ -74,7 +74,7 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Jack) {
                                         audio.audioSelection = Audio.Jack;
-                                        persistData.saveData("Audio", audio.audioSelection); // ✅ persist
+                                        persistData.audio = Audio.Jack
                                         DeviceSettings.setAudioOutput("jack");
                                     }
                                 }
@@ -90,7 +90,7 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Usb) {
                                         audio.audioSelection = Audio.Usb;
-                                        persistData.saveData("Audio", audio.audioSelection);
+                                        persistData.audio = Audio.Usb
                                         DeviceSettings.setAudioOutput("usb");
                                     }
                                 }
@@ -106,7 +106,7 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Hdmi) {
                                         audio.audioSelection = Audio.Hdmi;
-                                        persistData.saveData("Audio", audio.audioSelection);
+                                        persistData.audio = Audio.Hdmi
                                         DeviceSettings.setAudioOutput("hdmi");
                                     }
                                 }
@@ -313,11 +313,11 @@ BasicPage {
     }
 
     LogExporter {
-         id: exporter
-         onExportFinished: (success, msg) => {
-             messageLabel.text = msg
-             if (success) messageLabel.color = "green"
-             else messageLabel.color = "red"
-         }
-     }
+        id: exporter
+        onExportFinished: function(success, msg) {
+            messageLabel.text = msg
+            if (success) messageLabel.color = "green"
+            else messageLabel.color = "red"
+        }
+    }
 }

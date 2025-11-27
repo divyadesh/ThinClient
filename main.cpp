@@ -17,6 +17,7 @@
 
 #include "Application.h"
 #include "logger.h"
+#include "inputactivityfilter.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,7 +27,8 @@ int main(int argc, char *argv[])
 #endif
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    // qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
+    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
+
     qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
     qputenv("QT_VNC_SIZE", "1920x1080");
 
@@ -79,6 +81,11 @@ int main(int argc, char *argv[])
 
     // --- Initialize our global Application Singleton ---
     Application::initialize(&engine);
+
+    InputActivityFilter *activity = new InputActivityFilter(&app);
+    engine.rootContext()->setContextProperty("ActivityMonitor", activity);
+    engine.rootContext()->setContextProperty("cApplication", Application::instance());
+    app.installEventFilter(activity);
 
     // --- Load Main UI ---
     const QUrl mainQmlUrl(QStringLiteral("qrc:/main.qml"));

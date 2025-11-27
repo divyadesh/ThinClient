@@ -18,6 +18,32 @@ BasicPage {
     id: control
     background: BackgroundOverlay {}
 
+    // Show progress log
+    Connections {
+        target: cApplication
+
+        function onResetStarted() {
+            console.log("Reset started")
+            progressLog.text = ""
+            progressBar.visible = true
+        }
+
+        function onResetProgress(message) {
+            progressLog.text += message + "\n"
+        }
+
+        function onResetFinished(success) {
+            progressLog.text += (success ? "Reset completed.\n" : "Reset failed.\n")
+            if(!success) {
+                progressBar.visible = false
+            }
+        }
+
+        function onResetRebooting() {
+            progressLog.text += "Rebooting...\n"
+        }
+    }
+
     Page {
         anchors.centerIn: parent
         width: 480
@@ -39,11 +65,24 @@ BasicPage {
         contentItem: Control {
             padding: 20
 
-            contentItem: PrefsLabel {
-                text: qsTr("Are you are sure you want to reset the device ?")
-                font.pixelSize: 16
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            contentItem: ColumnLayout {
+                spacing: 20
+
+                PrefsBusyIndicator {
+                    id: progressBar
+                    visible: false
+                    running: true
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                }
+
+                PrefsLabel {
+                    id: progressLog
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    text: qsTr("Are you are sure you want to reset the device ?")
+                    font.pixelSize: 16
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
         }
 
@@ -59,29 +98,13 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Yes")
-                    radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: {
-                        if (resetManager.reboot()) {
-                            console.log("Reboot command executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Failed to reboot")
-                        }
-                    }
-                }
-
-                PrefsButton {
                     text: qsTr("No")
-                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()
                 }
 
                 PrefsButton {
-                    visible: false
                     text: qsTr("Shutdown Device")
                     highlighted: true
                     radius: height / 2
@@ -98,17 +121,11 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("Factory Reset")
-                    visible: false
                     highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        if (resetManager.factoryReset("/usr/bin/factory_reset.sh")) {
-                            console.log("Factory reset executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Factory reset failed")
-                        }
+                        cApplication.resetAllAsync()
                     }
                 }
 

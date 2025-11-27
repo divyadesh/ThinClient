@@ -154,17 +154,3 @@ bool TimeZoneModel::setSystemTimezone(const QString &tzId)
     return true;
 }
 
-
-QString TimeZoneModel::getSystemTimezone()
-{
-    QFile file("/etc/timezone");
-    if (file.open(QIODevice::ReadOnly)) {
-        QString tz = QString::fromUtf8(file.readAll()).trimmed();
-        if (!tz.isEmpty())
-            return tz;
-    }
-
-    // fallback if /etc/timezone is missing
-    return "UTC";
-}
-

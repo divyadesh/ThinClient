@@ -1,101 +1,172 @@
-#include "PersistData.h"
-#include <QTimeZone>
-#include <QFile>
+/**
+ * @file PersistData.cpp
+ * @brief Implementation of PersistData, a wrapper around QSettings with
+ *        default loading and unified logging.
+ */
 
+#include "PersistData.h"
+#include <QDateTime>
+#include <QFile>
+#include <unistd.h>
+
+/**
+ * @brief Constructor. Loads settings from disk or initializes defaults.
+ */
 PersistData::PersistData(QObject *parent)
-    : QObject{parent},
+    : QObject(parent),
     m_setting(QSettings::IniFormat, QSettings::UserScope,
               "G1 Thin Client PC", "G1ThinClientPC")
 {
-    // Load all settings once at startup
     m_setting.beginGroup(m_group);
 
-    m_audio = m_setting.value("Audio", "0").toString();
-    m_timeZone = m_setting.value("TimeZone", getSystemTimezone()).toString();
-    m_enableOnScreenKeyboard = m_setting.value("EnableOnScreenKeyboard", false).toBool();
-    m_enableTouchScreen = m_setting.value("EnableTouchScreen", false).toBool();
-    m_resolution = m_setting.value("Resolution", "1600 x 900").toString();
-    m_ethernet = m_setting.value("Ethernet", "DHCP").toString();
-    m_network = m_setting.value("Network", "Ethernet").toString();
-    m_orientation = m_setting.value("Orientation", "0").toString();
-    m_deviceOff = m_setting.value("DeviceOff", "0").toString();
-    m_displayOff = m_setting.value("DisplayOff", "0").toString();
-    m_language = m_setting.value("Language", "en_US").toString();
+    if (!m_setting.contains("TimeZone")) {
+        const QString defaultTimeZone = "Asia/Kolkata";
+        if(setSystemTimezone(defaultTimeZone)) {
+            m_setting.setValue("TimeZone", defaultTimeZone);
+        }
+    }
+    // keep it simple: store audio as int (0 Jack, 1 USB, 2 HDMI)
+    loadOrDefault("Audio",                 m_audio,               0);
+    loadOrDefault("TimeZone",              m_timeZone,            "Asia/Kolkata");
+    loadOrDefault("EnableOnScreenKeyboard",m_enableOnScreenKeyboard, false);
+    loadOrDefault("EnableTouchScreen",     m_enableTouchScreen,   false);
+    loadOrDefault("Resolution",            m_resolution,          "1600 x 900");
+    loadOrDefault("Ethernet",              m_ethernet,            "DHCP");
+    loadOrDefault("Network",               m_network,             "Ethernet");
+    loadOrDefault("Orientation",           m_orientation,         "normal");
+    loadOrDefault("DeviceOff",             m_deviceOff,           0);
+    loadOrDefault("DisplayOff",            m_displayOff,          0);
+    loadOrDefault("Language",              m_language,            "en_US");
 
     m_setting.endGroup();
+    m_setting.sync();
 }
 
-QString PersistData::getSystemTimezone()
+bool PersistData::setSystemTimezone(const QString &tzId)
 {
-    QFile file("/etc/timezone");
-    if (file.open(QIODevice::ReadOnly)) {
-        QString tz = QString::fromUtf8(file.readAll()).trimmed();
-        if (!tz.isEmpty())
-            return tz;
+    const QString zoneInfoPath = "/usr/share/zoneinfo/" + tzId;
+    const QString localTimePath = "/etc/localtime";
+    const QString timezoneFile  = "/etc/timezone";
+
+    qInfo() << "[PersistData] Requested timezone change to:" << tzId;
+
+    // Check if zoneinfo file exists
+    if (!QFile::exists(zoneInfoPath)) {
+        qWarning() << "[PersistData] ERROR: Zoneinfo file not found:" << zoneInfoPath;
+        return false;
     }
-    return "Asia/Kolkata";
+
+    // Remove old /etc/localtime
+    if (QFile::exists(localTimePath)) {
+        if (!QFile::remove(localTimePath)) {
+            qWarning() << "[PersistData] ERROR: Could not remove old /etc/localtime";
+            return false;
+        }
+    }
+
+    // Create symlink
+    if (::symlink(zoneInfoPath.toUtf8().constData(), localTimePath.toUtf8().constData()) != 0) {
+        qWarning() << "[PersistData] ERROR: Failed to create symlink to" << zoneInfoPath;
+        return false;
+    }
+
+    qInfo() << "[PersistData] Symlink created:" << localTimePath << "->" << zoneInfoPath;
+
+    // Update /etc/timezone (optional)
+    QFile file(timezoneFile);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        file.write(tzId.toUtf8());
+        file.close();
+        qInfo() << "[PersistData] Updated /etc/timezone with" << tzId;
+    }
+
+    qInfo() << "[PersistData] System timezone successfully set to:" << tzId;
+    return true;
 }
 
 PersistData::~PersistData() {}
 
-SystemSettings PersistData::systemSettings() const
+/**
+ * @brief Load value from settings or set default if missing.
+ */
+void PersistData::loadOrDefault(const QString &key, QString &var, const QString &def)
 {
-    SystemSettings cfg;
-
-    cfg.audio = m_setting.value("Audio", "0").toString();
-
-    // Try to load timezone from settings
-    cfg.timeZone = m_setting.value("TimeZone", "").toString();
-
-    // ✅ If no timezone is saved, use the system’s timezone ID
-    if (cfg.timeZone.isEmpty()) {
-        QByteArray systemZone = QTimeZone::systemTimeZoneId();
-        cfg.timeZone = QString::fromUtf8(systemZone);
-
-        qDebug() << "System timezone detected:" << cfg.timeZone;
+    if (!m_setting.contains(key)) {
+        var = def;
+        m_setting.setValue(key, def);
+    } else {
+        var = m_setting.value(key).toString();
     }
-
-    cfg.enableOnScreenKeyboard = m_setting.value("EnableOnScreenKeyboard", false).toBool();
-    cfg.enableTouchScreen = m_setting.value("EnableTouchScreen", false).toBool();
-    cfg.resolution = m_setting.value("Resolution", "Auto").toString();
-    cfg.ethernet = m_setting.value("Ethernet", "DHCP").toString();
-    cfg.network = m_setting.value("Network", "Ethernet").toString();
-    cfg.orientation = m_setting.value("Orientation", 0).toInt();
-    cfg.deviceOff = m_setting.value("DeviceOff", 0).toInt();
-    cfg.displayOff = m_setting.value("DisplayOff", 0).toInt();
-
-    return cfg;
 }
 
-// Generic save function
-void PersistData::saveData(const QString &key, const QString &value) {
+/**
+ * @brief Overload for boolean settings.
+ */
+void PersistData::loadOrDefault(const QString &key, bool &var, bool def)
+{
+    if (!m_setting.contains(key)) {
+        var = def;
+        m_setting.setValue(key, def);
+    } else {
+        var = m_setting.value(key).toBool();
+    }
+}
+
+/**
+ * @brief Overload for integer settings.
+ */
+void PersistData::loadOrDefault(const QString &key, int &var, int def)
+{
+    if (!m_setting.contains(key)) {
+        var = def;
+        m_setting.setValue(key, def);
+    } else {
+        var = m_setting.value(key).toInt();
+    }
+}
+
+/**
+ * @brief Save a key/value pair to QSettings.
+ */
+void PersistData::saveData(const QString &key, const QVariant &value)
+{
     m_setting.beginGroup(m_group);
     m_setting.setValue(key, value);
     m_setting.endGroup();
     m_setting.sync();
+
     logChange(key, value);
 }
 
-// Generic get function
-QString PersistData::getData(const QString &key) {
+/**
+ * @brief Return value of a stored key.
+ */
+QString PersistData::getData(const QString &key)
+{
     m_setting.beginGroup(m_group);
     QString value = m_setting.value(key).toString();
     m_setting.endGroup();
     return value;
 }
 
-// Logging helper
-void PersistData::logChange(const QString &key, const QString &value) {
-    qDebug().noquote() << QString("::::> QSettings File: \"%1\", key=\"%2\", value=\"%3\"")
-    .arg(m_setting.fileName(), key, value);
+/**
+ * @brief Log changes in a structured format.
+ */
+void PersistData::logChange(const QString &key, const QVariant &value)
+{
+    const QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+
+    qDebug().noquote()
+        << QString("[%1][PersistData] key='%2' value='%3' (file: %4)")
+               .arg(timestamp, key, value.toString(), m_setting.fileName());
 }
 
-/* -----------------------------
- * Property accessors (inline)
- * ----------------------------- */
+/* ------------------------------ */
+/*        Property Accessors      */
+/* ------------------------------ */
 
-QString PersistData::audio() const { return m_audio; }
-void PersistData::setAudio(const QString &value) {
+int PersistData::audio() const { return m_audio; }
+void PersistData::setAudio(const int &value) {
     if (m_audio == value) return;
     m_audio = value;
     saveData("Audio", value);
@@ -114,7 +185,7 @@ bool PersistData::enableOnScreenKeyboard() const { return m_enableOnScreenKeyboa
 void PersistData::setEnableOnScreenKeyboard(bool value) {
     if (m_enableOnScreenKeyboard == value) return;
     m_enableOnScreenKeyboard = value;
-    saveData("EnableOnScreenKeyboard", value ? "true" : "false");
+    saveData("EnableOnScreenKeyboard", value);
     emit enableOnScreenKeyboardChanged();
 }
 
@@ -122,7 +193,7 @@ bool PersistData::enableTouchScreen() const { return m_enableTouchScreen; }
 void PersistData::setEnableTouchScreen(bool value) {
     if (m_enableTouchScreen == value) return;
     m_enableTouchScreen = value;
-    saveData("EnableTouchScreen", value ? "true" : "false");
+    saveData("EnableTouchScreen", value);
     emit enableTouchScreenChanged();
 }
 
@@ -158,32 +229,44 @@ void PersistData::setOrientation(const QString &value) {
     emit orientationChanged();
 }
 
-QString PersistData::deviceOff() const { return m_deviceOff; }
-void PersistData::setDeviceOff(const QString &value) {
+int PersistData::deviceOff() const { return m_deviceOff; }
+void PersistData::setDeviceOff(const int &value) {
     if (m_deviceOff == value) return;
     m_deviceOff = value;
     saveData("DeviceOff", value);
     emit deviceOffChanged();
 }
 
-QString PersistData::displayOff() const { return m_displayOff; }
-void PersistData::setDisplayOff(const QString &value) {
+int PersistData::displayOff() const { return m_displayOff; }
+void PersistData::setDisplayOff(const int &value) {
     if (m_displayOff == value) return;
     m_displayOff = value;
     saveData("DisplayOff", value);
     emit displayOffChanged();
 }
 
-QString PersistData::language() const
-{
-    return m_language;
+QString PersistData::language() const { return m_language; }
+void PersistData::setLanguage(const QString &value) {
+    if (m_language == value) return;
+    m_language = value;
+    saveData("Language", value);
+    emit languageChanged();
 }
 
-void PersistData::setLanguage(const QString &newLanguage)
+bool PersistData::resetSettings()
 {
-    if (m_language == newLanguage)
-        return;
-    m_language = newLanguage;
-    saveData("Language", m_language);
-    emit languageChanged();
+    QString path = m_setting.fileName();
+
+    if (!QFile::exists(path)) {
+        qInfo() << "[FactoryReset] Settings file not found, skipping.";
+        return true;
+    }
+
+    if (!QFile::remove(path)) {
+        qWarning() << "[FactoryReset] Failed to delete QSettings file:" << path;
+        return false;
+    }
+
+    qInfo() << "[FactoryReset] Settings file deleted:" << path;
+    return true;
 }
