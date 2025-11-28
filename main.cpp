@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 
     qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
 
-    qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
-    qputenv("QT_VNC_SIZE", "1920x1080");
+    // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
+    // qputenv("QT_VNC_SIZE", "1920x1080");
 
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
     qputenv("QT_QUICK_BACKEND", "software");  // double-ensure

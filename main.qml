@@ -38,6 +38,35 @@ ApplicationWindow {
         anchors.fill: parent
     }
 
+    NotificationManager {
+        id: notifier
+    }
+
+    function showAlert(message, type) {
+        switch (type) {
+
+        case NotificationItem.Type.Success:
+            notifier.show(message, NotificationItem.Type.Success)
+            break;
+
+        case NotificationItem.Type.Info:
+            notifier.show(message, NotificationItem.Type.Info)
+            break;
+
+        case NotificationItem.Type.Warning:
+            notifier.show(message, NotificationItem.Type.Warning)
+            break;
+
+        case NotificationItem.Type.Error:
+            notifier.show(message, NotificationItem.Type.Error)
+            break;
+
+        default:
+            console.warn("Unknown notification type:", type)
+            notifier.show(message, NotificationItem.Type.Info)
+            break;
+        }
+    }
 
     InputPanel {
         id: inputPanel

@@ -6,6 +6,9 @@
 #include <QString>
 #include <QVariantMap>
 #include <QHash>
+#include <QGuiApplication>
+#include "Application.h"
+#include "PersistData.h"
 
 LanguageModel::LanguageModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -67,13 +70,50 @@ void LanguageModel::refresh() {
 
 bool LanguageModel::setSystemLanguage(const QString &locale)
 {
-    QFile file("/etc/locale.conf");
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    qDebug() << "===== LANGUAGE CHANGE REQUESTED =====";
+    qDebug() << "Requested locale:" << locale;
+
+    // Remove previous translator
+    if (!m_translator.isEmpty()) {
+        qDebug() << "Existing translator found. Removing old translator...";
+        bool removed = qApp->removeTranslator(&m_translator);
+        qDebug() << "Old translator removed:" << removed;
+    } else {
+        qDebug() << "No previous translator loaded. Skipping removal.";
+    }
+
+    // Compose file path
+    QString qmFile = QString(":/translations/%1.qm").arg(locale);
+    qDebug() << "Translation file to load:" << qmFile;
+
+    // Load new translator
+    qDebug() << "Attempting to load translation file...";
+    if (!m_translator.load(qmFile)) {
+        qWarning() << "ERROR: Failed to load translation file!";
+        qWarning() << "File expected at:" << qmFile;
+        qWarning() << "Check if file exists in qrc and lrelease was run.";
         return false;
+    }
+    qDebug() << "Translation file loaded successfully.";
 
-    QTextStream out(&file);
-    out << "LANG=" << locale << ".UTF-8\n";
+    // Install translator
+    qDebug() << "Installing new translator...";
+    bool installed = qApp->installTranslator(&m_translator);
+    qDebug() << "Translator installation status:" << installed;
 
+    // Handle RTL/LTR layout
+    if (locale == "ar_SA") {
+        qDebug() << "Locale is Arabic → Setting Right-To-Left layout direction.";
+        QGuiApplication::setLayoutDirection(Qt::RightToLeft);
+    } else {
+        qDebug() << "Locale is Left-To-Right → Setting default layout direction.";
+        QGuiApplication::setLayoutDirection(Qt::LeftToRight);
+    }
+
+    qDebug() << "====== LANGUAGE SWITCH FINISHED SUCCESSFULLY ======";
+    qDebug() << "Active language now:" << locale;
+
+    emit languageChanged();
     return true;
 }
 

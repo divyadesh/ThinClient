@@ -15,6 +15,12 @@ BasicPage {
     StackView.visible: true
     padding: 20
 
+    Connections {
+        target: languageModel
+        function onLanguageChanged() {
+        }
+    }
+
     header: PageHeader {
         pageTitle: page.pageTitle
         onBackPressed: {
@@ -176,6 +182,7 @@ BasicPage {
                             onActivated: {
                                 let obj = languageComboBox.model.get(currentIndex)
                                 persistData.language = obj.localeId
+                                languageModel.setSystemLanguage(currentValue)
                             }
                         }
                     }

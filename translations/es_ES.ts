@@ -1,805 +1,829 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <TS version="2.1" language="es_ES">
+
 <context>
     <name>AddNetwork</name>
     <message>
         <source>Add Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir red</translation>
     </message>
     <message>
         <source>Hotspot name (required)</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre del punto de acceso (requerido)</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Seguridad</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Contraseña</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy</translation>
     </message>
     <message>
         <source>HTTP Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy HTTP (host:puerto)</translation>
     </message>
     <message>
         <source>HTTPS Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy HTTPS (host:puerto)</translation>
     </message>
     <message>
         <source>SOCKS Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy SOCKS (host:puerto)</translation>
     </message>
     <message>
         <source>Ignore Hosts</source>
-        <translation type="unfinished"></translation>
+        <translation>Ignorar hosts</translation>
     </message>
     <message>
         <source>PAC URL</source>
-        <translation type="unfinished"></translation>
+        <translation>URL PAC</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes de IP</translation>
     </message>
     <message>
         <source>IP address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IP</translation>
     </message>
     <message>
         <source>Router</source>
-        <translation type="unfinished"></translation>
+        <translation>Router</translation>
     </message>
     <message>
         <source>Prefix length</source>
-        <translation type="unfinished"></translation>
+        <translation>Longitud del prefijo</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>Privacy</source>
-        <translation type="unfinished"></translation>
+        <translation>Privacidad</translation>
     </message>
     <message>
         <source>Metered</source>
-        <translation type="unfinished"></translation>
+        <translation>Con límite de datos</translation>
     </message>
     <message>
         <source>Hidden network</source>
-        <translation type="unfinished"></translation>
+        <translation>Red oculta</translation>
     </message>
 </context>
+
 <context>
     <name>AutoConnect</name>
     <message>
         <source>Auto Connect RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Conexión automática al servidor RD</translation>
     </message>
     <message>
         <source>Auto Connecting RD Server ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectando automáticamente al servidor RD...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
 </context>
+
 <context>
     <name>DashboardPage</name>
     <message>
         <source>RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Servidor RD</translation>
     </message>
 </context>
+
 <context>
     <name>DeleteWifiConnection</name>
     <message>
         <source>Delete RD Server Connection</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar conexión con servidor RD</translation>
     </message>
     <message>
         <source>Are you sure you want to delete this RD Server connection?</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Está seguro de que desea eliminar esta conexión de servidor RD?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar</translation>
     </message>
 </context>
+
 <context>
     <name>DeviceResetDialog</name>
     <message>
         <source>Device Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Restablecer dispositivo</translation>
     </message>
     <message>
         <source>Are you are sure you want to reset the device ?</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Está seguro de que desea restablecer el dispositivo?</translation>
     </message>
     <message>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>Sí</translation>
     </message>
     <message>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>No</translation>
     </message>
     <message>
         <source>Shutdown Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Apagar dispositivo</translation>
     </message>
     <message>
         <source>Factory Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Restablecimiento de fábrica</translation>
     </message>
 </context>
+
 <context>
     <name>DeviceSettingsPage</name>
     <message>
         <source>Audio</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio</translation>
     </message>
     <message>
         <source>Time Zone</source>
-        <translation type="unfinished"></translation>
+        <translation>Zona horaria</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Idioma</translation>
     </message>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar contraseña</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar</translation>
     </message>
     <message>
         <source>Device Restore &amp; Upgrade</source>
-        <translation type="unfinished"></translation>
+        <translation>Restauración y actualización del dispositivo</translation>
     </message>
     <message>
         <source>Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Restablecer</translation>
     </message>
     <message>
         <source>Update From USB</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar desde USB</translation>
     </message>
 </context>
+
 <context>
     <name>DisplayPage</name>
     <message>
         <source>Resolution</source>
-        <translation type="unfinished"></translation>
+        <translation>Resolución</translation>
     </message>
     <message>
         <source>Orientation</source>
-        <translation type="unfinished"></translation>
+        <translation>Orientación</translation>
     </message>
     <message>
         <source>Power Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Ahorro de energía</translation>
     </message>
     <message>
         <source>Display Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Pantalla apagada</translation>
     </message>
     <message>
         <source>Device Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo apagado</translation>
     </message>
     <message>
         <source>Enable On Screen Keyboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Habilitar teclado en pantalla</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished"></translation>
+        <translation>Habilitar</translation>
     </message>
     <message>
         <source>Enable Touch Screen</source>
-        <translation type="unfinished"></translation>
+        <translation>Habilitar pantalla táctil</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Guardar</translation>
     </message>
 </context>
+
 <context>
     <name>EthernetNetworkPage</name>
     <message>
         <source>Ethernet Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Detalles de Ethernet</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes de IP</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IPv4</translation>
     </message>
     <message>
         <source>192.168.1.100</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.100</translation>
     </message>
     <message>
         <source>Subnet mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Máscara de subred</translation>
     </message>
     <message>
         <source>255.255.255.0</source>
-        <translation type="unfinished"></translation>
+        <translation>255.255.255.0</translation>
     </message>
     <message>
         <source>Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Puerta de enlace</translation>
     </message>
     <message>
         <source>192.168.1.1</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.1</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>8.8.8.8</source>
-        <translation type="unfinished"></translation>
+        <translation>8.8.8.8</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>8.8.4.4</source>
-        <translation type="unfinished"></translation>
+        <translation>8.8.4.4</translation>
     </message>
     <message>
         <source>MAC address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección MAC</translation>
     </message>
     <message>
         <source>AA:BB:CC:DD:EE:FF</source>
-        <translation type="unfinished"></translation>
+        <translation>AA:BB:CC:DD:EE:FF</translation>
     </message>
     <message>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>Aplicar</translation>
     </message>
 </context>
+
 <context>
     <name>LoginPage</name>
     <message>
         <source>Login</source>
-        <translation type="unfinished"></translation>
+        <translation>Iniciar sesión</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la contraseña</translation>
     </message>
     <message>
         <source>The password you entered is incorrect. Please try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>La contraseña introducida es incorrecta. Inténtelo de nuevo.</translation>
     </message>
 </context>
+
 <context>
     <name>PrefsCheckBox</name>
     <message>
         <source>CheckBox</source>
-        <translation type="unfinished"></translation>
+        <translation>Casilla</translation>
     </message>
 </context>
+
 <context>
     <name>PrefsFooterLayout</name>
     <message>
         <source>RD Servers</source>
-        <translation type="unfinished"></translation>
+        <translation>Servidores RD</translation>
     </message>
     <message>
         <source>Ethernet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ethernet</translation>
     </message>
     <message>
         <source>Wifi</source>
-        <translation type="unfinished"></translation>
+        <translation>WiFi</translation>
     </message>
     <message>
         <source>Display Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes de pantalla</translation>
     </message>
     <message>
         <source>Device Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes del dispositivo</translation>
     </message>
     <message>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Acerca de</translation>
     </message>
 </context>
+
 <context>
     <name>RemovePassword</name>
     <message>
         <source>Remove Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar contraseña</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la contraseña</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar</translation>
     </message>
 </context>
+
 <context>
     <name>ServerSettingsPage</name>
     <message>
         <source>Connection Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre de la conexión</translation>
     </message>
     <message>
         <source>Server IP</source>
-        <translation type="unfinished"></translation>
+        <translation>IP del servidor</translation>
     </message>
     <message>
         <source>Auto</source>
-        <translation type="unfinished"></translation>
+        <translation>Automático</translation>
     </message>
     <message>
         <source>Manage Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>Gestionar conexiones</translation>
     </message>
     <message>
         <source>Auto-connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Conexión automática</translation>
     </message>
     <message>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectar</translation>
     </message>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Editar</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar</translation>
     </message>
     <message>
         <source>Add RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir servidor RD</translation>
     </message>
     <message>
         <source>Enter %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca %1</translation>
     </message>
     <message>
         <source>RD Server IP</source>
-        <translation type="unfinished"></translation>
+        <translation>IP del servidor RD</translation>
     </message>
     <message>
         <source>Device Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre del dispositivo</translation>
     </message>
     <message>
         <source>Username</source>
-        <translation type="unfinished"></translation>
+        <translation>Usuario</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Contraseña</translation>
     </message>
     <message>
         <source>Performance</source>
-        <translation type="unfinished"></translation>
+        <translation>Rendimiento</translation>
     </message>
     <message>
         <source>Best</source>
-        <translation type="unfinished"></translation>
+        <translation>Mejor</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished"></translation>
+        <translation>Habilitar</translation>
     </message>
     <message>
         <source>Audio</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio</translation>
     </message>
     <message>
         <source>Microphone</source>
-        <translation type="unfinished"></translation>
+        <translation>Micrófono</translation>
     </message>
     <message>
         <source>Redirect</source>
-        <translation type="unfinished"></translation>
+        <translation>Redirigir</translation>
     </message>
     <message>
         <source>Drive</source>
-        <translation type="unfinished"></translation>
+        <translation>Unidad</translation>
     </message>
     <message>
         <source>USB Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo USB</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Seguridad</translation>
     </message>
     <message>
         <source>NLA</source>
-        <translation type="unfinished"></translation>
+        <translation>NLA</translation>
     </message>
     <message>
         <source>Enable RD Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Habilitar RD Gateway</translation>
     </message>
     <message>
         <source>RD Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>RD Gateway</translation>
     </message>
     <message>
         <source>Gateway IP</source>
-        <translation type="unfinished"></translation>
+        <translation>IP del gateway</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished"></translation>
+        <translation>Limpiar</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Guardar</translation>
     </message>
     <message>
         <source>%1 cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 no puede estar vacío</translation>
     </message>
 </context>
+
 <context>
     <name>SetPassword</name>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar contraseña</translation>
     </message>
     <message>
         <source>Set Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Establecer contraseña</translation>
     </message>
     <message>
         <source>Enter Old Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la contraseña antigua</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la contraseña</translation>
     </message>
     <message>
         <source>Enter New Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la nueva contraseña</translation>
     </message>
     <message>
         <source>Confirm Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Confirmar contraseña</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Guardar</translation>
     </message>
 </context>
+
 <context>
     <name>SetWifiPassword</name>
     <message>
         <source>Wifi Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Contraseña WiFi</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduzca la contraseña</translation>
     </message>
     <message>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation>Aceptar</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
 </context>
+
 <context>
     <name>SoftwareUpdater</name>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar</translation>
     </message>
     <message>
         <source>Software update available. Changes have been detected. Proceed with update?</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualización de software disponible. Se han detectado cambios. ¿Desea continuar con la actualización?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Start Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Iniciar actualización</translation>
     </message>
 </context>
+
 <context>
     <name>UpdatePasswordDialog</name>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Actualizar contraseña</translation>
     </message>
     <message>
         <source>Would you like to set a new password or remove the existing one?</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Desea establecer una nueva contraseña o eliminar la existente?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Set Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Establecer contraseña</translation>
     </message>
     <message>
         <source>Remove Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar contraseña</translation>
     </message>
 </context>
+
 <context>
     <name>WiFiAddNetworkManager</name>
     <message>
         <source>Another operation is already running</source>
-        <translation type="unfinished"></translation>
+        <translation>Otra operación ya está en curso</translation>
     </message>
     <message>
         <source>Form is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>El formulario no es válido</translation>
     </message>
     <message>
         <source>SSID is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>El SSID está vacío</translation>
     </message>
     <message>
         <source>Failed to configure hidden mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar el modo oculto</translation>
     </message>
     <message>
         <source>Failed to configure security</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar la seguridad</translation>
     </message>
     <message>
         <source>Failed to configure IP</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar la IP</translation>
     </message>
     <message>
         <source>Failed to configure proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar el proxy</translation>
     </message>
     <message>
         <source>Failed to configure MAC</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar la MAC</translation>
     </message>
     <message>
         <source>Failed to configure metered</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al configurar el uso de datos medido</translation>
     </message>
     <message>
         <source>Network added successfully</source>
-        <translation type="unfinished"></translation>
+        <translation>Red añadida con éxito</translation>
     </message>
 </context>
+
 <context>
     <name>WifiDetails</name>
     <message>
         <source>Wifi Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Detalles del WiFi</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Cerrar</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkDetails</name>
     <message>
         <source>Network Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Detalles de la red</translation>
     </message>
     <message>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Estado</translation>
     </message>
     <message>
         <source>Connected</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectado</translation>
     </message>
     <message>
         <source>Signal Strength</source>
-        <translation type="unfinished"></translation>
+        <translation>Intensidad de señal</translation>
     </message>
     <message>
         <source>Connection speed</source>
-        <translation type="unfinished"></translation>
+        <translation>Velocidad de conexión</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Seguridad</translation>
     </message>
     <message>
         <source>Mac address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección MAC</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IPv4</translation>
     </message>
     <message>
         <source>IPv4 settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes IPv4</translation>
     </message>
     <message>
         <source>IPv4 Subnet</source>
-        <translation type="unfinished"></translation>
+        <translation>Subred IPv4</translation>
     </message>
     <message>
         <source>IPv4 Gatway</source>
-        <translation type="unfinished"></translation>
+        <translation>Gateway IPv4</translation>
     </message>
     <message>
         <source>IPv4 DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS IPv4</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkDetailsDIalog</name>
     <message>
         <source>Network Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Detalles de la red</translation>
     </message>
     <message>
         <source>SSID</source>
-        <translation type="unfinished"></translation>
+        <translation>SSID</translation>
     </message>
     <message>
         <source>e.g. ThinClient</source>
-        <translation type="unfinished"></translation>
+        <translation>ej. ThinClient</translation>
     </message>
     <message>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Estado</translation>
     </message>
     <message>
         <source>e.g. Connected / Disconnected</source>
-        <translation type="unfinished"></translation>
+        <translation>ej. Conectado / Desconectado</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Seguridad</translation>
     </message>
     <message>
         <source>e.g. WPA2-PSK</source>
-        <translation type="unfinished"></translation>
+        <translation>ej. WPA2-PSK</translation>
     </message>
     <message>
         <source>MAC address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección MAC</translation>
     </message>
     <message>
         <source>e.g. AA:BB:CC:DD:EE:FF</source>
-        <translation type="unfinished"></translation>
+        <translation>ej. AA:BB:CC:DD:EE:FF</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IPv4</translation>
     </message>
     <message>
         <source>192.168.1.100</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.100</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajustes de IP</translation>
     </message>
     <message>
         <source>IP Address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IP</translation>
     </message>
     <message>
         <source>Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Puerta de enlace</translation>
     </message>
     <message>
         <source>Subnet Mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Máscara de subred</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>Invalid IP address</source>
-        <translation type="unfinished"></translation>
+        <translation>Dirección IP no válida</translation>
     </message>
     <message>
         <source>Invalid subnet mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Máscara de subred no válida</translation>
     </message>
     <message>
         <source>Invalid gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Puerta de enlace no válida</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkPage</name>
     <message>
         <source>Connected</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectado</translation>
     </message>
     <message>
         <source>Forgot</source>
-        <translation type="unfinished"></translation>
+        <translation>Olvidada</translation>
     </message>
     <message>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Conectar</translation>
     </message>
     <message>
         <source>Disconnect</source>
-        <translation type="unfinished"></translation>
+        <translation>Desconectar</translation>
     </message>
     <message>
         <source>Add Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir red</translation>
     </message>
     <message>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Añadir</translation>
     </message>
 </context>
+
 <context>
     <name>main</name>
     <message>
         <source>G1 Thin Client PC</source>
-        <translation type="unfinished"></translation>
+        <translation>G1 Thin Client PC</translation>
     </message>
 </context>
+
 </TS>

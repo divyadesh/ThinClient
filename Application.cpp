@@ -202,7 +202,6 @@ void Application::initWorkers()
 void Application::initModels()
 {
     _appSettings   = new AppSettings(this);
-    _languageModel = new LanguageModel(this);
     _deviceSettings= new DeviceSettings(this);
     _monitor       = new UdevMonitor(this);
 
@@ -225,6 +224,7 @@ void Application::initModels()
     // Database singleton (assumed). Do not set parent / delete.
     _database = DataBase::instance(this);
     _resolutionListModel = new ResolutionListModel(this);
+    _languageModel = new LanguageModel(this);
 }
 
 void Application::initControllers()

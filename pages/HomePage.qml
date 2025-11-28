@@ -93,10 +93,31 @@ BasicPage {
                 implicitWidth: grid.cellWidth
                 implicitHeight: grid.cellHeight
 
+                Connections {
+                    target: serverInfo
+                    function onRdpSessionStarted(id) {
+                        if(id === connectionId) {
+                            showProgress.visible = true
+                        }
+                    }
+
+                    function onRdpSessionFinished(id, success) {
+                        if(id === connectionId) {
+                            showProgress.visible = false
+                        }
+                    }
+                }
+
+                PrefsBusyIndicator {
+                    id: showProgress
+                    visible: false
+                    anchors.centerIn: parent
+                }
+
                 contentItem: HomeTabButton {
                     id: tabButton
                     ButtonGroup.group: tabGroup
-                    text: connectionName
+                    text: showProgress.visible ? "" : connectionName
                     icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
 
                     onClicked: {

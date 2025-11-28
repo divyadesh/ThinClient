@@ -1,805 +1,829 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
+
 <context>
     <name>AddNetwork</name>
     <message>
         <source>Add Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Add Network</translation>
     </message>
     <message>
         <source>Hotspot name (required)</source>
-        <translation type="unfinished"></translation>
+        <translation>Hotspot name (required)</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Security</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Password</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy</translation>
     </message>
     <message>
         <source>HTTP Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>HTTP Proxy (host:port)</translation>
     </message>
     <message>
         <source>HTTPS Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>HTTPS Proxy (host:port)</translation>
     </message>
     <message>
         <source>SOCKS Proxy (host:port)</source>
-        <translation type="unfinished"></translation>
+        <translation>SOCKS Proxy (host:port)</translation>
     </message>
     <message>
         <source>Ignore Hosts</source>
-        <translation type="unfinished"></translation>
+        <translation>Ignore Hosts</translation>
     </message>
     <message>
         <source>PAC URL</source>
-        <translation type="unfinished"></translation>
+        <translation>PAC URL</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>IP settings</translation>
     </message>
     <message>
         <source>IP address</source>
-        <translation type="unfinished"></translation>
+        <translation>IP address</translation>
     </message>
     <message>
         <source>Router</source>
-        <translation type="unfinished"></translation>
+        <translation>Router</translation>
     </message>
     <message>
         <source>Prefix length</source>
-        <translation type="unfinished"></translation>
+        <translation>Prefix length</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>Privacy</source>
-        <translation type="unfinished"></translation>
+        <translation>Privacy</translation>
     </message>
     <message>
         <source>Metered</source>
-        <translation type="unfinished"></translation>
+        <translation>Metered</translation>
     </message>
     <message>
         <source>Hidden network</source>
-        <translation type="unfinished"></translation>
+        <translation>Hidden network</translation>
     </message>
 </context>
+
 <context>
     <name>AutoConnect</name>
     <message>
         <source>Auto Connect RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Auto Connect RD Server</translation>
     </message>
     <message>
         <source>Auto Connecting RD Server ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Auto Connecting RD Server ...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
 </context>
+
 <context>
     <name>DashboardPage</name>
     <message>
         <source>RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>RD Server</translation>
     </message>
 </context>
+
 <context>
     <name>DeleteWifiConnection</name>
     <message>
         <source>Delete RD Server Connection</source>
-        <translation type="unfinished"></translation>
+        <translation>Delete RD Server Connection</translation>
     </message>
     <message>
         <source>Are you sure you want to delete this RD Server connection?</source>
-        <translation type="unfinished"></translation>
+        <translation>Are you sure you want to delete this RD Server connection?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Delete</translation>
     </message>
 </context>
+
 <context>
     <name>DeviceResetDialog</name>
     <message>
         <source>Device Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Device Reset</translation>
     </message>
     <message>
         <source>Are you are sure you want to reset the device ?</source>
-        <translation type="unfinished"></translation>
+        <translation>Are you are sure you want to reset the device ?</translation>
     </message>
     <message>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>Yes</translation>
     </message>
     <message>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>No</translation>
     </message>
     <message>
         <source>Shutdown Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Shutdown Device</translation>
     </message>
     <message>
         <source>Factory Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Factory Reset</translation>
     </message>
 </context>
+
 <context>
     <name>DeviceSettingsPage</name>
     <message>
         <source>Audio</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio</translation>
     </message>
     <message>
         <source>Time Zone</source>
-        <translation type="unfinished"></translation>
+        <translation>Time Zone</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Language</translation>
     </message>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Update Password</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Update</translation>
     </message>
     <message>
         <source>Device Restore &amp; Upgrade</source>
-        <translation type="unfinished"></translation>
+        <translation>Device Restore &amp; Upgrade</translation>
     </message>
     <message>
         <source>Reset</source>
-        <translation type="unfinished"></translation>
+        <translation>Reset</translation>
     </message>
     <message>
         <source>Update From USB</source>
-        <translation type="unfinished"></translation>
+        <translation>Update From USB</translation>
     </message>
 </context>
+
 <context>
     <name>DisplayPage</name>
     <message>
         <source>Resolution</source>
-        <translation type="unfinished"></translation>
+        <translation>Resolution</translation>
     </message>
     <message>
         <source>Orientation</source>
-        <translation type="unfinished"></translation>
+        <translation>Orientation</translation>
     </message>
     <message>
         <source>Power Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Power Save</translation>
     </message>
     <message>
         <source>Display Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Display Off</translation>
     </message>
     <message>
         <source>Device Off</source>
-        <translation type="unfinished"></translation>
+        <translation>Device Off</translation>
     </message>
     <message>
         <source>Enable On Screen Keyboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable On Screen Keyboard</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable</translation>
     </message>
     <message>
         <source>Enable Touch Screen</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable Touch Screen</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Save</translation>
     </message>
 </context>
+
 <context>
     <name>EthernetNetworkPage</name>
     <message>
         <source>Ethernet Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Ethernet Details</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>IP settings</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 address</translation>
     </message>
     <message>
         <source>192.168.1.100</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.100</translation>
     </message>
     <message>
         <source>Subnet mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Subnet mask</translation>
     </message>
     <message>
         <source>255.255.255.0</source>
-        <translation type="unfinished"></translation>
+        <translation>255.255.255.0</translation>
     </message>
     <message>
         <source>Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Gateway</translation>
     </message>
     <message>
         <source>192.168.1.1</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.1</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>8.8.8.8</source>
-        <translation type="unfinished"></translation>
+        <translation>8.8.8.8</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>8.8.4.4</source>
-        <translation type="unfinished"></translation>
+        <translation>8.8.4.4</translation>
     </message>
     <message>
         <source>MAC address</source>
-        <translation type="unfinished"></translation>
+        <translation>MAC address</translation>
     </message>
     <message>
         <source>AA:BB:CC:DD:EE:FF</source>
-        <translation type="unfinished"></translation>
+        <translation>AA:BB:CC:DD:EE:FF</translation>
     </message>
     <message>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>Apply</translation>
     </message>
 </context>
+
 <context>
     <name>LoginPage</name>
     <message>
         <source>Login</source>
-        <translation type="unfinished"></translation>
+        <translation>Login</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter Password</translation>
     </message>
     <message>
         <source>The password you entered is incorrect. Please try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>The password you entered is incorrect. Please try again.</translation>
     </message>
 </context>
+
 <context>
     <name>PrefsCheckBox</name>
     <message>
         <source>CheckBox</source>
-        <translation type="unfinished"></translation>
+        <translation>CheckBox</translation>
     </message>
 </context>
+
 <context>
     <name>PrefsFooterLayout</name>
     <message>
         <source>RD Servers</source>
-        <translation type="unfinished"></translation>
+        <translation>RD Servers</translation>
     </message>
     <message>
         <source>Ethernet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ethernet</translation>
     </message>
     <message>
         <source>Wifi</source>
-        <translation type="unfinished"></translation>
+        <translation>Wifi</translation>
     </message>
     <message>
         <source>Display Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Display Settings</translation>
     </message>
     <message>
         <source>Device Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Device Settings</translation>
     </message>
     <message>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>About</translation>
     </message>
 </context>
+
 <context>
     <name>RemovePassword</name>
     <message>
         <source>Remove Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Remove Password</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter Password</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished"></translation>
+        <translation>Remove</translation>
     </message>
 </context>
+
 <context>
     <name>ServerSettingsPage</name>
     <message>
         <source>Connection Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Connection Name</translation>
     </message>
     <message>
         <source>Server IP</source>
-        <translation type="unfinished"></translation>
+        <translation>Server IP</translation>
     </message>
     <message>
         <source>Auto</source>
-        <translation type="unfinished"></translation>
+        <translation>Auto</translation>
     </message>
     <message>
         <source>Manage Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>Manage Connections</translation>
     </message>
     <message>
         <source>Auto-connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Auto-connect</translation>
     </message>
     <message>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Connect</translation>
     </message>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Edit</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Delete</translation>
     </message>
     <message>
         <source>Add RD Server</source>
-        <translation type="unfinished"></translation>
+        <translation>Add RD Server</translation>
     </message>
     <message>
         <source>Enter %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter %1</translation>
     </message>
     <message>
         <source>RD Server IP</source>
-        <translation type="unfinished"></translation>
+        <translation>RD Server IP</translation>
     </message>
     <message>
         <source>Device Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Device Name</translation>
     </message>
     <message>
         <source>Username</source>
-        <translation type="unfinished"></translation>
+        <translation>Username</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Password</translation>
     </message>
     <message>
         <source>Performance</source>
-        <translation type="unfinished"></translation>
+        <translation>Performance</translation>
     </message>
     <message>
         <source>Best</source>
-        <translation type="unfinished"></translation>
+        <translation>Best</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable</translation>
     </message>
     <message>
         <source>Audio</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio</translation>
     </message>
     <message>
         <source>Microphone</source>
-        <translation type="unfinished"></translation>
+        <translation>Microphone</translation>
     </message>
     <message>
         <source>Redirect</source>
-        <translation type="unfinished"></translation>
+        <translation>Redirect</translation>
     </message>
     <message>
         <source>Drive</source>
-        <translation type="unfinished"></translation>
+        <translation>Drive</translation>
     </message>
     <message>
         <source>USB Device</source>
-        <translation type="unfinished"></translation>
+        <translation>USB Device</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Security</translation>
     </message>
     <message>
         <source>NLA</source>
-        <translation type="unfinished"></translation>
+        <translation>NLA</translation>
     </message>
     <message>
         <source>Enable RD Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable RD Gateway</translation>
     </message>
     <message>
         <source>RD Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>RD Gateway</translation>
     </message>
     <message>
         <source>Gateway IP</source>
-        <translation type="unfinished"></translation>
+        <translation>Gateway IP</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished"></translation>
+        <translation>Clear</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Save</translation>
     </message>
     <message>
         <source>%1 cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 cannot be empty</translation>
     </message>
 </context>
+
 <context>
     <name>SetPassword</name>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Update Password</translation>
     </message>
     <message>
         <source>Set Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Set Password</translation>
     </message>
     <message>
         <source>Enter Old Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter Old Password</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter Password</translation>
     </message>
     <message>
         <source>Enter New Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter New Password</translation>
     </message>
     <message>
         <source>Confirm Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Confirm Password</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Update</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Save</translation>
     </message>
 </context>
+
 <context>
     <name>SetWifiPassword</name>
     <message>
         <source>Wifi Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Wifi Password</translation>
     </message>
     <message>
         <source>Enter Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter Password</translation>
     </message>
     <message>
         <source>Ok</source>
-        <translation type="unfinished"></translation>
+        <translation>Ok</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
 </context>
+
 <context>
     <name>SoftwareUpdater</name>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Update</translation>
     </message>
     <message>
         <source>Software update available. Changes have been detected. Proceed with update?</source>
-        <translation type="unfinished"></translation>
+        <translation>Software update available. Changes have been detected. Proceed with update?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Start Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Start Update</translation>
     </message>
 </context>
+
 <context>
     <name>UpdatePasswordDialog</name>
     <message>
         <source>Update Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Update Password</translation>
     </message>
     <message>
         <source>Would you like to set a new password or remove the existing one?</source>
-        <translation type="unfinished"></translation>
+        <translation>Would you like to set a new password or remove the existing one?</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Set Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Set Password</translation>
     </message>
     <message>
         <source>Remove Password</source>
-        <translation type="unfinished"></translation>
+        <translation>Remove Password</translation>
     </message>
 </context>
+
 <context>
     <name>WiFiAddNetworkManager</name>
     <message>
         <source>Another operation is already running</source>
-        <translation type="unfinished"></translation>
+        <translation>Another operation is already running</translation>
     </message>
     <message>
         <source>Form is not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>Form is not valid</translation>
     </message>
     <message>
         <source>SSID is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>SSID is empty</translation>
     </message>
     <message>
         <source>Failed to configure hidden mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure hidden mode</translation>
     </message>
     <message>
         <source>Failed to configure security</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure security</translation>
     </message>
     <message>
         <source>Failed to configure IP</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure IP</translation>
     </message>
     <message>
         <source>Failed to configure proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure proxy</translation>
     </message>
     <message>
         <source>Failed to configure MAC</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure MAC</translation>
     </message>
     <message>
         <source>Failed to configure metered</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to configure metered</translation>
     </message>
     <message>
         <source>Network added successfully</source>
-        <translation type="unfinished"></translation>
+        <translation>Network added successfully</translation>
     </message>
 </context>
+
 <context>
     <name>WifiDetails</name>
     <message>
         <source>Wifi Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Wifi Details</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation>Close</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkDetails</name>
     <message>
         <source>Network Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Network Details</translation>
     </message>
     <message>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Status</translation>
     </message>
     <message>
         <source>Connected</source>
-        <translation type="unfinished"></translation>
+        <translation>Connected</translation>
     </message>
     <message>
         <source>Signal Strength</source>
-        <translation type="unfinished"></translation>
+        <translation>Signal Strength</translation>
     </message>
     <message>
         <source>Connection speed</source>
-        <translation type="unfinished"></translation>
+        <translation>Connection speed</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Security</translation>
     </message>
     <message>
         <source>Mac address</source>
-        <translation type="unfinished"></translation>
+        <translation>Mac address</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 address</translation>
     </message>
     <message>
         <source>IPv4 settings</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 settings</translation>
     </message>
     <message>
         <source>IPv4 Subnet</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 Subnet</translation>
     </message>
     <message>
         <source>IPv4 Gatway</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 Gatway</translation>
     </message>
     <message>
         <source>IPv4 DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 DNS</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkDetailsDIalog</name>
     <message>
         <source>Network Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Network Details</translation>
     </message>
     <message>
         <source>SSID</source>
-        <translation type="unfinished"></translation>
+        <translation>SSID</translation>
     </message>
     <message>
         <source>e.g. ThinClient</source>
-        <translation type="unfinished"></translation>
+        <translation>e.g. ThinClient</translation>
     </message>
     <message>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Status</translation>
     </message>
     <message>
         <source>e.g. Connected / Disconnected</source>
-        <translation type="unfinished"></translation>
+        <translation>e.g. Connected / Disconnected</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Security</translation>
     </message>
     <message>
         <source>e.g. WPA2-PSK</source>
-        <translation type="unfinished"></translation>
+        <translation>e.g. WPA2-PSK</translation>
     </message>
     <message>
         <source>MAC address</source>
-        <translation type="unfinished"></translation>
+        <translation>MAC address</translation>
     </message>
     <message>
         <source>e.g. AA:BB:CC:DD:EE:FF</source>
-        <translation type="unfinished"></translation>
+        <translation>e.g. AA:BB:CC:DD:EE:FF</translation>
     </message>
     <message>
         <source>IPv4 address</source>
-        <translation type="unfinished"></translation>
+        <translation>IPv4 address</translation>
     </message>
     <message>
         <source>192.168.1.100</source>
-        <translation type="unfinished"></translation>
+        <translation>192.168.1.100</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Proxy</translation>
     </message>
     <message>
         <source>IP settings</source>
-        <translation type="unfinished"></translation>
+        <translation>IP settings</translation>
     </message>
     <message>
         <source>IP Address</source>
-        <translation type="unfinished"></translation>
+        <translation>IP Address</translation>
     </message>
     <message>
         <source>Gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Gateway</translation>
     </message>
     <message>
         <source>Subnet Mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Subnet Mask</translation>
     </message>
     <message>
         <source>DNS 1</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 1</translation>
     </message>
     <message>
         <source>DNS 2</source>
-        <translation type="unfinished"></translation>
+        <translation>DNS 2</translation>
     </message>
     <message>
         <source>Invalid IP address</source>
-        <translation type="unfinished"></translation>
+        <translation>Invalid IP address</translation>
     </message>
     <message>
         <source>Invalid subnet mask</source>
-        <translation type="unfinished"></translation>
+        <translation>Invalid subnet mask</translation>
     </message>
     <message>
         <source>Invalid gateway</source>
-        <translation type="unfinished"></translation>
+        <translation>Invalid gateway</translation>
     </message>
 </context>
+
 <context>
     <name>WifiNetworkPage</name>
     <message>
         <source>Connected</source>
-        <translation type="unfinished"></translation>
+        <translation>Connected</translation>
     </message>
     <message>
         <source>Forgot</source>
-        <translation type="unfinished"></translation>
+        <translation>Forgot</translation>
     </message>
     <message>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Connect</translation>
     </message>
     <message>
         <source>Disconnect</source>
-        <translation type="unfinished"></translation>
+        <translation>Disconnect</translation>
     </message>
     <message>
         <source>Add Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Add Network</translation>
     </message>
     <message>
         <source>Add</source>
-        <translation type="unfinished"></translation>
+        <translation>Add</translation>
     </message>
 </context>
+
 <context>
     <name>main</name>
     <message>
         <source>G1 Thin Client PC</source>
-        <translation type="unfinished"></translation>
+        <translation>G1 Thin Client PC</translation>
     </message>
 </context>
+
 </TS>

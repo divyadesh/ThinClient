@@ -112,5 +112,7 @@
         <file>components/TimeZoneSelector.qml</file>
         <file>assets/icons/ic_aux.svg</file>
         <file>pages/AddCustomResolution.qml</file>
+        <file>pages/NotificationItem.qml</file>
+        <file>pages/NotificationManager.qml</file>
     </qresource>
 </RCC>

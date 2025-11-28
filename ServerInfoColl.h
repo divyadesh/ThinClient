@@ -40,8 +40,8 @@ public:
     void setAutoConnect(const QString &connectionId);
 
 signals:
-    void rdpSessionStarted();
-    void rdpSessionFinished(bool success);
+    void rdpSessionStarted(const QString& id);
+    void rdpSessionFinished(const QString& id, bool success);
 
 private slots:
     void onRdpFinished();
@@ -53,6 +53,8 @@ private:
 
     std::atomic_bool _already_running{false};
     QFutureWatcher<void> _rdpWatcher;
+    QString _connectionId;
+    bool _success;
 };
 
 #endif // SERVERINFOCOLL_H

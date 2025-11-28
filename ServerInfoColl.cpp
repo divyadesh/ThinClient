@@ -100,7 +100,8 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
     }
 
     _already_running.store(true);
-    emit rdpSessionStarted();
+    _connectionId = connectionId;
+    emit rdpSessionStarted(connectionId);
 
     QFuture<void> future = QtConcurrent::run([this, info]() {
         startRdp(info);
@@ -112,7 +113,7 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
 void ServerInfoColl::onRdpFinished()
 {
     _already_running.store(false);
-    emit rdpSessionFinished(true);
+    emit rdpSessionFinished(_connectionId, _success);
     qCInfo(lcServerInfo) << "RDP session completed and flag reset.";
 }
 
@@ -229,10 +230,13 @@ void ServerInfoColl::startRdp(ServerInfoStruct info)
     env.insert("QT_QUICK_BACKEND", "software");
 
     // Start RDP
+    _success = false;
     bool ok = QProcess::startDetached(cmd, args, QString(), nullptr);
 
     if (!ok)
         qWarning() << "[RDP] Failed to start wlfreerdp!";
     else
         qInfo() << "[RDP] RDP started successfully.";
+
+    _success = ok;
 }
