@@ -24,14 +24,18 @@ Control {
 
         Control {
             id: back_control
+            property bool isActiveFocus: activeFocus &&
+                                         (focusReason === Qt.TabFocusReason ||
+                                          focusReason === Qt.BacktabFocusReason)
+            padding: 5
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             activeFocusOnTab: true
             focusPolicy: Qt.StrongFocus
             focus: true
 
             background: Rectangle {
-                border.color: back_control.activeFocus ? "#FFFFFF" : "transparent"
-                border.width: back_control.activeFocus ? 2 : 0
+                border.color: back_control.isActiveFocus ? "#FFFFFF" : "transparent"
+                border.width: back_control.isActiveFocus ? 2 : 0
                 color: "transparent"
             }
 

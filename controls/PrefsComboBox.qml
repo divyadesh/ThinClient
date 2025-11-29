@@ -9,6 +9,10 @@ ComboBox {
     id: control
     property real control_width: 260
     property int radius: 6
+    property bool isActiveFocus: activeFocus &&
+                                 (focusReason === Qt.TabFocusReason ||
+                                  focusReason === Qt.BacktabFocusReason)
+
     width: control_width
     hoverEnabled: true
     activeFocusOnTab: true
@@ -26,8 +30,8 @@ ComboBox {
             anchors.fill: parent
             radius: 8
             color: Colors.btnBg
-            border.width: control.activeFocus ? 2 : 1
-            border.color: control.activeFocus ? Colors.accentPrimary : Colors.secondaryBackground
+            border.width: control.isActiveFocus ? 2 : 1
+            border.color: control.isActiveFocus ? Colors.accentPrimary : Colors.secondaryBackground
         }
     }
 

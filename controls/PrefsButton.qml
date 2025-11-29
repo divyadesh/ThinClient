@@ -6,6 +6,9 @@ import App.Styles 1.0
 Button {
     id: control
     property int radius: height / 2
+    property bool isActiveFocus: activeFocus &&
+                                 (focusReason === Qt.TabFocusReason ||
+                                  focusReason === Qt.BacktabFocusReason)
     hoverEnabled: true
     leftPadding: 8
     rightPadding: 8
@@ -18,8 +21,8 @@ Button {
         implicitHeight: 34
         implicitWidth: 120
         radius: control.radius
-        border.color: control.activeFocus ? "#FFFFFF" : "transparent"
-        border.width: control.activeFocus ? 2 : 0
+        border.color: control.isActiveFocus ? "#FFFFFF" : "transparent"
+        border.width: control.isActiveFocus ? 2 : 0
 
         color: {
             if (!control.enabled) {

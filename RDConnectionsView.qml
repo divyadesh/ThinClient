@@ -91,21 +91,7 @@ Item {
 
     Component {
         id: name_com
-        Control {
-            id: name_control
-            width: table.width / 4
-            padding: 10
-
-            activeFocusOnTab: true
-            focusPolicy: Qt.StrongFocus
-            focus: true
-
-            background: Rectangle {
-                border.color: name_control.activeFocus ? "#FFFFFF" : "transparent"
-                border.width: name_control.activeFocus ? 2 : 0
-                color: "transparent"
-            }
-
+        TableDelegate {
             contentItem: PrefsLabel {
                 // inside TableView delegate: "model" holds the row's roles
                 text: model.connectionName
@@ -119,19 +105,7 @@ Item {
 
     Component {
         id: ip_com
-        Control {
-            id: ip_control
-            width: Math.max(table.width / 4, 100)
-            padding: 10
-            activeFocusOnTab: true
-            focusPolicy: Qt.StrongFocus
-            focus: true
-
-            background: Rectangle {
-                border.color: ip_control.activeFocus ? "#FFFFFF" : "transparent"
-                border.width: ip_control.activeFocus ? 2 : 0
-                color: "transparent"
-            }
+        TableDelegate {
             contentItem: PrefsLabel {
                 text: model.serverIp
                 horizontalAlignment: Text.AlignHCenter
@@ -219,17 +193,7 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
-                Control {
-                    id: connect_control
-                    activeFocusOnTab: true
-                    focusPolicy: Qt.StrongFocus
-                    focus: true
-
-                    background: Rectangle {
-                        border.color: connect_control.activeFocus ? "#FFFFFF" : "transparent"
-                        border.width: connect_control.activeFocus ? 2 : 0
-                        color: "transparent"
-                    }
+                TableDelegate {
                     contentItem: PrefsLink {
                         text: qsTr("Connect")
                         onClicked: {
@@ -238,17 +202,7 @@ Item {
                     }
                 }
 
-                Control {
-                    id: edit_control
-                    activeFocusOnTab: true
-                    focusPolicy: Qt.StrongFocus
-                    focus: true
-
-                    background: Rectangle {
-                        border.color: edit_control.activeFocus ? "#FFFFFF" : "transparent"
-                        border.width: edit_control.activeFocus ? 2 : 0
-                        color: "transparent"
-                    }
+                TableDelegate {
                     contentItem: PrefsLink {
                         text: qsTr("Edit")
                         onClicked: {
@@ -257,18 +211,7 @@ Item {
                     }
                 }
 
-                Control {
-                    id: delete_control
-                    activeFocusOnTab: true
-                    focusPolicy: Qt.StrongFocus
-                    focus: true
-
-                    background: Rectangle {
-                        border.color: delete_control.activeFocus ? "#FFFFFF" : "transparent"
-                        border.width: delete_control.activeFocus ? 2 : 0
-                        color: "transparent"
-                    }
-
+                TableDelegate {
                     contentItem: PrefsLink {
                         text: qsTr("Delete")
                         onClicked: {
@@ -465,6 +408,25 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             onClicked: { link.clicked() }
+        }
+    }
+
+    component TableDelegate: Control {
+        id: _control
+        property bool isActiveFocus: activeFocus &&
+                                     (focusReason === Qt.TabFocusReason ||
+                                      focusReason === Qt.BacktabFocusReason)
+        width: table.width / 4
+        padding: 10
+
+        activeFocusOnTab: true
+        focusPolicy: Qt.StrongFocus
+        focus: true
+
+        background: Rectangle {
+            border.color: _control.isActiveFocus ? "#FFFFFF" : "transparent"
+            border.width: _control.isActiveFocus ? 2 : 0
+            color: "transparent"
         }
     }
 }
