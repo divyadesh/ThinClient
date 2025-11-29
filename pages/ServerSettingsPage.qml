@@ -281,6 +281,24 @@ BasicPage {
                                     }
                                 }
 
+                                echoMode: eyeButton.checked ? TextField.Normal : TextField.Password
+                                rightPadding: 40
+
+                                ToolButton {
+                                    id: eyeButton
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    anchors.rightMargin: 6
+                                    checkable: true
+                                    checked: false
+                                    z: 10
+                                    icon.source: checked ? "qrc:/assets/icons/ic_eye-on.svg" : "qrc:/assets/icons/ic_eye-off.svg"
+                                    icon.color: Colors.textSecondary
+                                    background: Item {
+                                        implicitWidth: 28
+                                        implicitHeight: 28
+                                    }
+                                }
                             }
                         }
                     }
