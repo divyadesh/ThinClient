@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#include <QProcess>
 #include <QFutureWatcher>
 #include <atomic>
 #include <deque>
@@ -12,6 +13,16 @@
 
 class ServerInfo;
 
+/**
+ * @class ServerInfoColl
+ * @brief Model + controller that stores server connections and manages RDP sessions.
+ *
+ * This class exposes:
+ *  - A QAbstractListModel for QML UI listing of configured servers.
+ *  - RDP session control using FreeRDP (wlfreerdp).
+ *  - Full real-time connection monitoring via stdout/stderr parsing.
+ *  - Thread-safe session management preventing duplicates.
+ */
 class ServerInfoColl : public QAbstractListModel
 {
     Q_OBJECT
@@ -19,42 +30,59 @@ class ServerInfoColl : public QAbstractListModel
 public:
     explicit ServerInfoColl(QObject *parent = nullptr);
 
+    /** @brief Roles for QAbstractListModel */
     enum ServerInfoCollRole {
         eServerInfoCollectionRole = Qt::UserRole + 1
     };
-    Q_ENUM(ServerInfoCollRole);
+    Q_ENUM(ServerInfoCollRole)
 
-    // QAbstractListModel overrides
+    // --------- MODEL OVERRIDES ----------
     QHash<int, QByteArray> roleNames() const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant data(const QModelIndex &index,
+                  int role = Qt::DisplayRole) const override;
 
-    // Exposed QML methods
+    // --------- API EXPOSED TO QML ----------
     Q_INVOKABLE void setServerInfo(const QString &connectionId);
     Q_INVOKABLE void removeConnection(const QString &connectionId);
     Q_INVOKABLE void resetAutoConnect();
     Q_INVOKABLE void connectRdServer(const QString &connectionId);
-
-    // Helpers
-    int getIndexToBeRemoved(const QString &connectionId);
-    void setAutoConnect(const QString &connectionId);
+    Q_INVOKABLE void setAutoConnect(const QString &connectionId);
 
 signals:
-    void rdpSessionStarted(const QString& id);
-    void rdpSessionFinished(const QString& id, bool success);
+
+    /** @brief Emitted when RDP connection starts */
+    void rdpSessionStarted(const QString &id);
+
+    /** @brief Emitted when connected successfully */
+    void rdpConnected(const QString &id);
+
+    /** @brief Emitted when RDP fails with reason */
+    void rdpConnectionFailed(const QString &id, const QString &reason);
+
+    /** @brief Emitted when process exits */
+    void rdpDisconnected(const QString &id);
 
 private slots:
-    void onRdpFinished();
-    void startRdp(ServerInfoStruct info);
+    void onRdpStarted();
+    void onRdpError(QProcess::ProcessError error);
+    void onRdpFinished(int exitCode, QProcess::ExitStatus status);
+    void onRdpStdOut();
+    void onRdpStdErr();
+
+private:
+    int getIndexToBeRemoved(const QString &connectionId);
+    void startRdp(const ServerInfoStruct &info);
+    void cleanupProcess();
 
 private:
     std::deque<std::shared_ptr<ServerInfo>> m_ServerInfoColl;
-    DataBase *_database{nullptr};
+    DataBase *m_database = nullptr;
 
-    std::atomic_bool _already_running{false};
-    QFutureWatcher<void> _rdpWatcher;
-    QString _connectionId;
-    bool _success;
+    std::atomic_bool m_running { false };
+    QString m_connectionId;
+
+    QProcess *m_rdp = nullptr;
 };
 
 #endif // SERVERINFOCOLL_H

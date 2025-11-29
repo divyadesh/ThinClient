@@ -186,7 +186,12 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: ethernetNetworkController.dnsRecords[0]
+                                textFieldText: (ethernetNetworkController
+                                                && ethernetNetworkController.dnsRecords
+                                                && ethernetNetworkController.dnsRecords.length > 0
+                                                && ethernetNetworkController.dnsRecords[0] !== undefined)
+                                               ? ethernetNetworkController.dnsRecords[0]
+                                               : (ethernetNetworkController ? ethernetNetworkController.gateway : "")
                                 textFieldPlaceholderText: qsTr("8.8.8.8")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                             }
@@ -196,7 +201,12 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: ethernetNetworkController.dnsRecords[1]
+                                textFieldText: (ethernetNetworkController
+                                                && ethernetNetworkController.dnsRecords
+                                                && ethernetNetworkController.dnsRecords.length > 1
+                                                && ethernetNetworkController.dnsRecords[1] !== undefined)
+                                               ? ethernetNetworkController.dnsRecords[1]
+                                               : (ethernetNetworkController ? ethernetNetworkController.gateway : "")
                                 textFieldPlaceholderText: qsTr("8.8.4.4")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                             }

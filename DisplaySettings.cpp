@@ -558,6 +558,22 @@ bool DisplaySettings::writeDefaultWestonIni()
     ts << "[core]\n";
     ts << "idle-time=0\n\n";
 
+    // Additional shell options requested
+    ts << "[shell]\n";
+    ts << "background-image=/usr/share/thinclient/background.png\n";
+    ts << "background-type=scale\n";
+    ts << "panel-location=none\n";
+    ts << "panel-color=0x00000000\n";
+    ts << "clock-format=none\n";
+    ts << "locking=false\n";            // keep your original
+    ts << "startup-animation=none\n";
+    ts << "screensaver-timeout=0\n\n";
+
+    // [launcher]
+    ts << "[launcher]\n";
+    ts << "icon=/usr/share/thinclient/g1logo.png\n";
+    ts << "path=/bin/true\n\n";
+
     ts << "[output]\n";
     ts << "name=HDMI-A-1\n";
     ts << "mode=1920x1080\n";

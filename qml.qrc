@@ -114,5 +114,6 @@
         <file>pages/AddCustomResolution.qml</file>
         <file>pages/NotificationItem.qml</file>
         <file>pages/NotificationManager.qml</file>
+        <file>RDConnectionsView.qml</file>
     </qresource>
 </RCC>

@@ -81,6 +81,11 @@ WiFiAddNetworkManager *Application::wiFiAddNetworkManager()     { return s_insta
 
 ResolutionListModel *Application::resolutionListModel()         { return s_instance ? s_instance->_resolutionListModel   : nullptr; }
 
+SessionModel *Application::sessionModel()
+{
+
+}
+
 void Application::resetAllAsync()
 {
     if (m_resetInProgress)
@@ -122,10 +127,6 @@ void Application::resetAllAsync()
             tz.write("Asia/Kolkata");
             tz.close();
         }
-
-        // Step 6: Sync filesystem
-        emit resetProgress("Syncing filesystem...");
-        QProcess::execute("sync");
 
         emit resetProgress("Factory reset completed successfully.");
         emit resetFinished(true);
@@ -225,6 +226,7 @@ void Application::initModels()
     _database = DataBase::instance(this);
     _resolutionListModel = new ResolutionListModel(this);
     _languageModel = new LanguageModel(this);
+    _sessionModel  = new SessionModel();
 }
 
 void Application::initControllers()
@@ -338,6 +340,11 @@ void Application::registerTypesAndContext()
     ctx->setContextProperty("deviceInfoSettings", _deviceInfoSettings);
     ctx->setContextProperty("resetManager", _resetManager);
     ctx->setContextProperty("resolutionListModel", _resolutionListModel);
+
+    qmlRegisterUncreatableType<ConnectionInfo>("App.Backend", 1, 0, "ConnectionInfo",
+                                               "ConnectionInfo cannot be created in QML");
+
+    ctx->setContextProperty("sessionModel", _sessionModel);
 }
 
 bool Application::resetInProgress() const

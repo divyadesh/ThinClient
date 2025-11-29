@@ -39,6 +39,7 @@
 #include "DisplaySettings.h"
 #include "timezonemodel.h"
 #include "resolutionlistmodel.h"
+#include "sessionmodel.h"
 
 class Application : public QObject
 {
@@ -76,6 +77,7 @@ public:
     static DataBase *db();
     static WiFiAddNetworkManager* wiFiAddNetworkManager();
     static ResolutionListModel* resolutionListModel();
+    static SessionModel *sessionModel();
 
     Q_INVOKABLE void resetAllAsync();
 
@@ -137,6 +139,7 @@ private:
     DataBase *_database = nullptr; // assumed singleton; do not delete
     WiFiAddNetworkManager *_wiFiAddNetworkManager;
     ResolutionListModel *_resolutionListModel;
+    SessionModel *_sessionModel;
 
     // Threads
     QThread *m_wifiThread = nullptr;

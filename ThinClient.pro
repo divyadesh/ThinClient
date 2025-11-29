@@ -17,6 +17,7 @@ SOURCES += \
         WifiNetworkDetailsColl.cpp \
         appsettings.cpp \
         appunlockmanager.cpp \
+        connectioninfo.cpp \
         deviceinfosettings.cpp \
         devicesettings.cpp \
         dnsnetworkinfo.cpp \
@@ -32,6 +33,7 @@ SOURCES += \
         main.cpp \
         rdservermodel.cpp \
         resolutionlistmodel.cpp \
+        sessionmodel.cpp \
         systemresetmanager.cpp \
         timezone_filter_model.cpp \
         timezone_model.cpp \
@@ -74,6 +76,7 @@ HEADERS += \
     WifiNetworkDetailsColl.h \
     appsettings.h \
     appunlockmanager.h \
+    connectioninfo.h \
     deviceinfosettings.h \
     devicesettings.h \
     dnsnetworkinfo.h \
@@ -88,6 +91,7 @@ HEADERS += \
     logoloader.h \
     rdservermodel.h \
     resolutionlistmodel.h \
+    sessionmodel.h \
     systemresetmanager.h \
     timezone_filter_model.h \
     timezone_model.h \

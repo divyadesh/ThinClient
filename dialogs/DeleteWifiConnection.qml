@@ -10,6 +10,8 @@ import "../controls"
 
 BasicPage {
     id: control
+    property string connectionId: ""
+
     background: BackgroundOverlay {}
 
     signal sigDelete()

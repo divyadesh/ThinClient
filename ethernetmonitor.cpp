@@ -2,6 +2,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QProcess>
+#include <QtConcurrent/QtConcurrent>
 
 EthernetMonitor::EthernetMonitor(QObject *parent)
     : QObject(parent)
@@ -19,4 +21,10 @@ void EthernetMonitor::setIsConnected(bool newConnected)
         return;
     m_connected = newConnected;
     emit connectedChanged();
+
+    if(m_connected) {
+        QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi off");
+    }else {
+        QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi on");
+    }
 }

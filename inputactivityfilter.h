@@ -72,6 +72,7 @@ class InputActivityFilter : public QObject
                    WRITE setIdleTimeoutMs
                        NOTIFY idleTimeoutMsChanged
                            FINAL)
+    Q_PROPERTY(int displayOffTimeoutMs READ displayOffTimeoutMs WRITE setDisplayOffTimeoutMs NOTIFY displayOffTimeoutMsChanged FINAL)
 
 public:
     /**
@@ -86,7 +87,7 @@ public:
      * @brief Returns the current idle timeout in milliseconds.
      */
     int idleTimeoutMs() const;
-
+    int displayOffTimeoutMs() const;
 signals:
     /**
      * @brief Emitted when any user activity is detected.
@@ -124,6 +125,10 @@ signals:
      */
     void idleTimeoutMsChanged();
 
+    void displayOffTimeoutMsChanged();
+    void displayOff();
+    void displayOn();
+
 public slots:
     /**
      * @brief Sets a new idle timeout and restarts or stops the timer.
@@ -133,6 +138,7 @@ public slots:
      *                         - If > 0 → timer restarts with the new value.
      */
     void setIdleTimeoutMs(int newIdleTimeoutMs);
+    void setDisplayOffTimeoutMs(int newDisplayOffTimeoutMs);
 
 private slots:
     /**
@@ -144,6 +150,7 @@ private slots:
      * - Triggering system suspend
      */
     void onIdleTimeout();
+    void onDisplayOffTimeout();
 
 private:
     /**
@@ -151,10 +158,24 @@ private:
      * @param msg Text message to print.
      */
     void log(const QString &msg);
+    void initBacklight();
+    int readBrightness();
+    void writeBrightness(int value);
+    void startDimming();
 
-    QTimer m_idleTimer;     ///< Timer tracking user inactivity.
-    int m_idleTimeoutMs = 0; ///< Idle timeout duration in ms (0 disables monitoring).
-    bool m_wasSuspended = false; ///< Tracks whether the system was suspended.
+    QTimer m_idleTimer;
+    int m_idleTimeoutMs = 0;
+    bool m_wasSuspended = false;
+
+    QTimer m_displayOffTimer;
+    int m_displayOffTimeoutMs = 0;
+    bool m_displayIsOff = false;
+
+    QString m_backlightPath;
+    int m_originalBrightness = -1;
+    int m_dimmedBrightness = 5;      // or whatever low value you prefer
+    QTimer m_dimTimer;
+    qint64 m_lastWakeTimeMs = 0;
 
 protected:
     /**

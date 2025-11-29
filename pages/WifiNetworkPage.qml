@@ -13,6 +13,35 @@ BasicPage {
     StackView.visible: true
     padding: 20
 
+    Connections {
+        target: ethernetMonitor
+        function onConnectedChanged() {
+            wifiNetworkDetails.getWifiDetailsAsync()
+
+            if (ethernetMonitor.connected) {
+                showAlert("Wi-Fi disconnected because an Ethernet connection is established.", NotificationItem.Type.Info);
+            }else {
+                showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", NotificationItem.Type.Info);
+            }
+
+        }
+    }
+
+    PrefsLabel {
+        visible: ethernetMonitor.connected
+        anchors.centerIn: parent
+        leftPadding: 50
+        rightPadding: 50
+        width: parent.width
+        text: qsTr("Wi-Fi cannot be enabled while an active Ethernet connection is detected. Disconnect Ethernet to proceed with Wi-Fi connectivity.")
+        font.pixelSize: 16
+        font.weight: Font.Normal
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        color: Colors.statusError
+    }
+
     header: PageHeader {
         pageTitle: page.pageTitle
         onBackPressed: {
@@ -24,6 +53,7 @@ BasicPage {
         }
 
         Control {
+            visible: !ethernetMonitor.connected
             anchors.right: parent.right
             anchors.rightMargin: 60
             anchors.verticalCenter: parent.verticalCenter
@@ -72,6 +102,7 @@ BasicPage {
                 }
 
                 contentItem: ListView {
+                    id: ssidListView
                     width: parent.width
                     implicitHeight: contentHeight
 
@@ -262,6 +293,7 @@ BasicPage {
                         id: addSSIDDelegate
                         width: ListView.view.width
                         hoverEnabled: true
+                        visible: !ethernetMonitor.connected && ssidListView.count > 0
                         text: qsTr("Add Network")
 
                         background: Rectangle {

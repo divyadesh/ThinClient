@@ -7,6 +7,7 @@ import App.Styles 1.0
 import "../components"
 import "../controls"
 import "../dialogs"
+import "../"
 
 BasicPage {
     id: page
@@ -68,241 +69,81 @@ BasicPage {
                 Layout.preferredHeight: 400
                 Layout.maximumHeight: page.height /3
                 padding: 20
+                contentItem: RDConnectionsView {
+                    onPopulateConnection: function(connectionId) {
+                        let session = sessionModel.getSessionById(connectionId);
 
-                contentItem: ListView {
-                    id: listView
-                    spacing: 8
-                    clip: true
-                    ScrollBar.vertical: ScrollBar{}
-                    ScrollIndicator.vertical: ScrollIndicator { }
-
-                    model: serverModel
-                    header: Control {
-                        width: listView.width
-                        padding: 20
-
-                        contentItem:  RowLayout {
-                            spacing: 20
-
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Connection Name")
-                                    elide: Label.ElideRight
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Server IP")
-                                    elide: Label.ElideRight
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Auto")
-                                    elide: Label.ElideRight
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignHCenter
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Manage Connections")
-                                    elide: Label.ElideRight
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
+                        if (!session) {
+                            console.warn("❌ No session found for ID:", connectionId);
+                            return;
                         }
+
+                        console.log("✅ Session Loaded:");
+                        console.log("ID:", session.connectionId);
+                        console.log("Name:", session.connectionName);
+                        console.log("Server:", session.serverIp);
+                        console.log("User:", session.userName);
+                        console.log("Device:", session.deviceName);
+                        console.log("AutoConnect:", session.autoConnect);
+
+                        populateConnectionFields(session);
                     }
 
-                    delegate: PrefsItemDelegate {
-                        id: _controlDelegate
-                        width: ListView.view.width
-                        padding: 20
-                        topPadding: 12
-                        bottomPadding: 12
-                        hoverEnabled: true
+                    function populateConnectionFields(session) {
 
-                        background: Rectangle {
-                            implicitWidth: 100
-                            implicitHeight: 28
-                            radius: height / 2
-                            color: _controlDelegate.hovered ? "#2A2A2A" : "transparent"
+                        if (!session) {
+                            console.warn("❌ populateConnectionFields(): session is null");
+                            return;
                         }
 
-                        contentItem: RowLayout {
-                            spacing: 20
+                        // -------------------------
+                        // Core text fields
+                        // -------------------------
+                        page.connectionId      = session.connectionId       || ""
+                        connectionField.text   = session.connectionName     || "";
+                        serverIpField.text     = session.serverIp           || "";
+                        deviceNameField.text   = session.deviceName         || "";
+                        usernameField.text     = session.userName           || "";
+                        passwordField.text     = session.password           || "";
 
-                            // Name
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        // -------------------------
+                        // Performance radio buttons
+                        // "Best" / "Auto"
+                        // -------------------------
+                        performanceRadioButton.leftButton.checked  = (session.performance === "Best");
+                        performanceRadioButton.rightButton.checked = (session.performance === "Auto");
 
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: connectionName
-                                    elide: Label.ElideRight
-                                }
-                            }
+                        // -------------------------
+                        // Feature toggles
+                        // -------------------------
+                        audioButton.checked        = session.enableAudio;
+                        microphoneButton.checked   = session.enableMicrophone;
+                        driveButton.checked        = session.redirectDrive;
+                        usbDeviceButton.checked    = session.redirectUsbDevice;
+                        securityButton.checked     = session.security;
 
-                            // IP
+                        // -------------------------
+                        // Gateway
+                        // -------------------------
+                        rdGateWay.checked = session.gateway;
 
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem: PrefsLabel {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.Alignleft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: serverIp
-                                    elide: Label.ElideRight
-                                }
-                            }
-
-                            // Switch
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-
-                                contentItem: Item {
-                                    anchors.centerIn: parent
-
-                                    RadioButton {
-                                        id: autoConnectRadioButton
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.left: parent.left
-                                        palette.text: Colors.accentPrimary
-                                        palette.windowText: Colors.textPrimary
-                                        text: qsTr("Auto-connect")
-                                        font.weight: Font.Normal
-                                        spacing: 10
-                                        ButtonGroup.group: radioGroup
-                                        checked: autoConnect
-
-                                        onCheckedChanged: {
-                                            serverInfo.resetAutoConnect()
-                                            autoConnect = checked
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Action buttons
-
-                            Control {
-                                Layout.maximumWidth: listView.width / 4
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem:  Item {
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 10
-
-                                        PrefsLink {
-                                            text: qsTr("Connect")
-                                            onClicked: {
-                                                serverInfo.connectRdServer(connectionId)
-                                            }
-                                        }
-
-                                        PrefsLink {
-                                            text: qsTr("Edit")
-                                            onClicked: {
-                                                page.connectionId = connectionId
-                                                populateConnectionFields()
-                                            }
-
-                                            function populateConnectionFields() {
-                                                // --- Text fields ---
-                                                connectionField.text   = connectionName || ""
-                                                serverIpField.text     = serverIp || ""
-                                                deviceNameField.text   = deviceName || ""
-                                                usernameField.text     = userName || ""
-                                                passwordField.text     = password || ""
-
-                                                // --- Performance radio ---
-                                                performanceRadioButton.leftButton.checked  = (performance === "Best")
-                                                performanceRadioButton.rightButton.checked = (performance === "Auto")
-
-                                                // --- Feature toggles ---
-                                                audioButton.checked        = isTrue(enableAudio)
-                                                microphoneButton.checked   = isTrue(enableMicrophone)
-                                                driveButton.checked        = isTrue(redirectDrive)
-                                                usbDeviceButton.checked    = isTrue(redirectUsbDevice)
-                                                securityButton.checked     = isTrue(security)
-                                                rdGateWay.checked          = isTrue(gatewayValue)
-
-                                                // --- Gateway fields ---
-                                                if(gatewayValue) {
-                                                    gatewayIp.text        = gatewayIpValue || ""
-                                                    gatewayUserName.text  = gatewayUserNameValue || ""
-                                                    gatewayPassword.text  = gatewayPasswordValue || ""
-                                                }
-
-                                                console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
-                                            }
-
-                                            function isTrue(value) {
-                                                return value === "true" || value === true
-                                            }
-                                        }
-
-                                        PrefsLink {
-                                            text: qsTr("Delete")
-                                            onClicked: {
-                                                page.connectionId = connectionId
-                                                pageStack.push(deleteConnection)
-                                            }
-                                        }
-
-                                        Item {
-                                            Layout.fillWidth: true
-                                        }
-                                    }
-                                }
-                            }
+                        if (session.gateway) {
+                            gatewayIp.text        = session.gatewayIp        || "";
+                            gatewayUserName.text  = session.gatewayUserName  || "";
+                            gatewayPassword.text  = session.gatewayPassword  || "";
                         }
+
+                        // -------------------------
+                        // Auto-connect (if needed)
+                        // -------------------------
+                        if (typeof autoConnectSwitch !== "undefined")
+                            autoConnectSwitch.checked = session.autoConnect;
+
+                        console.log(`✅ Fields populated for ${session.connectionName} → ${session.serverIp}`);
+                    }
+
+                    function isTrue(v) {
+                        return v === true || v === "true" || v === 1;
                     }
                 }
             }
@@ -747,21 +588,10 @@ BasicPage {
         }
     }
 
-    Component {
-        id: deleteConnection
-        DeleteWifiConnection {
-            onSigDelete: {
-                dataBase.removeServer(page.connectionId)
-                serverInfo.removeConnection(page.connectionId)
-                page.connectionId = ""
-            }
-        }
-    }
-
     Connections {
         target: dataBase
         function onRefreshTable() {
-            serverModel.refresh()
+            sessionModel.reloadServers()
         }
     }
 }

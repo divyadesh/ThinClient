@@ -95,16 +95,37 @@ BasicPage {
 
                 Connections {
                     target: serverInfo
+
+                    // 1️⃣ Connecting started
                     function onRdpSessionStarted(id) {
-                        if(id === connectionId) {
-                            showProgress.visible = true
-                        }
+                        if (id !== connectionId) return
+
+                        showProgress.visible = true
+                        showAlert("Connecting to server...", NotificationItem.Type.Info)
                     }
 
-                    function onRdpSessionFinished(id, success) {
-                        if(id === connectionId) {
-                            showProgress.visible = false
-                        }
+                    // 2️⃣ Connected successfully
+                    function onRdpConnected(id) {
+                        if (id !== connectionId) return
+
+                        showProgress.visible = false
+                        showAlert("Connected successfully!", NotificationItem.Type.Success)
+                    }
+
+                    // 3️⃣ Connection failed
+                    function onRdpConnectionFailed(id, reason) {
+                        if (id !== connectionId) return
+
+                        showProgress.visible = false
+                        showAlert("Connection failed: " + reason, NotificationItem.Type.Error)
+                    }
+
+                    // 4️⃣ Server disconnected
+                    function onRdpDisconnected(id) {
+                        if (id !== connectionId) return
+
+                        showProgress.visible = false
+                        showAlert("RDP session disconnected", NotificationItem.Type.Warning)
                     }
                 }
 
@@ -118,7 +139,7 @@ BasicPage {
                     id: tabButton
                     ButtonGroup.group: tabGroup
                     text: showProgress.visible ? "" : connectionName
-                    icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+                    icon.source: showProgress.visible ? "" : Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
 
                     onClicked: {
                         serverInfo.connectRdServer(connectionId)

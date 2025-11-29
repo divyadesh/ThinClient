@@ -62,30 +62,29 @@ BasicPage {
             }
         }
 
-        contentItem: Control {
-            padding: 20
+        contentItem: ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 20
 
-            contentItem: ColumnLayout {
-                spacing: 20
+            Item {Layout.fillWidth: true}
 
-                PrefsBusyIndicator {
-                    id: progressBar
-                    visible: false
-                    running: true
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                }
-
-                PrefsLabel {
-                    id: progressLog
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    text: qsTr("Are you are sure you want to reset the device ?")
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
+            PrefsBusyIndicator {
+                id: progressBar
+                visible: false
+                running: true
+                Layout.alignment: Qt.AlignHCenter
             }
-        }
 
+            PrefsLabel {
+                id: progressLog
+                text: qsTr("Are you sure you want to reset the device?")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignHCenter
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Item {Layout.fillWidth: true}
+        }
 
         footer: Control {
             implicitHeight: 72
@@ -99,6 +98,7 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("No")
+                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()
@@ -106,7 +106,6 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("Shutdown Device")
-                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
@@ -121,7 +120,6 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("Factory Reset")
-                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
