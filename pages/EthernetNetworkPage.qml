@@ -92,7 +92,8 @@ BasicPage {
     // -------------------------------
     // MAIN PAGE CONTENT
     // -------------------------------
-    contentItem: Flickable {
+    contentItem: PrefsFlickable {
+        id: formFlickable
         width: parent.width
         contentHeight: layout.height
         clip: true
@@ -159,6 +160,12 @@ BasicPage {
                                 textFieldText: ethernetNetworkController.ipAddress
                                 textFieldPlaceholderText: qsTr("192.168.1.100")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(ipv4Field)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -169,6 +176,12 @@ BasicPage {
                                 textFieldText: ethernetNetworkController.subnetMask
                                 textFieldPlaceholderText: qsTr("255.255.255.0")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(subnetMaskField)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -179,6 +192,12 @@ BasicPage {
                                 textFieldText: ethernetNetworkController.gateway
                                 textFieldPlaceholderText: qsTr("192.168.1.1")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(gatewayField)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -194,6 +213,12 @@ BasicPage {
                                                : (ethernetNetworkController ? ethernetNetworkController.gateway : "")
                                 textFieldPlaceholderText: qsTr("8.8.8.8")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(dns1Field)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -209,6 +234,12 @@ BasicPage {
                                                : (ethernetNetworkController ? ethernetNetworkController.gateway : "")
                                 textFieldPlaceholderText: qsTr("8.8.4.4")
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(dns2Field)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -219,6 +250,12 @@ BasicPage {
                                 textFieldText: ethernetNetworkController.macAddress
                                 textFieldPlaceholderText: qsTr("AA:BB:CC:DD:EE:FF")
                                 readOnly: true
+                                enabled: !readOnly
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(macAddressField)
+                                    }
+                                }
                             }
                         }
                     }
@@ -230,6 +267,7 @@ BasicPage {
                         id: saveDelegate
                         Layout.fillWidth: true
                         visible: ipModeCombo.currentValue === AppEnums.ipStatic
+                        enabled: visible
                         background: null
 
                         indicator: PrefsButton {

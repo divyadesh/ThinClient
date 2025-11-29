@@ -50,9 +50,13 @@ ItemDelegate {
             verticalAlignment: Text.AlignVCenter
         }
 
-        background: Item {
+        background: Rectangle {
             implicitWidth: 120
             implicitHeight: 32
+            radius: 4
+            color: "transparent"
+            border.color: combo.activeFocus ? "#FFFFFF" : "transparent"
+            border.width: combo.activeFocus ? 2 : 0
         }
     }
 }

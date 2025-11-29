@@ -10,11 +10,16 @@ TabButton {
     scale: control.pressed ? 0.98 : 1.0
     palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
     display: AbstractButton.TextUnderIcon
+    activeFocusOnTab: true
+    focusPolicy: Qt.StrongFocus
 
     background: Rectangle {
         implicitHeight: 34
         implicitWidth: 120
         radius: control.radius
+        border.color: control.activeFocus ? "#FFFFFF" : "transparent"
+        border.width: control.activeFocus ? 2 : 0
+
         color: {
             if (!control.enabled) {
                 return control.checked ? Colors.accentDisabled : Colors.btnBgDisabled;

@@ -64,6 +64,16 @@ Item {
             width: Math.max(table.width / 4, 100)
             padding: 10
             rightPadding: column == 3 ? 20 : 10
+
+            focus: false
+            activeFocusOnTab: false
+            focusPolicy: Qt.NoFocus
+            onActiveFocusChanged: {
+                if(activeFocus){
+                    nextItemInFocusChain(true).forceActiveFocus()
+                }
+            }
+
             contentItem: PrefsLabel {
                 text: sessionModel.headerData(column,
                                               Qt.Horizontal,
@@ -82,8 +92,20 @@ Item {
     Component {
         id: name_com
         Control {
+            id: name_control
             width: table.width / 4
             padding: 10
+
+            activeFocusOnTab: true
+            focusPolicy: Qt.StrongFocus
+            focus: true
+
+            background: Rectangle {
+                border.color: name_control.activeFocus ? "#FFFFFF" : "transparent"
+                border.width: name_control.activeFocus ? 2 : 0
+                color: "transparent"
+            }
+
             contentItem: PrefsLabel {
                 // inside TableView delegate: "model" holds the row's roles
                 text: model.connectionName
@@ -98,8 +120,18 @@ Item {
     Component {
         id: ip_com
         Control {
+            id: ip_control
             width: Math.max(table.width / 4, 100)
             padding: 10
+            activeFocusOnTab: true
+            focusPolicy: Qt.StrongFocus
+            focus: true
+
+            background: Rectangle {
+                border.color: ip_control.activeFocus ? "#FFFFFF" : "transparent"
+                border.width: ip_control.activeFocus ? 2 : 0
+                color: "transparent"
+            }
             contentItem: PrefsLabel {
                 text: model.serverIp
                 horizontalAlignment: Text.AlignHCenter
@@ -114,11 +146,18 @@ Item {
         id: auto_com
 
         Control {
+            id: auto_control
             width: Math.max(table.width / 4, 100)
             padding: 10
+            onActiveFocusChanged: {
+                if(activeFocus) {
+                    radio_control.forceActiveFocus()
+                }
+            }
 
             contentItem: Item {
                 RadioButton {
+                    id: radio_control
                     visible: !showProgress.visible
                     anchors.centerIn: parent
                     palette.text: Colors.accentPrimary
@@ -180,24 +219,61 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
-                PrefsLink {
-                    text: qsTr("Connect")
-                    onClicked: {
-                        serverInfo.connectRdServer(model.connectionId)
+                Control {
+                    id: connect_control
+                    activeFocusOnTab: true
+                    focusPolicy: Qt.StrongFocus
+                    focus: true
+
+                    background: Rectangle {
+                        border.color: connect_control.activeFocus ? "#FFFFFF" : "transparent"
+                        border.width: connect_control.activeFocus ? 2 : 0
+                        color: "transparent"
+                    }
+                    contentItem: PrefsLink {
+                        text: qsTr("Connect")
+                        onClicked: {
+                            serverInfo.connectRdServer(model.connectionId)
+                        }
                     }
                 }
 
-                PrefsLink {
-                    text: qsTr("Edit")
-                    onClicked: {
-                        table.populateConnection(model.connectionId)
+                Control {
+                    id: edit_control
+                    activeFocusOnTab: true
+                    focusPolicy: Qt.StrongFocus
+                    focus: true
+
+                    background: Rectangle {
+                        border.color: edit_control.activeFocus ? "#FFFFFF" : "transparent"
+                        border.width: edit_control.activeFocus ? 2 : 0
+                        color: "transparent"
+                    }
+                    contentItem: PrefsLink {
+                        text: qsTr("Edit")
+                        onClicked: {
+                            table.populateConnection(model.connectionId)
+                        }
                     }
                 }
 
-                PrefsLink {
-                    text: qsTr("Delete")
-                    onClicked: {
-                        pageStack.push(deleteConnection, {connectionId: model.connectionId})
+                Control {
+                    id: delete_control
+                    activeFocusOnTab: true
+                    focusPolicy: Qt.StrongFocus
+                    focus: true
+
+                    background: Rectangle {
+                        border.color: delete_control.activeFocus ? "#FFFFFF" : "transparent"
+                        border.width: delete_control.activeFocus ? 2 : 0
+                        color: "transparent"
+                    }
+
+                    contentItem: PrefsLink {
+                        text: qsTr("Delete")
+                        onClicked: {
+                            pageStack.push(deleteConnection, {connectionId: model.connectionId})
+                        }
                     }
                 }
             }

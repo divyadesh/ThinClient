@@ -209,6 +209,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.httpProxy
                     onTextFieldTextChanged: addNetworkManager.httpProxy = textFieldText
                     textFieldPlaceholderText: "e.g. 192.168.0.1:8080"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(httpProxyField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -219,6 +224,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.httpsProxy
                     onTextFieldTextChanged: addNetworkManager.httpsProxy = textFieldText
                     textFieldPlaceholderText: "e.g. 192.168.0.1:8443"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(httpsProxyField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -229,6 +239,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.socksProxy
                     onTextFieldTextChanged: addNetworkManager.socksProxy = textFieldText
                     textFieldPlaceholderText: "e.g. 192.168.0.1:1080"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(socksProxyField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -239,6 +254,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.ignoreHosts
                     onTextFieldTextChanged: addNetworkManager.ignoreHosts = textFieldText
                     textFieldPlaceholderText: "e.g. localhost, 127.0.0.1"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(ignoreHostsField)
+                        }
+                    }
                 }
             }
 
@@ -254,6 +274,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.pacUrl
                     onTextFieldTextChanged: addNetworkManager.pacUrl = textFieldText
                     textFieldPlaceholderText: "http://example.com/proxy.pac"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(pacUrlField)
+                        }
+                    }
                 }
             }
 
@@ -305,6 +330,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.ipAddress
                     onTextFieldTextChanged: addNetworkManager.ipAddress = textFieldText
                     textFieldPlaceholderText: "eg. 192.168.10.1"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(ipField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -315,6 +345,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.gateway
                     onTextFieldTextChanged: addNetworkManager.gateway = textFieldText
                     textFieldPlaceholderText: "eg. 192.168.10.1"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(routerField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -325,6 +360,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.prefixLength
                     onTextFieldTextChanged: addNetworkManager.prefixLength = textFieldText
                     textFieldPlaceholderText: "eg. 24"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(prefixField)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -335,6 +375,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.dns1
                     onTextFieldTextChanged: addNetworkManager.dns1 = textFieldText
                     textFieldPlaceholderText: "eg. 0.0.0.0"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(dns1Field)
+                        }
+                    }
                 }
 
                 PrefsSeparator {}
@@ -345,6 +390,11 @@ BaseDialog {
                     textFieldText: addNetworkManager.dns2
                     onTextFieldTextChanged: addNetworkManager.dns2 = textFieldText
                     textFieldPlaceholderText: "eg. 0.0.0.0"
+                    formField.onActiveFocusChanged: {
+                        if(formField.activeFocus) {
+                            formFlickable.ensureVisible(dns2Field)
+                        }
+                    }
                 }
             }
 

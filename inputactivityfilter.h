@@ -137,8 +137,10 @@ public slots:
      *                         - If 0 → the idle timer stops.
      *                         - If > 0 → timer restarts with the new value.
      */
-    void setIdleTimeoutMs(int newIdleTimeoutMs);
-    void setDisplayOffTimeoutMs(int newDisplayOffTimeoutMs);
+    void setIdleTimeoutMs(int ms);
+    void setDisplayOffTimeoutMs(int ms);
+    void writeHdmiStatus(const QString &mode);
+    void autoDetectHdmi();
 
 private slots:
     /**
@@ -158,10 +160,6 @@ private:
      * @param msg Text message to print.
      */
     void log(const QString &msg);
-    void initBacklight();
-    int readBrightness();
-    void writeBrightness(int value);
-    void startDimming();
 
     QTimer m_idleTimer;
     int m_idleTimeoutMs = 0;
@@ -171,10 +169,7 @@ private:
     int m_displayOffTimeoutMs = 0;
     bool m_displayIsOff = false;
 
-    QString m_backlightPath;
-    int m_originalBrightness = -1;
-    int m_dimmedBrightness = 5;      // or whatever low value you prefer
-    QTimer m_dimTimer;
+    QString m_hdmiStatusPath;
     qint64 m_lastWakeTimeMs = 0;
 
 protected:

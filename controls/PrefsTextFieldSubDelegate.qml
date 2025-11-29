@@ -16,11 +16,21 @@ ItemDelegate {
     property alias textFieldText: textField.text
     property string textFieldPlaceholderText: textField.text
     property alias readOnly: textField.readOnly
+    property alias formField: textField
+
+    onActiveFocusChanged: {
+        if(activeFocus && !textField.readOnly){
+            textField.forceActiveFocus()
+        }else {
+            nextItemInFocusChain(true).forceActiveFocus()
+        }
+    }
 
     contentItem: ColumnLayout {
         spacing: 2
 
         TextField {
+            id: formLabel
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             text: control.text
             background: null
@@ -28,6 +38,13 @@ ItemDelegate {
             color: Colors.inputText
             horizontalAlignment: TextField.AlignLeft
             verticalAlignment: TextField.AlignVCenter
+            focus: false
+            activeFocusOnTab: false
+            onActiveFocusChanged: {
+                if(activeFocus){
+                    textField.forceActiveFocus()
+                }
+            }
         }
 
         TextField {

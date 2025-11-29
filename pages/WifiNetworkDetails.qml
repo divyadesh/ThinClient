@@ -23,10 +23,8 @@ BasicPage {
         onBackPressed: pageStack.pop()
     }
 
-    contentItem: Flickable {
-        id: flickable
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.implicitHeight
         contentWidth: layout.width
 
@@ -91,6 +89,13 @@ BasicPage {
                     validator: RegularExpressionValidator {
                         regularExpression:  /^((?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\.){0,3}(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$/
                     }
+
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            // Ensures the field is visible above the keyboard
+                            formFlickable.ensureVisible(staticIpAddressField)
+                        }
+                    }
                 }
             }
 
@@ -106,6 +111,12 @@ BasicPage {
 
                     text: ""
                     inputMask: "000.000.000.000"
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            // Ensures the field is visible above the keyboard
+                            formFlickable.ensureVisible(staticIpSubNetMaskField)
+                        }
+                    }
                 }
             }
 
@@ -121,6 +132,12 @@ BasicPage {
 
                     text: ""
                     inputMask: "000.000.000.000"
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            // Ensures the field is visible above the keyboard
+                            formFlickable.ensureVisible(staticIpGateWay)
+                        }
+                    }
                 }
             }
 
@@ -136,6 +153,12 @@ BasicPage {
 
                     inputMask: "0.0.0.0"
                     text: ""
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            // Ensures the field is visible above the keyboard
+                            formFlickable.ensureVisible(staticIpDNS)
+                        }
+                    }
                 }
             }
         }

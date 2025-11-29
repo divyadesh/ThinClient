@@ -10,10 +10,14 @@ TabButton {
     display: AbstractButton.TextUnderIcon
     padding: 20
     spacing: 20
+    activeFocusOnTab: true
+    focusPolicy: Qt.StrongFocus
 
     background: Rectangle {
         anchors.fill: parent
-        color: control.checked ? Colors.accentHover : "#2A2A2A"
+        color: control.checked ? Colors.accentHover : Colors.btnBg
+        border.color: control.activeFocus ? "#FFFFFF" : "transparent"
+        border.width: control.activeFocus ? 2 : 0
         radius: 6
     }
 }

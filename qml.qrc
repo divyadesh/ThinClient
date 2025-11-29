@@ -115,5 +115,6 @@
         <file>pages/NotificationItem.qml</file>
         <file>pages/NotificationManager.qml</file>
         <file>RDConnectionsView.qml</file>
+        <file>components/PrefsFlickable.qml</file>
     </qresource>
 </RCC>

@@ -30,9 +30,8 @@ BasicPage {
         }
     }
 
-    contentItem: Flickable {
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.height
         contentWidth: parent.width
 

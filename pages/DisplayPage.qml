@@ -55,7 +55,8 @@ BasicPage {
         ListElement { text: "48 Hours";  value: 48 }
     }
 
-    contentItem: Flickable {
+    contentItem: PrefsFlickable {
+        id: formFlickable
         width: parent.width
         clip: true
         contentHeight: layout.height
@@ -181,10 +182,10 @@ BasicPage {
                                     }
 
                                     Component.onCompleted: {
-                                        const previous_minutes = backend.idleTimeSeconds / 60
+                                        const minutes = persistData.displayOff / (60 * 1000)
                                         for (let i = 0; i < displayOffModel.count; i++) {
-                                            let minutes = displayOffModel.get(i).value
-                                            if (minutes === previous_minutes) {
+                                            let min = displayOffModel.get(i).value
+                                            if (min === minutes) {
                                                 displayOffComboBox.currentIndex = i
                                                 break
                                             }
@@ -291,64 +292,107 @@ BasicPage {
 
                                 console.log("=== APPLY SETTINGS START ===")
 
-                                /* -----------------------------
-                                   RESOLUTION
-                                ----------------------------- */
-                                const resolution = resolutionListModel.get(resolutionComboBox.currentIndex).value
-                                backend.resolution = resolution
-                                persistData.saveData("Resolution", resolution)
-                                console.log("Resolution:", resolution)
+                                /* ============================================================
+                                   LOAD OLD VALUES
+                                   ============================================================ */
+                                const oldResolution        = persistData.resolution
+                                const oldOrientation       = persistData.orientation
+                                const oldDisplayOffMs     = persistData.displayOff          // ms
+                                const oldDeviceOffMs       = persistData.deviceOff           // ms
+                                const oldTouchEnabled      = persistData.enableTouchScreen
 
-                                /* -----------------------------
-                                   ORIENTATION
-                                ----------------------------- */
-                                const orientation = orientationModel.get(orientationComboBox.currentIndex).apply
-                                backend.orientation = orientation
-                                persistData.saveData("Orientation", orientation)
-                                console.log("Orientation:", orientation)
+                                /* ============================================================
+                                   READ NEW VALUES FROM UI
+                                   ============================================================ */
+                                const selectedResolution   = resolutionListModel.get(resolutionComboBox.currentIndex).value
+                                const selectedOrientation  = orientationModel.get(orientationComboBox.currentIndex).apply
+                                const displayOffMin        = displayOffModel.get(displayOffComboBox.currentIndex).value
+                                const deviceOffHours       = devicePowerOffModel.get(deviceOffComboBox.currentIndex).value
+                                const isTouchEnabled       = enableTouch.checked
 
-                                /* -----------------------------
-                                   DISPLAY OFF (Minutes)
-                                ----------------------------- */
-                                const displayOffMin = displayOffModel.get(displayOffComboBox.currentIndex).value
-                                const displayOffSec = displayOffMin * 60
-                                backend.idleTimeSeconds = displayOffMin
-                                persistData.displyOff = displayOffMin
-                                console.log("Display Idle (min, sec):", displayOffMin, displayOffSec)
+                                const displayOffMs         = displayOffMin   * 60 * 1000        // min → ms
+                                const deviceOffMs          = deviceOffHours  * 60 * 60 * 1000   // hours → ms
 
-                                /* -----------------------------
-                                   DEVICE AUTO POWER-OFF (Hours)
-                                ----------------------------- */
-                                const deviceOffHours = devicePowerOffModel.get(deviceOffComboBox.currentIndex).value
-                                const deviceOffMSSec = deviceOffHours * 60 * 60 * 1000
+                                /* ============================================================
+                                   DETECT CHANGES
+                                   ============================================================ */
+                                const resolutionChanged    = (oldResolution  !== selectedResolution)
+                                const orientationChanged   = (oldOrientation !== selectedOrientation)
+                                const displayOffChanged    = (oldDisplayOffMs !== displayOffMs)
+                                const deviceOffChanged     = (oldDeviceOffMs !== deviceOffMs)
+                                const touchChanged         = (oldTouchEnabled !== isTouchEnabled)
 
-                                backend.deviceAutoPowerOffHours = deviceOffMSSec
-                                ActivityMonitor.idleTimeoutMs = deviceOffMSSec
-                                persistData.deviceOff = deviceOffMSSec
+                                // Detect if only timeout settings changed
+                                const onlyTimeoutsChanged =
+                                        (displayOffChanged || deviceOffChanged) &&        // at least one timeout changed
+                                        !resolutionChanged &&
+                                        !orientationChanged &&
+                                        !touchChanged;
 
-                                console.log("Device Auto Power-Off (hours, seconds):", deviceOffHours, deviceOffMSSec)
+                                /* ============================================================
+                                   APPLY — RESOLUTION
+                                   ============================================================ */
+                                backend.resolution    = selectedResolution
+                                persistData.resolution = selectedResolution
+                                console.log("Resolution:", selectedResolution)
 
-                                /* -----------------------------
-                                   TOUCH ENABLE
-                                ----------------------------- */
-                                backend.touchEnabled = enableTouch.checked
-                                persistData.enableTouchScreen = enableTouch.checked
-                                console.log("Touch Enabled:", enableTouch.checked)
+                                /* ============================================================
+                                   APPLY — ORIENTATION
+                                   ============================================================ */
+                                backend.orientation    = selectedOrientation
+                                persistData.orientation = selectedOrientation
+                                console.log("Orientation:", selectedOrientation)
 
-                                /* -----------------------------
+                                /* ============================================================
+                                   APPLY — DISPLAY OFF TIME
+                                   ============================================================ */
+                                ActivityMonitor.displayOffTimeoutMs = displayOffMs
+                                persistData.displayOff          = displayOffMs
+
+                                console.log("Display Off:",
+                                            "Min =", displayOffMin,
+                                            "Ms  =", displayOffMs)
+
+                                /* ============================================================
+                                   APPLY — DEVICE AUTO POWER-OFF
+                                   ============================================================ */
+                                ActivityMonitor.idleTimeoutMs   = deviceOffMs
+                                persistData.deviceOff           = deviceOffMs
+
+                                console.log("Device Auto Power-Off:",
+                                            "Hours =", deviceOffHours,
+                                            "Ms    =", deviceOffMs)
+
+                                /* ============================================================
+                                   APPLY — TOUCH ENABLED
+                                   ============================================================ */
+                                backend.touchEnabled          = isTouchEnabled
+                                persistData.enableTouchScreen = isTouchEnabled
+
+                                console.log("Touch Enabled:", isTouchEnabled)
+
+                                /* ============================================================
                                    APPLY TO WESTON
-                                ----------------------------- */
+                                   ============================================================ */
+
+                                // If ONLY timeouts changed → do not call backend.applyDisplaySettings
+                                if (onlyTimeoutsChanged) {
+                                    showAlert("Timeout settings updated", NotificationItem.Type.Success)
+                                    console.log("=== APPLY SETTINGS END ===")
+                                    return
+                                }
+
                                 const ok = backend.applyDisplaySettings(
-                                             backend.resolution,
-                                             backend.orientation,
-                                             backend.idleTimeSeconds * 60,   // convert minutes → seconds
-                                             backend.touchEnabled
-                                             )
+                                            backend.resolution,
+                                            backend.orientation,
+                                            backend.idleTimeSeconds,
+                                            backend.touchEnabled
+                                         )
 
                                 if (!ok) {
-                                    console.warn("❌ Failed to apply settings")
+                                    showAlert("Failed to apply settings", NotificationItem.Type.Error)
                                 } else {
-                                    console.log("Settings applied successfully")
+                                    showAlert("Settings applied successfully", NotificationItem.Type.Success)
                                 }
 
                                 console.log("=== APPLY SETTINGS END ===")
@@ -395,40 +439,94 @@ BasicPage {
     Connections {
         target: ActivityMonitor
 
-        // User Activity
+        // ----------------------------------
+        //  USER ACTIVITY
+        // ----------------------------------
         function onUserActivity() {
-            log("User activity detected: keys/mouse/touch.")
+            // No need to alert user every time
         }
 
-        // User Idle Before Suspend
+        // ----------------------------------
+        //  IDLE BEFORE SUSPEND
+        // ----------------------------------
         function onUserIdle() {
-            log("Inactivity detected → system will suspend soon.")
+            log("Inactivity detected → preparing for system suspend.");
+
+            showAlert(
+                "The system is idle and will enter sleep mode soon.",
+                NotificationItem.Type.Warning
+            );
         }
 
-        // Application Inactive
+        // ----------------------------------
+        //  APP INACTIVE (BEFORE SUSPEND)
+        // ----------------------------------
         function onAppInactive() {
-            log("Application declared inactive before suspend.")
+            log("Application marked as inactive before suspend.");
+
+            showAlert(
+                "The application has entered inactive mode.",
+                NotificationItem.Type.Info
+            );
         }
 
-        // Application Active After Resume
+        // ----------------------------------
+        //  APP ACTIVE AFTER RESUME
+        // ----------------------------------
         function onAppActive() {
-            log("Application resumed and active after system wake.")
+            log("Application resumed and active after system wake.");
+
+            showAlert(
+                "Welcome back! The system has resumed.",
+                NotificationItem.Type.Info
+            );
         }
 
-        // System Suspend Triggered
+        // ----------------------------------
+        //  SYSTEM SUSPEND
+        // ----------------------------------
         function onPowerSuspend() {
-            log("C++ notified: system suspend initiated.")
+            log("System suspend initiated.");
+
+            showAlert(
+                "System is entering sleep mode…",
+                NotificationItem.Type.Info
+            );
         }
 
-        // System Resume Triggered
+        // ----------------------------------
+        //  SYSTEM RESUME
+        // ----------------------------------
         function onPowerResume() {
-            log("C++ notified: system resumed from suspend.")
+            log("System resumed from suspend.");
+
+            showAlert(
+                "System is now awake.",
+                NotificationItem.Type.Info
+            );
         }
 
-        // Idle Timeout Updated (from UI)
+        // ----------------------------------
+        //  IDLE TIMEOUT SETTING UPDATED
+        // ----------------------------------
         function onIdleTimeoutMsChanged() {
-            log("Idle timeout updated: " + ActivityMonitor.idleTimeoutMs + " ms")
+            let seconds = Math.floor(ActivityMonitor.idleTimeoutMs / 1000);
+            let minutes = Math.floor(seconds / 60);
+            let hours = Math.floor(minutes / 60);
+
+            log("Device off timeout updated: " + hours + " hours");
         }
+
+        function onDisplayOffTimeoutMsChanged() {
+            let seconds = Math.floor(ActivityMonitor.displayOffTimeoutMs / 1000);
+            let minutes = Math.floor(seconds / 60);
+
+            log("Idle timeout updated: " + minutes+ " min");
+        }
+    }
+
+    function changed(oldValue, newValue) {
+        return oldValue !== newValue;
     }
 
     function log(msg) {

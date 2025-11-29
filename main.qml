@@ -28,6 +28,8 @@ ApplicationWindow {
     width: Screen.width
     height: Screen.height
 
+    property real panelHeight: inputPanel.height
+    property alias inputPanel: inputPanel
     // OPTIONAL: If your Qt version supports Window.Maximized
     // visibility: Window.Maximized
 

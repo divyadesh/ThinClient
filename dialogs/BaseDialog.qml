@@ -48,7 +48,8 @@ BasicPage {
             }
         }
 
-        Flickable {
+        PrefsFlickable {
+            id: formFlickable
             anchors.fill: parent
             contentHeight: layout.height
             contentWidth: parent.width

@@ -64,8 +64,8 @@ BasicPage {
             }
         }
 
-        Flickable {
-            id: flickable
+        PrefsFlickable {
+            id: formFlickable
             anchors.fill: parent
             contentHeight: layout.height
             contentWidth: parent.width
@@ -95,6 +95,11 @@ BasicPage {
                             textFieldText: wifiSSID
                             textFieldPlaceholderText: qsTr("e.g. ThinClient")
                             readOnly: true
+                            formField.onActiveFocusChanged: {
+                                if(formField.activeFocus) {
+                                    formFlickable.ensureVisible(ssidField)
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -108,6 +113,11 @@ BasicPage {
                             textFieldText: wifi.status
                             textFieldPlaceholderText: qsTr("e.g. Connected / Disconnected")
                             readOnly: true
+                            formField.onActiveFocusChanged: {
+                                if(formField.activeFocus) {
+                                    formFlickable.ensureVisible(statusField)
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -121,6 +131,11 @@ BasicPage {
                             textFieldText: wifi.security
                             textFieldPlaceholderText: qsTr("e.g. WPA2-PSK")
                             readOnly: true
+                            formField.onActiveFocusChanged: {
+                                if(formField.activeFocus) {
+                                    formFlickable.ensureVisible(securityField)
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -135,6 +150,11 @@ BasicPage {
                             textFieldText: wifi.macAddress
                             textFieldPlaceholderText: qsTr("e.g. AA:BB:CC:DD:EE:FF")
                             readOnly: true
+                            formField.onActiveFocusChanged: {
+                                if(formField.activeFocus) {
+                                    formFlickable.ensureVisible(macField)
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -149,6 +169,11 @@ BasicPage {
                             textFieldText: wifi.ipAddress
                             textFieldPlaceholderText: qsTr("192.168.1.100")
                             readOnly: true
+                            formField.onActiveFocusChanged: {
+                                if(formField.activeFocus) {
+                                    formFlickable.ensureVisible(ipv4Field)
+                                }
+                            }
                         }
                     }
                 }
@@ -260,6 +285,11 @@ BasicPage {
                                 text: qsTr("IP Address")
                                 textFieldText: wifi.ipAddress
                                 textFieldPlaceholderText: "e.g. 192.168.29.50"
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(ipField)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -269,6 +299,11 @@ BasicPage {
                                 text: qsTr("Gateway")
                                 textFieldText: wifi.gateway
                                 textFieldPlaceholderText: "e.g. 192.168.29.1"
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(gatewayField)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -278,6 +313,11 @@ BasicPage {
                                 text: qsTr("Subnet Mask")
                                 textFieldText: wifi.subnetMask
                                 textFieldPlaceholderText: "e.g. 255.255.255.0"
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(subnetField)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -287,6 +327,11 @@ BasicPage {
                                 text: qsTr("DNS 1")
                                 textFieldText: wifi.dnsServers[0]
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(dns1Field)
+                                    }
+                                }
                             }
 
                             PrefsSeparator {}
@@ -296,6 +341,11 @@ BasicPage {
                                 text: qsTr("DNS 2")
                                 textFieldText: wifi.dnsServers[1]
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
+                                formField.onActiveFocusChanged: {
+                                    if(formField.activeFocus) {
+                                        formFlickable.ensureVisible(dns2Field)
+                                    }
+                                }
                             }
                         }
                     }

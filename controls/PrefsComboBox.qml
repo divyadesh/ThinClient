@@ -10,6 +10,8 @@ ComboBox {
     width: 260
     property int radius: 6
     hoverEnabled: true
+    activeFocusOnTab: true
+    focusPolicy: Qt.StrongFocus
 
     // Text color
     palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray

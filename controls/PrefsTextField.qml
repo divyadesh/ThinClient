@@ -13,6 +13,7 @@ TextField {
     horizontalAlignment: TextField.AlignHCenter
     verticalAlignment: TextField.AlignVCenter
 
+    activeFocusOnTab: true
     background: Item {
         implicitWidth: 260
         implicitHeight: 40

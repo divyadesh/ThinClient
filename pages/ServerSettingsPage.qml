@@ -52,9 +52,8 @@ BasicPage {
         }
     }
 
-    contentItem: Flickable {
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.height
         contentWidth: layout.width
 
@@ -174,6 +173,12 @@ BasicPage {
 
                                 placeholderText : qsTr("Enter %1").arg(connection.text)
                                 onTextChanged: page.errorMessage = ""
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(connectionField)
+                                    }
+                                }
                             }
                         }
                         PrefsItemDelegate {
@@ -198,6 +203,12 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(serverIpField)
+                                    }
+                                }
                             }
                         }
 
@@ -213,6 +224,12 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(deviceName.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(deviceNameField)
+                                    }
+                                }
                             }
                         }
 
@@ -233,6 +250,13 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(username.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(usernameField)
+                                    }
+                                }
+
                             }
                         }
 
@@ -249,6 +273,13 @@ BasicPage {
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(password.text)
                                 echoMode: TextInput.Password
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(passwordField)
+                                    }
+                                }
+
                             }
                         }
                     }
@@ -376,6 +407,13 @@ BasicPage {
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
+
+                                    onActiveFocusChanged: {
+                                        if (activeFocus) {
+                                            // Ensures the field is visible above the keyboard
+                                            formFlickable.ensureVisible(gatewayIp)
+                                        }
+                                    }
                                 }
 
                                 RowLayout {
@@ -387,6 +425,13 @@ BasicPage {
                                         id: gatewayUserName
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Username")
+
+                                        onActiveFocusChanged: {
+                                            if (activeFocus) {
+                                                // Ensures the field is visible above the keyboard
+                                                formFlickable.ensureVisible(gatewayUserName)
+                                            }
+                                        }
                                     }
 
                                     PrefsTextField {
@@ -394,6 +439,13 @@ BasicPage {
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Password")
                                         echoMode: TextInput.Password
+
+                                        onActiveFocusChanged: {
+                                            if (activeFocus) {
+                                                // Ensures the field is visible above the keyboard
+                                                formFlickable.ensureVisible(gatewayPassword)
+                                            }
+                                        }
                                     }
                                 }
                             }

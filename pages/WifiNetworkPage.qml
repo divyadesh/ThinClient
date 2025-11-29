@@ -74,10 +74,8 @@ BasicPage {
         }
     }
 
-    contentItem: Flickable {
-        id: flickable
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.height
         contentWidth: layout.width
 
@@ -90,7 +88,7 @@ BasicPage {
             Control {
                 id: wifiControl
                 Layout.fillWidth: true
-                Layout.maximumHeight: flickable.height - 20
+                Layout.maximumHeight: formFlickable.height - 20
                 padding: 20
 
                 property int connectIndex: -1
