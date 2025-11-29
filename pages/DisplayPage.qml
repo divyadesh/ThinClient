@@ -254,6 +254,7 @@ BasicPage {
                         id: enableTouchScreen
                         Layout.fillWidth: true
                         text: qsTr("Enable Touch Screen")
+                        visible: false /*client required*/
 
                         indicator: RowLayout {
                             x: enableTouchScreen.width - width - enableTouchScreen.rightPadding

@@ -72,6 +72,8 @@ public:
     };
     Q_ENUM(ConnectionRole)
 
+    Q_PROPERTY(QString autoConnectionId READ autoConnectionId WRITE setAutoConnectionId NOTIFY autoConnectionIdChanged FINAL)
+
 public:
     /**
      * @brief Constructs an empty session model.
@@ -166,8 +168,10 @@ public:
      * - "manage" for the Manage Connection column
      */
     QVariant selectColumnType(const QModelIndex &index) const;
+    QString autoConnectionId() const;
 
 public slots:
+    void setAutoConnectionId(const QString &newAutoConnectionId);
     // Core data operations
     void loadServers();
     void reloadServers();
@@ -179,8 +183,12 @@ public slots:
     bool updateAutoConnect(const QString &connectionId, bool enabled);
     void addNewServer();
 
+signals:
+    void autoConnectionIdChanged();
+
 private:
     QList<ConnectionInfo *> m_sessions;
+    QString m_autoConnectionId;
 };
 
 #endif // SESSIONMODEL_H

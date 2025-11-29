@@ -3,6 +3,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 import AppSecurity 1.0
+import App.Backend 1.0
 
 import "../controls"
 import "../components"
@@ -42,24 +43,61 @@ BasicPage {
 
     ButtonGroup { id: tabGroup }
 
+    Component.onCompleted: {
+        console.log("[AutoConnect] Component loaded")
+        console.log("[AutoConnect] autoConnectionId =", sessionModel.autoConnectionId)
+
+        // Must call function → shouldShowRebootDialog()
+        if (BootHelper.shouldShowRebootDialog()
+                && sessionModel.autoConnectionId) {
+
+            console.log("[AutoConnect] Reboot detected → scheduling auto connect for ID:",
+                        sessionModel.autoConnectionId)
+
+            connectRDServer(sessionModel.autoConnectionId, 5000)
+        } else {
+            console.log("[AutoConnect] No auto connect triggered → conditions not met")
+            console.log("  bootHelper =", BootHelper.shouldShowRebootDialog())
+            console.log("  autoConnectionId =", sessionModel.autoConnectionId)
+        }
+    }
+
     Timer {
         id: delayedConnectTimer
-        interval: 5000    // 5 seconds delay
+        interval: 5000
         repeat: false
         running: false
-        property string connectionId: ""
 
         onTriggered: {
-            if(pageStack.currentItem.objectName === "HomePage") {
-                pageStack.push(autoConnectServer, {"connectionId": connectionId})
+            console.log("[AutoConnect] Timer triggered after", interval, "ms")
+
+            console.log("[AutoConnect] Current page:", pageStack.currentItem.objectName)
+            console.log("[AutoConnect] autoConnectionId:", sessionModel.autoConnectionId)
+
+            if (pageStack.currentItem.objectName === "HomePage"
+                    && sessionModel.autoConnectionId) {
+
+                console.log("[AutoConnect] Navigating to auto-connect server page with ID:",
+                            sessionModel.autoConnectionId)
+
+                pageStack.push(autoConnectServer, {
+                                   "connectionId": sessionModel.autoConnectionId
+                               })
+            } else {
+                console.warn("[AutoConnect] Conditions failed → auto connect aborted")
             }
         }
     }
 
     function connectRDServer(connectionId, delayMs) {
+        console.log("[AutoConnect] Preparing delayed connection")
+        console.log("   → connectionId:", connectionId)
+        console.log("   → delay:", delayMs, "ms")
+
         delayedConnectTimer.interval = delayMs
-        delayedConnectTimer.connectionId = connectionId
         delayedConnectTimer.start()
+
+        console.log("[AutoConnect] Timer started")
     }
 
     Image {
@@ -110,6 +148,7 @@ BasicPage {
 
                         showProgress.visible = false
                         showAlert("Connected successfully!", NotificationItem.Type.Success)
+                        removeAutoConnectPageIfActive()
                     }
 
                     // 3️⃣ Connection failed
@@ -118,6 +157,7 @@ BasicPage {
 
                         showProgress.visible = false
                         showAlert("Connection failed: " + reason, NotificationItem.Type.Error)
+                        removeAutoConnectPageIfActive()
                     }
 
                     // 4️⃣ Server disconnected
@@ -126,6 +166,7 @@ BasicPage {
 
                         showProgress.visible = false
                         showAlert("RDP session disconnected", NotificationItem.Type.Warning)
+                        removeAutoConnectPageIfActive()
                     }
                 }
 
@@ -149,12 +190,6 @@ BasicPage {
                         anchors.fill: parent
                         color: tabButton.checked ? Colors.accentHover : "#2A2A2A"
                         radius: 8
-                    }
-                }
-
-                Component.onCompleted: {
-                    if(autoConnect) {
-                        connectRDServer(connectionId, 5000) // will run after 5 seconds
                     }
                 }
             }
@@ -240,6 +275,7 @@ BasicPage {
     Component {
         id: autoConnectServer
         AutoConnect {
+            objectName: "AutoConnect"
             onCancelled: {}
         }
     }
@@ -248,6 +284,24 @@ BasicPage {
         target: dataBase
         function onRefreshTable() {
             serverModel.refresh()
+        }
+    }
+
+    function removeAutoConnectPageIfActive() {
+        const current = pageStack.currentItem
+
+        if (!current) {
+            console.warn("[AutoConnect] No current page → nothing to remove")
+            return
+        }
+
+        console.log("[AutoConnect] Current page =", current.objectName)
+
+        if (current.objectName === "AutoConnect") {
+            console.log("[AutoConnect] AutoConnect page detected → removing")
+            pageStack.pop()
+        } else {
+            console.log("[AutoConnect] AutoConnect page not active → no action")
         }
     }
 }

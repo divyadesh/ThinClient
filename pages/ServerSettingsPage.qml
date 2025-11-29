@@ -272,7 +272,6 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(password.text)
-                                echoMode: TextInput.Password
                                 onActiveFocusChanged: {
                                     if (activeFocus) {
                                         // Ensures the field is visible above the keyboard

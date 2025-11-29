@@ -345,6 +345,13 @@ void Application::registerTypesAndContext()
                                                "ConnectionInfo cannot be created in QML");
 
     ctx->setContextProperty("sessionModel", _sessionModel);
+
+
+    qmlRegisterSingletonType<BootHelper>("App.Backend", 1, 0, "BootHelper",
+                                         [](QQmlEngine*, QJSEngine*) -> QObject* {
+                                             return new BootHelper();
+                                         }
+                                         );
 }
 
 bool Application::resetInProgress() const

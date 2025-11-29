@@ -17,6 +17,7 @@ SOURCES += \
         WifiNetworkDetailsColl.cpp \
         appsettings.cpp \
         appunlockmanager.cpp \
+        boothelper.cpp \
         connectioninfo.cpp \
         deviceinfosettings.cpp \
         devicesettings.cpp \
@@ -76,6 +77,7 @@ HEADERS += \
     WifiNetworkDetailsColl.h \
     appsettings.h \
     appunlockmanager.h \
+    boothelper.h \
     connectioninfo.h \
     deviceinfosettings.h \
     devicesettings.h \

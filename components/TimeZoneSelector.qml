@@ -10,10 +10,11 @@ ComboBox {
 
     property string initialTimezone: ""
     property int radius: 6
+    property real control_width: 260
 
     textRole: "timeZoneFullDisplay"
     valueRole: "timeZoneId"
-    width: 260
+    width: control_width
 
     hoverEnabled: true
     palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray
@@ -27,7 +28,7 @@ ComboBox {
     }
 
     background: Control {
-        implicitWidth: 260
+        implicitWidth: control.control_width
         implicitHeight: 40
 
         background: Rectangle {

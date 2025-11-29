@@ -40,6 +40,7 @@
 #include "timezonemodel.h"
 #include "resolutionlistmodel.h"
 #include "sessionmodel.h"
+#include "boothelper.h"
 
 class Application : public QObject
 {

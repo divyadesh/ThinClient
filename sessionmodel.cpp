@@ -327,6 +327,8 @@ void SessionModel::fetchAllServers()
         return;
     }
 
+    setAutoConnectionId("");
+
     while (query.next()) {
         ConnectionInfo *session = new ConnectionInfo(this);
 
@@ -350,6 +352,10 @@ void SessionModel::fetchAllServers()
         session->setGatewayPassword(query.value("gateway_password").toString());
 
         session->setAutoConnect(query.value("autoConnect").toBool());
+
+        if(session->autoConnect()) {
+            setAutoConnectionId(session->connectionId());
+        }
 
         // Add object to model storage
         m_sessions.append(session);
@@ -440,3 +446,16 @@ void SessionModel::addNewServer()
     reloadServers();
 }
 
+
+QString SessionModel::autoConnectionId() const
+{
+    return m_autoConnectionId;
+}
+
+void SessionModel::setAutoConnectionId(const QString &newAutoConnectionId)
+{
+    if (m_autoConnectionId == newAutoConnectionId)
+        return;
+    m_autoConnectionId = newAutoConnectionId;
+    emit autoConnectionIdChanged();
+}

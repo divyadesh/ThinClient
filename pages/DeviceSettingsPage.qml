@@ -128,6 +128,7 @@ BasicPage {
                             id: timeZoneComboBox
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
+                            control_width: Math.max(260, audio.indicator.implicitWidth)
 
                             initialTimezone: persistData.timeZone
                             model: timezoneModel
@@ -147,6 +148,7 @@ BasicPage {
                             id: languageComboBox
                             x: language.width - width - language.rightPadding
                             y: language.topPadding + (language.availableHeight - height) / 2
+                            control_width: Math.max(260, audio.indicator.implicitWidth)
 
                             model: languageModel
                             textRole: "displayName"
@@ -199,7 +201,7 @@ BasicPage {
                         indicator: PrefsButton {
                             x: updatePwdDelegate.width - width - updatePwdDelegate.rightPadding
                             y: updatePwdDelegate.topPadding + (updatePwdDelegate.availableHeight - height) / 2
-                            implicitWidth: 260
+                            implicitWidth: Math.max(260, audio.indicator.implicitWidth)
                             text: qsTr("Update")
                             onClicked: pageStack.push(updatePassword)
                         }

@@ -7,8 +7,9 @@ import QtGraphicalEffects 1.0
 
 ComboBox {
     id: control
-    width: 260
+    property real control_width: 260
     property int radius: 6
+    width: control_width
     hoverEnabled: true
     activeFocusOnTab: true
     focusPolicy: Qt.StrongFocus
@@ -17,7 +18,7 @@ ComboBox {
     palette.buttonText: control.enabled ? "#ECECEC" : "#6B7280"   // light vs disabled gray
 
     background: Item {
-        implicitWidth: 260
+        implicitWidth: control.control_width
         implicitHeight: 40
 
         Rectangle {

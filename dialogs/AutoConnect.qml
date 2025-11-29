@@ -47,7 +47,7 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Auto Connect RD Server")
+                text: qsTr("RD Server")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
