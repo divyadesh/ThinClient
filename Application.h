@@ -41,6 +41,7 @@
 #include "resolutionlistmodel.h"
 #include "sessionmodel.h"
 #include "boothelper.h"
+#include "NotificationItem.h"
 
 class Application : public QObject
 {

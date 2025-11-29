@@ -352,6 +352,7 @@ void Application::registerTypesAndContext()
                                              return new BootHelper();
                                          }
                                          );
+    qmlRegisterType<NotificationItem>("App.Backend", 1, 0, "Type");
 }
 
 bool Application::resetInProgress() const

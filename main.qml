@@ -3,6 +3,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Window 2.15
 import App.Styles 1.0
 import QtQuick.VirtualKeyboard 2.15
+import App.Backend 1.0
 
 import "pages"
 import "components"
@@ -30,6 +31,7 @@ ApplicationWindow {
 
     property real panelHeight: inputPanel.height
     property alias inputPanel: inputPanel
+    property var activeNotification: null
     // OPTIONAL: If your Qt version supports Window.Maximized
     // visibility: Window.Maximized
 
@@ -40,32 +42,61 @@ ApplicationWindow {
         anchors.fill: parent
     }
 
-    NotificationManager {
-        id: notifier
+    function notify(msg, type) {
+
+        // 1️⃣ Close previous notification if exists
+        if (activeNotification) {
+            console.log("Closing previous notification...")
+            activeNotification.close()   // triggers close animation & destroy
+            activeNotification = null
+        }
+
+        // 2️⃣ Create new component
+        let component = Qt.createComponent("qrc:/pages/Notification.qml");
+
+        if (component.status !== Component.Ready) {
+            console.error("Failed to load notification:", component.errorString());
+            return;
+        }
+
+        let note = component.createObject(window, {
+            message: msg,
+            type: type
+        });
+
+        if (!note) {
+            console.error("Failed to create notification instance");
+            return;
+        }
+
+        // 3️⃣ Store reference
+        activeNotification = note
+
+        console.log("Notification created:", msg)
     }
 
     function showAlert(message, type) {
         switch (type) {
 
-        case NotificationItem.Type.Success:
-            notifier.show(message, NotificationItem.Type.Success)
+        case Type.Success:
+            notify(message, Type.Success)
             break;
 
-        case NotificationItem.Type.Info:
-            notifier.show(message, NotificationItem.Type.Info)
+        case Type.Info:
+            notify(message, Type.Info)
             break;
 
-        case NotificationItem.Type.Warning:
-            notifier.show(message, NotificationItem.Type.Warning)
+        case Type.Warning:
+            notify(message, Type.Warning)
             break;
 
-        case NotificationItem.Type.Error:
-            notifier.show(message, NotificationItem.Type.Error)
+        case Type.Error:
+            notify(message, Type.Error)
             break;
 
         default:
             console.warn("Unknown notification type:", type)
-            notifier.show(message, NotificationItem.Type.Info)
+            notify(message, Type.Info)
             break;
         }
     }

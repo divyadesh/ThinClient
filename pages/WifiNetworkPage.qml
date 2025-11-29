@@ -1,8 +1,10 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+
 import App.Styles 1.0
 import App.Enums 1.0
+import App.Backend 1.0
 
 import "../controls"
 import "../components"
@@ -19,9 +21,9 @@ BasicPage {
             wifiNetworkDetails.getWifiDetailsAsync()
 
             if (ethernetMonitor.connected) {
-                showAlert("Wi-Fi disconnected because an Ethernet connection is established.", NotificationItem.Type.Info);
+                showAlert("Wi-Fi disconnected because an Ethernet connection is established.", Type.Info);
             }else {
-                showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", NotificationItem.Type.Info);
+                showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", Type.Info);
             }
 
         }

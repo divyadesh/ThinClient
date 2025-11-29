@@ -139,7 +139,7 @@ BasicPage {
                         if (id !== connectionId) return
 
                         showProgress.visible = true
-                        showAlert("Connecting to server...", NotificationItem.Type.Info)
+                        showAlert("Connecting to server...", Type.Info)
                     }
 
                     // 2️⃣ Connected successfully
@@ -147,7 +147,7 @@ BasicPage {
                         if (id !== connectionId) return
 
                         showProgress.visible = false
-                        showAlert("Connected successfully!", NotificationItem.Type.Success)
+                        showAlert("Connected successfully!", Type.Success)
                         removeAutoConnectPageIfActive()
                     }
 
@@ -156,7 +156,7 @@ BasicPage {
                         if (id !== connectionId) return
 
                         showProgress.visible = false
-                        showAlert("Connection failed: " + reason, NotificationItem.Type.Error)
+                        showAlert("Connection failed: " + reason, Type.Error)
                         removeAutoConnectPageIfActive()
                     }
 
@@ -165,7 +165,7 @@ BasicPage {
                         if (id !== connectionId) return
 
                         showProgress.visible = false
-                        showAlert("RDP session disconnected", NotificationItem.Type.Warning)
+                        showAlert("RDP session disconnected", Type.Warning)
                         removeAutoConnectPageIfActive()
                     }
                 }

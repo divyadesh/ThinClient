@@ -378,7 +378,7 @@ BasicPage {
 
                                 // If ONLY timeouts changed → do not call backend.applyDisplaySettings
                                 if (onlyTimeoutsChanged) {
-                                    showAlert("Timeout settings updated", NotificationItem.Type.Success)
+                                    showAlert("Timeout settings updated", Type.Success)
                                     console.log("=== APPLY SETTINGS END ===")
                                     return
                                 }
@@ -391,9 +391,9 @@ BasicPage {
                                          )
 
                                 if (!ok) {
-                                    showAlert("Failed to apply settings", NotificationItem.Type.Error)
+                                    showAlert("Failed to apply settings", Type.Error)
                                 } else {
-                                    showAlert("Settings applied successfully", NotificationItem.Type.Success)
+                                    showAlert("Settings applied successfully", Type.Success)
                                 }
 
                                 console.log("=== APPLY SETTINGS END ===")
@@ -455,7 +455,7 @@ BasicPage {
 
             showAlert(
                 "The system is idle and will enter sleep mode soon.",
-                NotificationItem.Type.Warning
+                Type.Warning
             );
         }
 
@@ -467,7 +467,7 @@ BasicPage {
 
             showAlert(
                 "The application has entered inactive mode.",
-                NotificationItem.Type.Info
+                Type.Info
             );
         }
 
@@ -479,7 +479,7 @@ BasicPage {
 
             showAlert(
                 "Welcome back! The system has resumed.",
-                NotificationItem.Type.Info
+                Type.Info
             );
         }
 
@@ -491,7 +491,7 @@ BasicPage {
 
             showAlert(
                 "System is entering sleep mode…",
-                NotificationItem.Type.Info
+                Type.Info
             );
         }
 
@@ -503,7 +503,7 @@ BasicPage {
 
             showAlert(
                 "System is now awake.",
-                NotificationItem.Type.Info
+                Type.Info
             );
         }
 

@@ -67,6 +67,7 @@ HEADERS += \
     Database.h \
     DeviceInfo.h \
     DisplaySettings.h \
+    NotificationItem.h \
     PersistData.h \
     RdpMonitorThread.h \
     ServerInfo.h \

@@ -1,8 +1,10 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+
 import App.Styles 1.0
 import AppSecurity 1.0
+import App.Backend 1.0
 
 import "../controls"
 import "../components"

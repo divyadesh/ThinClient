@@ -3,6 +3,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"

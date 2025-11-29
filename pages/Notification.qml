@@ -1,26 +1,30 @@
-// NotificationItem.qml
+// Notification.qml
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.3
 import QtGraphicalEffects 1.12
+import App.Backend 1.0
 
-Control {
+Popup {
     id: root
     width: Math.min(textItem.paintedWidth + 80, 350)
-    height: bg.radius * 2 + Math.max(40, textItem.paintedHeight + 20)
 
-    anchors.right: parent.right
-    x: parent.width + 10 // start off-screen
+    // --- TOP RIGHT PLACEMENT ---
+    y: 20
+
+    // Start off-screen on the right
+    x: parent.width + 20
+
     opacity: 0
     leftPadding: 10
     rightPadding: 10
     topPadding: 5
     bottomPadding: 5
+    visible: true
 
     property alias message: textItem.text
 
-    enum Type { Success, Warning, Info, Error }
-    property int type: NotificationItem.Success
+    property int type: Type.Success
 
     property color successColor: "#2ecc71"
     property color warningColor: "#f39c12"
@@ -30,10 +34,10 @@ Control {
 
     property color iconColor: {
         switch(type) {
-        case NotificationItem.Type.Success: return successColor
-        case NotificationItem.Type.Warning: return warningColor
-        case NotificationItem.Type.Info:    return infoColor
-        case NotificationItem.Type.Error:   return errorColor
+        case Type.Success: return successColor
+        case Type.Warning: return warningColor
+        case Type.Info:    return infoColor
+        case Type.Error:   return errorColor
         }
     }
 
@@ -99,12 +103,21 @@ Control {
         running: true
 
         PropertyAnimation { target: root; property: "opacity"; to: 1; duration: 150 }
-        PropertyAnimation { target: root; property: "x"; to: parent.width - root.width - 10; duration: 300; easing.type: Easing.OutCubic }
+
+        // slide into top-right corner
+        PropertyAnimation {
+            target: root
+            property: "x"
+            to: root.parent.width - root.width - 20
+            duration: 300
+            easing.type: Easing.OutCubic
+        }
     }
 
+    // CLOSE animation
     SequentialAnimation {
         id: closeAnim
-        PropertyAnimation { target: root; property: "x"; to: parent.width + 20; duration: 250; easing.type: Easing.InCubic }
+        PropertyAnimation { target: root; property: "x"; to: parent.width + 20; duration: 250 }
         PropertyAnimation { target: root; property: "opacity"; to: 0; duration: 150 }
         ScriptAction { script: root.destroy() }
     }

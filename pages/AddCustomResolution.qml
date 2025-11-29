@@ -144,12 +144,12 @@ BasicPage {
                                 )
 
                                 if (success) {
-                                    showAlert("Successfully added custom resolution!", NotificationItem.Type.Success)
+                                    showAlert("Successfully added custom resolution!", Type.Success)
                                     page.log("✔ Inserted successfully into model & DB.")
                                     page.created()
                                     pageStack.pop()
                                 } else {
-                                    showAlert("Failed to add custom resolution!", NotificationItem.Type.Error)
+                                    showAlert("Failed to add custom resolution!", Type.Error)
                                     page.log("✘ Insert failed → " +
                                              resolutionListModel.errorMessage)
                                 }
