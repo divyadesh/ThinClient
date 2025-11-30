@@ -325,7 +325,9 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: wifi.dnsServers[0]
+                                textFieldText: wifi.dnsServers && wifi.dnsServers.length > 0
+                                               ? wifi.dnsServers[0]
+                                               : ""
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
@@ -339,7 +341,9 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: wifi.dnsServers[1]
+                                textFieldText: wifi.dnsServers && wifi.dnsServers.length > 1
+                                               ? wifi.dnsServers[1]
+                                               : ""
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {

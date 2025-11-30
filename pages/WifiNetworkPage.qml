@@ -105,7 +105,7 @@ BasicPage {
                     width: parent.width
                     implicitHeight: contentHeight
 
-                    model: wifiNetworkDetails
+                    model: sortedWifiModel
 
                     delegate: PrefsItemDelegate {
                         id: itemDelegate

@@ -43,6 +43,7 @@ SOURCES += \
         wifimanager.cpp \
         wifimonitor.cpp \
         wifisettingsmanager.cpp \
+        wifisortproxymodel.cpp \
         wifiworker.cpp
 
 RESOURCES += qml.qrc \
@@ -103,6 +104,7 @@ HEADERS += \
     wifimanager.h \
     wifimonitor.h \
     wifisettingsmanager.h \
+    wifisortproxymodel.h \
     wifiworker.h
 
 # --- Deployment section ---

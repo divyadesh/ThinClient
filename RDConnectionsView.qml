@@ -189,11 +189,11 @@ Item {
             padding: 10
 
             contentItem: RowLayout {
-                spacing: 10
-
                 Item { Layout.fillWidth: true }
 
                 TableDelegate {
+                    leftPadding: 4
+                    rightPadding: 4
                     contentItem: PrefsLink {
                         text: qsTr("Connect")
                         onClicked: {
@@ -203,6 +203,8 @@ Item {
                 }
 
                 TableDelegate {
+                    leftPadding: 4
+                    rightPadding: 4
                     contentItem: PrefsLink {
                         text: qsTr("Edit")
                         onClicked: {
@@ -212,6 +214,8 @@ Item {
                 }
 
                 TableDelegate {
+                    leftPadding: 4
+                    rightPadding: 4
                     contentItem: PrefsLink {
                         text: qsTr("Delete")
                         onClicked: {

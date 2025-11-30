@@ -214,6 +214,7 @@ void Application::initModels()
 
     _persistData   = new PersistData(this);
     _wifiNetworkDetailsColl = new WifiNetworkDetailsColl(this);
+    _wifiSortProxyModel = new WifiSortProxyModel(this);
     _ethernetNetworkController = new EthernetNetworkConroller(this);
     _wiFiAddNetworkManager = new WiFiAddNetworkManager(this);
     _deviceInfo    = new DeviceInfo(this);
@@ -227,6 +228,9 @@ void Application::initModels()
     _resolutionListModel = new ResolutionListModel(this);
     _languageModel = new LanguageModel(this);
     _sessionModel  = new SessionModel();
+
+    _wifiSortProxyModel->setSourceModel(_wifiNetworkDetailsColl);
+    _wifiSortProxyModel->sort(0);   // activate sorting
 }
 
 void Application::initControllers()
@@ -332,6 +336,7 @@ void Application::registerTypesAndContext()
 
     ctx->setContextProperty("serverModel", _serverModel);
     ctx->setContextProperty("wifiNetworkDetails", _wifiNetworkDetailsColl);
+    ctx->setContextProperty("sortedWifiModel", _wifiSortProxyModel);
     ctx->setContextProperty("ethernetNetworkController", _ethernetNetworkController);
     ctx->setContextProperty("deviceInfo", _deviceInfo);
     ctx->setContextProperty("serverInfo", _serverInfoColl);

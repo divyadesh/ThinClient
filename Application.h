@@ -42,6 +42,7 @@
 #include "sessionmodel.h"
 #include "boothelper.h"
 #include "NotificationItem.h"
+#include "wifisortproxymodel.h"
 
 class Application : public QObject
 {
@@ -142,6 +143,7 @@ private:
     WiFiAddNetworkManager *_wiFiAddNetworkManager;
     ResolutionListModel *_resolutionListModel;
     SessionModel *_sessionModel;
+    WifiSortProxyModel *_wifiSortProxyModel;
 
     // Threads
     QThread *m_wifiThread = nullptr;
