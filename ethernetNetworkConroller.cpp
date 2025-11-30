@@ -11,7 +11,6 @@ EthernetNetworkConroller::EthernetNetworkConroller(QObject *parent)
     connect(&m_proc, &QProcess::readyReadStandardOutput, this, &EthernetNetworkConroller::onProcessOutput);
     connect(&m_proc, &QProcess::errorOccurred, this, &EthernetNetworkConroller::onProcessError);
 
-    //fetchDns();
     m_pollTimer.setInterval(3000);
     connect(&m_pollTimer, &QTimer::timeout, this, &EthernetNetworkConroller::refreshStatus);
     m_pollTimer.start();
@@ -271,51 +270,179 @@ void EthernetNetworkConroller::disconnectClicked() {
     stopDhcp();
 }
 
+QString EthernetNetworkConroller::getNmConnectionForInterface(const QString &ifName)
+{
+    // nmcli -t -f NAME,DEVICE connection show --active
+    const QString output = runCommandCollect(
+        QStringLiteral("nmcli"),
+        { "-t", "-f", "NAME,DEVICE", "connection", "show", "--active" }
+        );
+
+    if (output.isEmpty()) {
+        emit logMessage(QStringLiteral("[Ethernet] No active NetworkManager connections found."));
+        return {};
+    }
+
+    const QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+    for (const QString &line : lines) {
+        const QStringList parts = line.split(':');
+        if (parts.size() < 2)
+            continue;
+
+        const QString name   = parts[0];
+        const QString device = parts[1];
+
+        if (device == ifName) {
+            emit logMessage(QStringLiteral("[Ethernet] Using NM connection \"%1\" for interface %2.")
+                                .arg(name, ifName));
+            return name;
+        }
+    }
+
+    emit logMessage(QStringLiteral("[Ethernet] No NM connection bound to interface %1.").arg(ifName));
+    return {};
+}
+
 void EthernetNetworkConroller::applyStaticConfig(
     const QString &ip,
     int cidrMask,
     const QString &gateway,
     const QString &dns1,
-    const QString &dns2) {
+    const QString &dns2)
+{
+    emit logMessage(QStringLiteral(
+                        "[Ethernet] Applying static IPv4 configuration %1/%2, gateway %3 on %4")
+                        .arg(ip)
+                        .arg(cidrMask)
+                        .arg(gateway)
+                        .arg(m_interface));
 
-    emit logMessage(QStringLiteral("Applying static IP: %1/%2").arg(ip).arg(cidrMask));
-
-    // 1. Stop DHCP client
+    // 1. Stop any external DHCP client (if you have one running outside NM)
     stopDhcp();
 
-    // 2. Remove any existing IPs
-    runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
-
-    // 3. Apply new static IP
-    QString cidr = QString("%1/%2").arg(ip).arg(QString::number(cidrMask));
-    runCommandCollect("ip", {"addr", "add", cidr, "dev", m_interface});
-
-    // 4. Ensure interface is up
-    runCommandCollect("ip", {"link", "set", m_interface, "up"});
-
-    // 5. Set default route
-    runCommandCollect("ip", {"route", "flush", "dev", m_interface});
-    runCommandCollect("ip", {"route", "add", "default", "via", gateway, "dev", m_interface});
-
-    // 6. Rewrite resolv.conf with both DNS servers
-    QFile file("/etc/resolv.conf");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QTextStream out(&file);
-
-        if (!dns1.trimmed().isEmpty())
-            out << "nameserver " << dns1.trimmed() << "\n";
-
-        if (!dns2.trimmed().isEmpty())
-            out << "nameserver " << dns2.trimmed() << "\n";
-
-        file.close();
-    } else {
-        emit logMessage("Failed to open /etc/resolv.conf for writing");
+    // 2. Determine the NetworkManager connection name for this interface
+    const QString connName = getNmConnectionForInterface(m_interface);
+    if (connName.isEmpty()) {
+        emit logMessage(QStringLiteral(
+                            "[Ethernet] Cannot apply static config: no NetworkManager connection for %1.")
+                            .arg(m_interface));
+        return;
     }
 
-    // 7. Refresh network status
+    // 3. Build CIDR and DNS string
+    const QString cidr = QStringLiteral("%1/%2").arg(ip).arg(cidrMask);
+    QStringList dnsList;
+    if (!dns1.trimmed().isEmpty())
+        dnsList << dns1.trimmed();
+    if (!dns2.trimmed().isEmpty())
+        dnsList << dns2.trimmed();
+    const QString dnsStr = dnsList.join(' ');
+
+    // 4. Configure IPv4 method/manual + address + gateway
+    emit logMessage(QStringLiteral(
+                        "[Ethernet] Configuring NM connection \"%1\" with %2, gateway %3.")
+                        .arg(connName, cidr, gateway));
+
+    runCommandCollect(QStringLiteral("nmcli"),
+                      { "connection", "modify", connName,
+                       "ipv4.method", "manual",
+                       "ipv4.addresses", cidr,
+                       "ipv4.gateway", gateway });
+
+    // 5. Configure DNS via NetworkManager (persistent)
+    if (!dnsStr.isEmpty()) {
+        emit logMessage(QStringLiteral(
+                            "[Ethernet] Setting DNS for \"%1\" to: %2")
+                            .arg(connName, dnsStr));
+        runCommandCollect(QStringLiteral("nmcli"),
+                          { "connection", "modify", connName,
+                           "ipv4.dns", dnsStr,
+                           "ipv4.ignore-auto-dns", "yes" });
+    } else {
+        emit logMessage(QStringLiteral(
+                            "[Ethernet] No DNS provided. Clearing manual DNS for \"%1\".")
+                            .arg(connName));
+        runCommandCollect(QStringLiteral("nmcli"),
+                          { "connection", "modify", connName,
+                           "ipv4.dns", "",
+                           "ipv4.ignore-auto-dns", "no" });
+    }
+
+    // 6. Make sure Ethernet prefers to auto-connect over Wi-Fi
+    emit logMessage(QStringLiteral(
+                        "[Ethernet] Enabling autoconnect and setting high priority for \"%1\".")
+                        .arg(connName));
+
+    runCommandCollect(QStringLiteral("nmcli"),
+                      { "connection", "modify", connName,
+                       "connection.autoconnect", "yes",
+                       "connection.autoconnect-priority", "999" });
+
+    // (You can set Wi-Fi connection.autoconnect-priority to a lower value
+    // in your Wi-Fi controller code, e.g. -999, as we discussed.)
+
+    // 7. Bring the connection down and up to apply changes immediately
+    emit logMessage(QStringLiteral("[Ethernet] Restarting NM connection \"%1\" to apply changes.")
+                        .arg(connName));
+
+    runCommandCollect(QStringLiteral("nmcli"),
+                      { "connection", "down", connName });
+    runCommandCollect(QStringLiteral("nmcli"),
+                      { "connection", "up", connName });
+
+    // 8. Refresh cached status / UI
     refreshStatus();
+
+    emit logMessage(QStringLiteral(
+                        "[Ethernet] Static IP configuration applied and persisted for \"%1\".")
+                        .arg(connName));
 }
+
+// void EthernetNetworkConroller::applyStaticConfig(
+//     const QString &ip,
+//     int cidrMask,
+//     const QString &gateway,
+//     const QString &dns1,
+//     const QString &dns2) {
+
+//     emit logMessage(QStringLiteral("Applying static IP: %1/%2").arg(ip).arg(cidrMask));
+
+//     // 1. Stop DHCP client
+//     stopDhcp();
+
+//     // 2. Remove any existing IPs
+//     runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
+
+//     // 3. Apply new static IP
+//     QString cidr = QString("%1/%2").arg(ip).arg(QString::number(cidrMask));
+//     runCommandCollect("ip", {"addr", "add", cidr, "dev", m_interface});
+
+//     // 4. Ensure interface is up
+//     runCommandCollect("ip", {"link", "set", m_interface, "up"});
+
+//     // 5. Set default route
+//     runCommandCollect("ip", {"route", "flush", "dev", m_interface});
+//     runCommandCollect("ip", {"route", "add", "default", "via", gateway, "dev", m_interface});
+
+//     // 6. Rewrite resolv.conf with both DNS servers
+//     QFile file("/etc/resolv.conf");
+//     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+//         QTextStream out(&file);
+
+//         if (!dns1.trimmed().isEmpty())
+//             out << "nameserver " << dns1.trimmed() << "\n";
+
+//         if (!dns2.trimmed().isEmpty())
+//             out << "nameserver " << dns2.trimmed() << "\n";
+
+//         file.close();
+//     } else {
+//         emit logMessage("Failed to open /etc/resolv.conf for writing");
+//     }
+
+//     // 7. Refresh network status
+//     refreshStatus();
+// }
 
 int EthernetNetworkConroller::maskToCidr(const QString &mask)
 {

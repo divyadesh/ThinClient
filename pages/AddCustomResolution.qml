@@ -69,8 +69,14 @@ BasicPage {
                                 value: page.resolutionWidth
                                 editable: true
                                 inputMethodHints: Qt.ImhDigitsOnly
+                                palette {
+                                    base: "#2A2A2A"
+                                    text: "white"
+                                    button: "#3A3A3A"
+                                    buttonText: "white"
+                                    highlight: "#555555"
+                                }
 
-                                palette.text: "black"
                                 onValueModified: {
                                     page.log("Width changed → " + value +
                                              " (range: " + from + "–" + to + ")")
@@ -92,8 +98,15 @@ BasicPage {
                                 to: resolutionListModel.maximumSize.height
                                 value: page.resolutionHeight
                                 editable: true
-                                palette.text: "black"
                                 inputMethodHints: Qt.ImhDigitsOnly
+
+                                palette {
+                                    base: "#2A2A2A"
+                                    text: "white"
+                                    button: "#3A3A3A"
+                                    buttonText: "white"
+                                    highlight: "#555555"
+                                }
 
                                 onValueModified: {
                                     page.log("Height changed → " + value +

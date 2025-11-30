@@ -7,7 +7,7 @@ import App.Backend 1.0
 
 Popup {
     id: root
-    width: Math.min(textItem.paintedWidth + 80, 350)
+    width: textItem.paintedWidth + 130
 
     // --- TOP RIGHT PLACEMENT ---
     y: 20
@@ -88,6 +88,7 @@ Popup {
         // TEXT
         Text {
             id: textItem
+            Layout.maximumWidth: 350
             Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             text: ""
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere

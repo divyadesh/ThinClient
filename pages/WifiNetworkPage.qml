@@ -18,14 +18,13 @@ BasicPage {
     Connections {
         target: ethernetMonitor
         function onConnectedChanged() {
-            wifiNetworkDetails.getWifiDetailsAsync()
-
             if (ethernetMonitor.connected) {
                 showAlert("Wi-Fi disconnected because an Ethernet connection is established.", Type.Info);
+                removeWifiPopupPagesIfActive()
             }else {
                 showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", Type.Info);
             }
-
+            wifiNetworkDetails.scanWifiNetworksAsync()
         }
     }
 
@@ -70,7 +69,7 @@ BasicPage {
                 id: mouseArea
                 anchors.fill: parent
                 onClicked: {
-                    wifiNetworkDetails.getWifiDetailsAsync()
+                    wifiNetworkDetails.scanWifiNetworksAsync()
                 }
             }
         }
@@ -112,6 +111,11 @@ BasicPage {
                         id: itemDelegate
                         width: ListView.view.width
                         hoverEnabled: true
+
+                        onClicked: {
+                            const connected =  wifiNetworkDetails.activeSsid === wifiDetails.ssid
+                            pageStack.push(setWifiPassword, {"currentSsid" : wifiDetails.ssid, connectRequested : !connected, hasSecurity: wifiDetails.security})
+                        }
 
                         background: Rectangle {
                             implicitHeight: 36
@@ -161,89 +165,6 @@ BasicPage {
                             x: itemDelegate.width - width - itemDelegate.rightPadding
                             y: itemDelegate.topPadding + (itemDelegate.availableHeight - height) / 2
 
-                            RowLayout {
-                                spacing: 20
-                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-
-                                Connections {
-                                    target: wifiNetworkDetails
-
-                                    function onSigConnectionStarted() {
-                                        if(index === wifiControl.connectIndex) {
-                                            busyIndicator.running = true
-                                        }
-                                    }
-
-                                    function onSigConnectionFinished() {
-                                        if(index === wifiControl.connectIndex) {
-                                            busyIndicator.running = false
-                                            let ssid = wifiDetails.ssid
-                                            let saveData = [ ssid, wifiSettings.getPassword(ssid) ]
-                                            dataBase.insertIntoValues = saveData
-                                            dataBase.qmlInsertWifiData()
-                                            pageStack.pop()
-                                        }
-                                    }
-                                }
-
-                                PrefsButton {
-                                    property bool forgotPassword: wifiSettings.hasSavedPassword(wifiDetails.ssid)
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                    text: forgotPassword ? qsTr("Forgot") :  qsTr("Connect")
-                                    visible: itemDelegate.hovered && (wifiNetworkDetails.activeSsid !== wifiDetails.ssid || forgotPassword)
-                                    radius: height / 2
-                                    onClicked: {
-                                        if(forgotPassword) {
-                                            forgotNetwork()
-                                        }else {
-                                            connectWithSSID()
-                                        }
-                                    }
-
-                                    function connectWithSSID() {
-                                        if(!wifiDetails.security) {
-                                            wifiNetworkDetails.connectToSsid(wifiDetails.ssid, "")
-                                            wifiControl.connectIndex = index
-                                            return
-                                        }
-
-                                        if(wifiSettings.hasSavedPassword(wifiDetails.ssid)){
-                                            var savedPass = wifiSettings.getPassword(wifiDetails.ssid)
-                                            wifiNetworkDetails.connectToSsid(wifiDetails.ssid, savedPass)
-                                            wifiControl.connectIndex = index
-                                            return
-                                        }
-                                        pageStack.push(setWifiPassword, {"connection_ssid" : wifiDetails.ssid})
-                                        wifiControl.connectIndex = index
-                                    }
-
-                                    function forgotNetwork() {
-                                        wifiSettings.clearPassword(wifiDetails.ssid)
-                                        if(disconnectWifi.visible) {
-                                            wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
-                                        }
-                                    }
-                                }
-
-                                PrefsBusyIndicator {
-                                    id: busyIndicator
-                                    radius: 10
-                                    running: false
-                                    visible: running
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                }
-
-                                PrefsDangerButton {
-                                    id: disconnectWifi
-                                    visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
-                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                    text: qsTr("Disconnect")
-                                    onClicked: {
-                                        wifiNetworkDetails.disconnectWifiNetwork(wifiDetails.ssid)
-                                    }
-                                }
-                            }
-
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                 icon: "qrc:/assets/icons/lock.svg"
@@ -276,14 +197,17 @@ BasicPage {
                                     }
                                 }
                             }
+
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                icon: "qrc:/assets/icons/menu.svg"
-                                visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
-
+                                icon: wifiNetworkDetails.activeSsid === wifiDetails.ssid ? "qrc:/assets/icons/menu.svg" : ""
                                 iconWidth: 20
                                 iconHeight: 20
-                                onClicked: { pageStack.push(ssidDetailsPage, {"wifiSSID": wifiDetails.ssid}) }
+                                onClicked: {
+                                    if(wifiNetworkDetails.activeSsid === wifiDetails.ssid) {
+                                        pageStack.push(ssidDetailsPage, {"wifiSSID": wifiDetails.ssid})
+                                    }
+                                }
                             }
 
                         }
@@ -317,22 +241,55 @@ BasicPage {
         }
     }
 
+    function removeWifiPopupPagesIfActive() {
+        const current = pageStack.currentItem
+
+        if (!current) {
+            console.warn("[WiFiPopup] No current page → nothing to remove")
+            return
+        }
+
+        const popupNames = [
+            "WifiDetails",
+            "SetWifiPassword",
+            "AddNetwork",
+            "WifiNetworkDetailsDIalog"
+        ]
+
+        console.log("[WiFiPopup] Current page =", current.objectName)
+
+        if (popupNames.indexOf(current.objectName) !== -1) {
+            console.log("[WiFiPopup] Popup detected → closing:", current.objectName)
+            pageStack.pop()
+        } else {
+            console.log("[WiFiPopup] No matching popup active → no action")
+        }
+    }
+
     Component {
         id: wifiDetailsComponent
-        WifiDetails {}
+        WifiDetails {
+            objectName: "WifiDetails"
+        }
     }
     Component {
         id: setWifiPassword
-        SetWifiPassword {}
+        SetWifiPassword {
+            objectName: "SetWifiPassword"
+        }
     }
 
     Component {
         id: addNetwork
-        AddNetwork {}
+        AddNetwork {
+            objectName: "AddNetwork"
+        }
     }
 
     Component {
         id: ssidDetailsPage
-        WifiNetworkDetailsDIalog {}
+        WifiNetworkDetailsDIalog {
+            objectName: "WifiNetworkDetailsDIalog"
+        }
     }
 }
