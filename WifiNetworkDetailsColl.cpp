@@ -25,139 +25,240 @@
 WifiNetworkDetailsColl::WifiNetworkDetailsColl(QObject *parent)
     : QAbstractListModel{parent}
 {
-    // Connect QProcess finished handler for asynchronous Wi-Fi scans
     connect(&m_asyncProcess,
             QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this,
             [this](int exitCode, QProcess::ExitStatus status)
             {
                 if (status != QProcess::NormalExit || exitCode != 0) {
-                    qWarning() << "Async scan failed:" << m_asyncProcess.errorString();
-                    emit errorMessage(QStringLiteral("Wi-Fi scan failed."));
-                    m_scanning = false;
-                    emit scanningChanged();
+                    finalizeScanFailure();
                     return;
                 }
 
-                QString output = m_asyncProcess.readAllStandardOutput();
-                QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+                QStringList lines =
+                    QString(m_asyncProcess.readAllStandardOutput())
+                        .split('\n', Qt::SkipEmptyParts);
 
-                struct WifiInfo {
-                    QString active;
-                    QString ssid;
-                    int strength;
-                    bool secured;
-                    QString bssid;
-                    int chan;
-                    QString rate;
-                };
+                QVector<ParsedInfo> parsed;
+                parseScanOutput(lines, parsed);
 
-                QVector<WifiInfo> newList;
+                // 🔥 MAIN FIX — Remove duplicates BEFORE updating model
+                parsed = deduplicateParsedResults(parsed);
 
-                for (const QString &line : lines) {
-                    QStringList fields = line.split(":");
-                    if (fields.size() < 7)
-                        continue;
-
-                    WifiInfo info;
-                    info.active = fields[0];
-                    info.ssid   = fields[1];
-                    QString bars = fields[2];
-                    QString security = fields[3];
-                    info.chan   = fields[4].toInt();
-                    info.rate   = fields[5];
-                    info.bssid  = fields.size() >= 12
-                                     ? QStringList(fields.mid(6, 6)).join(":")
-                                     : "";
-
-                    if (info.ssid.isEmpty())
-                        continue;
-
-                    if      (bars == "****") info.strength = StrengthExcellent;
-                    else if (bars == "*** ") info.strength = StrengthGood;
-                    else if (bars == "**  ") info.strength = StrengthFair;
-                    else if (bars == "*   ") info.strength = StrengthWeak;
-                    else                     info.strength = StrengthNone;
-
-                    info.secured = security.contains("WPA1") || security.contains("WPA2");
-                    newList.append(info);
-                }
-
-                // ---- Remove old items not in the new scan ----
-                QSet<QString> newSsids;
-                for (const auto &wifi : newList)
-                    newSsids.insert(wifi.ssid);
-
-                for (int i = 0; i < static_cast<int>(m_WifiDetailsColl.size()); ++i) {
-                    const auto &existing = m_WifiDetailsColl[i];
-                    if (!newSsids.contains(existing->ssid())) {
-                        beginRemoveRows(QModelIndex(), i, i);
-                        m_WifiDetailsColl.erase(m_WifiDetailsColl.begin() + i);
-                        endRemoveRows();
-                        --i;
-                    }
-                }
-
-                // ---- Update existing or insert new ----
-                for (const auto &wifi : newList) {
-                    auto it = std::find_if(m_WifiDetailsColl.begin(), m_WifiDetailsColl.end(),
-                                           [&](const auto &ptr) { return ptr->ssid() == wifi.ssid; });
-
-                    if (it != m_WifiDetailsColl.end()) {
-                        // Update existing entry
-                        auto &item = *it;
-                        bool changed = false;
-
-                        if (item->active() != wifi.active) { item->setActive(wifi.active); changed = true; }
-                        if (item->bars() != wifi.strength) { item->setBars(wifi.strength); changed = true; }
-                        if (item->security() != wifi.secured) { item->setSecurity(wifi.secured); changed = true; }
-                        if (item->bssid() != wifi.bssid) { item->setBssid(wifi.bssid); changed = true; }
-                        if (item->chan() != wifi.chan) { item->setChan(wifi.chan); changed = true; }
-                        if (item->rate() != wifi.rate) { item->setRate(wifi.rate); changed = true; }
-
-                        if (changed) {
-                            int row = std::distance(m_WifiDetailsColl.begin(), it);
-                            emit dataChanged(index(row), index(row));
-                        }
-                    } else {
-                        // Insert new entry
-                        int row = static_cast<int>(m_WifiDetailsColl.size());
-                        beginInsertRows(QModelIndex(), row, row);
-
-                        auto spNew = std::make_shared<WifiNetworkDetails>(
-                            this,
-                            wifi.active,
-                            wifi.ssid,
-                            wifi.strength,
-                            wifi.secured,
-                            wifi.bssid,
-                            wifi.chan,
-                            wifi.rate
-                            );
-
-                        QQmlEngine::setObjectOwnership(spNew.get(), QQmlEngine::CppOwnership);
-                        m_WifiDetailsColl.emplace_back(spNew);
-
-                        endInsertRows();
-                    }
-
-                    // Track active SSID
-                    if (wifi.active == "yes") {
-                        setActiveSsid(wifi.ssid);
-                        setActiveBars(wifi.strength);
-                    }
-                }
-
-                emit infoMessage(QStringLiteral("Wi-Fi scan completed."));
-                m_scanning = false;
-                emit scanningChanged();
-                emit sigWifiListUpdated();
+                removeMissingEntries(parsed);
+                updateOrInsertEntries(parsed);
+                updateActiveInfo();
+                finalizeScanSuccess();
             });
 
     connect(&m_autoRefreshTimer, &QTimer::timeout,
             this, &WifiNetworkDetailsColl::scanWifiNetworksAsync);
 
     startAutoRefresh();
+}
+
+/*!
+ * \brief Called when a Wi-Fi scan completes successfully.
+ */
+void WifiNetworkDetailsColl::finalizeScanSuccess()
+{
+    m_scanning = false;
+    emit scanningChanged();
+    emit infoMessage("Wi-Fi scan completed.");
+    emit sigWifiListUpdated();
+}
+
+/*!
+ * \brief Called when a Wi-Fi scan fails.
+ */
+void WifiNetworkDetailsColl::finalizeScanFailure()
+{
+    m_scanning = false;
+    emit scanningChanged();
+    emit errorMessage("Wi-Fi scan failed.");
+}
+
+
+/*!
+ * \brief Deduplicates parsed scan results based on BSSID (primary) or SSID.
+ *
+ * If multiple entries share the same BSSID:
+ *   - If any entry has ACTIVE="yes", keep that entry.
+ *   - If all are "no", keep the one with stronger signal.
+ *
+ * \param input List with raw parsed scan results (may contain duplicates).
+ * \return A cleaned, deduplicated list.
+ */
+QVector<ParsedInfo> WifiNetworkDetailsColl::deduplicateParsedResults(
+    const QVector<ParsedInfo> &input)
+{
+    QHash<QString, ParsedInfo> map;
+
+    for (const ParsedInfo &p : input) {
+        QString key = !p.bssid.isEmpty() ? p.bssid : p.ssid;
+
+        if (!map.contains(key)) {
+            map[key] = p;
+            continue;
+        }
+
+        ParsedInfo &old = map[key];
+
+        // RULE 1 — Prefer ACTIVE=yes
+        if (p.active == "yes" && old.active == "no") {
+            map[key] = p;
+            continue;
+        }
+
+        // RULE 2 — If both inactive, keep stronger signal
+        if (p.active == "no" && old.active == "no") {
+            if (p.bars > old.bars) {
+                map[key] = p;
+                continue;
+            }
+        }
+    }
+
+    return map.values().toVector();
+}
+
+/*!
+ *  \brief Parses raw nmcli output lines into a list of ParsedInfo items.
+ *
+ *  \param lines Lines obtained from nmcli -t device wifi list.
+ *  \param parsed Output vector populated with parsed Wi-Fi entries.
+ */
+void WifiNetworkDetailsColl::parseScanOutput(const QStringList &lines,
+                                             QVector<ParsedInfo> &parsed)
+{
+    for (const QString &line : lines) {
+        QStringList f = line.split(":");
+        if (f.size() < 7)
+            continue;
+
+        ParsedInfo p;
+        p.active = f[0];
+        p.ssid   = f[1];
+        QString barsStr = f[2];
+        QString secStr  = f[3];
+        p.chan   = f[4].toInt();
+        p.rate   = f[5];
+
+        if (f.size() >= 12)
+            p.bssid = QStringList(f.mid(6, 6)).join(":");
+
+        if (p.ssid.isEmpty())
+            continue;
+
+        if      (barsStr == "****") p.bars = StrengthExcellent;
+        else if (barsStr == "*** ") p.bars = StrengthGood;
+        else if (barsStr == "**  ") p.bars = StrengthFair;
+        else if (barsStr == "*   ") p.bars = StrengthWeak;
+        else                        p.bars = StrengthNone;
+
+        p.secured = secStr.contains("WPA", Qt::CaseInsensitive);
+
+        parsed.append(p);
+    }
+}
+
+/*!
+ *  \brief Removes Wi-Fi entries that are no longer visible in the latest scan.
+ *
+ *  \param parsed Parsed list of currently scanned SSIDs.
+ */
+/*!
+ * \brief Removes model entries whose BSSID/SSID no longer appear in the scan.
+ */
+void WifiNetworkDetailsColl::removeMissingEntries(const QVector<ParsedInfo> &parsed)
+{
+    QSet<QString> keys;
+
+    for (const auto &p : parsed)
+        keys.insert(!p.bssid.isEmpty() ? p.bssid : p.ssid);
+
+    for (int i = 0; i < m_wifiList.size(); ++i) {
+        QString k = !m_wifiList[i]->bssid().isEmpty()
+        ? m_wifiList[i]->bssid()
+        : m_wifiList[i]->ssid();
+        if (!keys.contains(k)) {
+            beginRemoveRows(QModelIndex(), i, i);
+            m_wifiList.removeAt(i);
+            endRemoveRows();
+            --i;
+        }
+    }
+}
+
+/*!
+ * \brief Updates existing entries or inserts new ones incrementally.
+ */
+void WifiNetworkDetailsColl::updateOrInsertEntries(const QVector<ParsedInfo> &parsed)
+{
+    for (const auto &p : parsed) {
+
+        QString key = !p.bssid.isEmpty() ? p.bssid : p.ssid;
+
+        int found = -1;
+        for (int i = 0; i < m_wifiList.size(); ++i) {
+            QString existingKey = !m_wifiList[i]->bssid().isEmpty()
+            ? m_wifiList[i]->bssid()
+            : m_wifiList[i]->ssid();
+            if (existingKey == key) {
+                found = i;
+                break;
+            }
+        }
+
+        if (found >= 0) {
+            // ---- Update ----
+            WifiNetworkDetails *item = m_wifiList[found];
+            bool changed = false;
+
+            if (item->active() != p.active) { item->setActive(p.active); changed = true; }
+            if (item->ssid()   != p.ssid)   { item->setSsid(p.ssid);     changed = true; }
+            if (item->bars()   != p.bars)   { item->setBars(p.bars);     changed = true; }
+            if (item->security()!= p.secured){item->setSecurity(p.secured); changed = true; }
+            if (item->bssid()  != p.bssid)  { item->setBssid(p.bssid);   changed = true; }
+            if (item->chan()   != p.chan)   { item->setChan(p.chan);     changed = true; }
+            if (item->rate()   != p.rate)   { item->setRate(p.rate);     changed = true; }
+
+            if (changed)
+                emit dataChanged(index(found), index(found));
+        }
+        else {
+            // ---- Insert new ----
+            int row = m_wifiList.size();
+            beginInsertRows(QModelIndex(), row, row);
+
+            WifiNetworkDetails *wifi =
+                new WifiNetworkDetails(this, p.active, p.ssid, p.bars,
+                                       p.secured, p.bssid, p.chan, p.rate);
+
+            m_wifiList.append(wifi);
+
+            endInsertRows();
+        }
+    }
+}
+
+
+
+/*!
+ *  \brief Updates the active Wi-Fi information (SSID + signal bars)
+ *         based on the current list.
+ */
+void WifiNetworkDetailsColl::updateActiveInfo()
+{
+    setActiveSsid("");
+    setActiveBars(-1);
+
+    for (auto &i : m_wifiList) {
+        if (i->active() == "yes") {
+            setActiveSsid(i->ssid());
+            setActiveBars(i->bars());
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -171,7 +272,6 @@ WifiNetworkDetailsColl::WifiNetworkDetailsColl(QObject *parent)
 QHash<int, QByteArray> WifiNetworkDetailsColl::roleNames() const
 {
     QHash<int, QByteArray> roles;
-    roles[eWifiListCollectionRole] = "wifiDetails";
     roles[RoleActive]   = "active";
     roles[RoleSsid]     = "ssid";
     roles[RoleBars]     = "bars";
@@ -191,7 +291,7 @@ int WifiNetworkDetailsColl::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
-    return static_cast<int>(m_WifiDetailsColl.size());
+    return static_cast<int>(m_wifiList.size());
 }
 
 /*!
@@ -204,16 +304,14 @@ QVariant WifiNetworkDetailsColl::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() ||
         index.row() < 0 ||
-        static_cast<size_t>(index.row()) >= m_WifiDetailsColl.size()) {
+        index.row() >= m_wifiList.size())
+    {
         return {};
     }
 
-    const auto &details = m_WifiDetailsColl.at(index.row());
+    WifiNetworkDetails* details = m_wifiList.at(index.row());
 
     switch (role) {
-    case eWifiListCollectionRole:
-        return QVariant::fromValue(static_cast<QObject*>(details.get()));
-
     case RoleActive:
         return details->active();
 
@@ -246,7 +344,7 @@ QVariant WifiNetworkDetailsColl::data(const QModelIndex &index, int role) const
 void WifiNetworkDetailsColl::clear()
 {
     beginResetModel();
-    m_WifiDetailsColl.clear();
+    m_wifiList.clear();
     endResetModel();
 
     setActiveSsid(QString());

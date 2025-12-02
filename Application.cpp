@@ -81,10 +81,7 @@ WiFiAddNetworkManager *Application::wiFiAddNetworkManager()     { return s_insta
 
 ResolutionListModel *Application::resolutionListModel()         { return s_instance ? s_instance->_resolutionListModel   : nullptr; }
 
-SessionModel *Application::sessionModel()
-{
-
-}
+SessionModel *Application::sessionModel()                       { return s_instance ? s_instance->_sessionModel   : nullptr; }
 
 void Application::resetAllAsync()
 {

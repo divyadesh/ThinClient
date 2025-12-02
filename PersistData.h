@@ -39,6 +39,8 @@ class PersistData : public QObject {
     Q_PROPERTY(int deviceOff READ deviceOff WRITE setDeviceOff NOTIFY deviceOffChanged)
     Q_PROPERTY(int displayOff READ displayOff WRITE setDisplayOff NOTIFY displayOffChanged)
     Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged FINAL)
+    Q_PROPERTY(QString gfxMode READ gfxMode WRITE setGfxMode NOTIFY gfxModeChanged FINAL)
+    Q_PROPERTY(bool menuAnimation READ menuAnimation WRITE setMenuAnimation NOTIFY menuAnimationChanged FINAL)
 
 public:
     explicit PersistData(QObject *parent = nullptr);
@@ -64,6 +66,12 @@ public:
     int displayOff() const;                   void setDisplayOff(const int &value);
     QString language() const;                 void setLanguage(const QString &value);
 
+    QString gfxMode() const;
+    bool menuAnimation() const;
+
+    void setGfxMode(const QString &newGfxMode);
+    void setMenuAnimation(bool newMenuAnimation);
+
 signals:
     void audioChanged();
     void timeZoneChanged();
@@ -76,6 +84,10 @@ signals:
     void deviceOffChanged();
     void displayOffChanged();
     void languageChanged();
+
+    void gfxModeChanged();
+
+    void menuAnimationChanged();
 
 private:
     void loadOrDefault(const QString &key, QString &var, const QString &def);
@@ -100,6 +112,8 @@ private:
     int m_deviceOff = 0;
     int m_displayOff = 0;
     QString m_language;
+    QString m_gfxMode;
+    bool m_menuAnimation;
 };
 
 #endif // PERSISTDATA_H

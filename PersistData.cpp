@@ -37,6 +37,8 @@ PersistData::PersistData(QObject *parent)
     loadOrDefault("DeviceOff",             m_deviceOff,           0);
     loadOrDefault("DisplayOff",            m_displayOff,          0);
     loadOrDefault("Language",              m_language,            "en_US");
+    loadOrDefault("GFXMode",               m_gfxMode,             "auto");
+    loadOrDefault("MenuAnimation",         m_menuAnimation,       false);
 
     m_setting.endGroup();
     m_setting.sync();
@@ -269,4 +271,32 @@ bool PersistData::resetSettings()
 
     qInfo() << "[FactoryReset] Settings file deleted:" << path;
     return true;
+}
+
+QString PersistData::gfxMode() const
+{
+    return m_gfxMode;
+}
+
+void PersistData::setGfxMode(const QString &newGfxMode)
+{
+    if (m_gfxMode == newGfxMode)
+        return;
+    m_gfxMode = newGfxMode;
+    saveData("GFXMode", m_gfxMode);
+    emit gfxModeChanged();
+}
+
+bool PersistData::menuAnimation() const
+{
+    return m_menuAnimation;
+}
+
+void PersistData::setMenuAnimation(bool newMenuAnimation)
+{
+    if (m_menuAnimation == newMenuAnimation)
+        return;
+    m_menuAnimation = newMenuAnimation;
+    saveData("MenuAnimation", m_menuAnimation);
+    emit menuAnimationChanged();
 }

@@ -116,5 +116,8 @@
         <file>pages/NotificationManager.qml</file>
         <file>RDConnectionsView.qml</file>
         <file>components/PrefsFlickable.qml</file>
+        <file>assets/icons/menu_2.svg</file>
+        <file>pages/AdvancedSettingsPage.qml</file>
+        <file>assets/settingsIcons/advanced.svg</file>
     </qresource>
 </RCC>

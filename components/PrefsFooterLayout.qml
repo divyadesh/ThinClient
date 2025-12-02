@@ -16,6 +16,7 @@ TabBar {
         Wifi,
         Display,
         Device,
+        Advanced,
         About
     }
 
@@ -51,6 +52,12 @@ TabBar {
         icon.source: "qrc:/assets/settingsIcons/ic_display.svg"
         text: qsTr("Device Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Device, text)
+    }
+    PageTabButton {
+        implicitHeight: parent.height
+        icon.source: "qrc:/assets/settingsIcons/advanced.svg"
+        text: qsTr("Advanced Settings")
+        onClicked: root.tabSelected(PrefsFooterLayout.TabType.Advanced, text)
     }
     PageTabButton {
         implicitHeight: parent.height

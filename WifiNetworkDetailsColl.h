@@ -8,6 +8,17 @@
 #include <deque>
 #include <memory>
 
+
+struct ParsedInfo {
+    QString active;
+    QString ssid;
+    int bars;
+    bool secured;
+    QString bssid;
+    int chan;
+    QString rate;
+};
+
 class WifiNetworkDetails;
 
 /**
@@ -53,8 +64,7 @@ public:
      * Remaining roles return individual properties for QML delegates.
      */
     enum WifiListCollRole {
-        eWifiListCollectionRole = Qt::UserRole + 1, ///< Full WifiNetworkDetails object
-        RoleActive,                                   ///< ACTIVE field
+        RoleActive = Qt::UserRole + 1,                ///< ACTIVE field
         RoleSsid,                                     ///< SSID field
         RoleBars,                                     ///< Signal bars
         RoleSecurity,                                 ///< Security enabled/disabled
@@ -131,11 +141,19 @@ private:
     QProcess m_process;                  ///< Synchronous nmcli process
     QProcess m_asyncProcess;             ///< Async scan process
     QTimer m_autoRefreshTimer;           ///< Timer driving periodic scans
-    std::deque<std::shared_ptr<WifiNetworkDetails>> m_WifiDetailsColl;
 
     QString m_activeSsid;                ///< Current SSID
     int m_activeBars{-1};                ///< Signal bars for current Wi-Fi
     bool m_scanning{false};              ///< True if async scan is running
+
+    QList<WifiNetworkDetails*> m_wifiList;
+    void parseScanOutput(const QStringList &lines, QVector<ParsedInfo> &parsed);
+    void removeMissingEntries(const QVector<ParsedInfo> &parsed);
+    void updateOrInsertEntries(const QVector<ParsedInfo> &parsed);
+    void updateActiveInfo();
+    void finalizeScanSuccess();
+    void finalizeScanFailure();
+    QVector<ParsedInfo> deduplicateParsedResults(const QVector<ParsedInfo> &input);
 };
 
 #endif // WIFINETWORKDETAILSCOLL_H

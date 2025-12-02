@@ -113,8 +113,8 @@ BasicPage {
                         hoverEnabled: true
 
                         onClicked: {
-                            const connected =  wifiNetworkDetails.activeSsid === wifiDetails.ssid
-                            pageStack.push(setWifiPassword, {"currentSsid" : wifiDetails.ssid, connectRequested : !connected, hasSecurity: wifiDetails.security})
+                            const connected =  active === "yes"
+                            pageStack.push(setWifiPassword, {"currentSsid" : ssid, connectRequested : !connected, hasSecurity: security})
                         }
 
                         background: Rectangle {
@@ -129,7 +129,7 @@ BasicPage {
                             spacing: 10
 
                             Rectangle {
-                                visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
+                                visible: active === "yes"
                                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                 width: 14
                                 height: 14
@@ -144,7 +144,7 @@ BasicPage {
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
-                                    text: wifiDetails.ssid
+                                    text: ssid
                                 }
 
                                 PrefsLabel {
@@ -152,7 +152,7 @@ BasicPage {
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     horizontalAlignment: Text.AlignLeft
                                     verticalAlignment: Text.AlignVCenter
-                                    visible: wifiNetworkDetails.activeSsid === wifiDetails.ssid
+                                    visible: active === "yes"
                                     color: Colors.accentHover
                                     text: qsTr("Connected")
                                 }
@@ -168,7 +168,7 @@ BasicPage {
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                                 icon: "qrc:/assets/icons/lock.svg"
-                                visible: wifiDetails.security
+                                visible: security
 
                                 iconWidth: 20
                                 iconHeight: 20
@@ -177,11 +177,10 @@ BasicPage {
 
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                property int strength: wifiDetails.bars
                                 iconWidth: 20
                                 iconHeight: 15
                                 icon: {
-                                    switch(strength) {
+                                    switch(bars) {
                                     case WifiNetworkDetailsColl.StrengthExcellent:
                                         return Qt.resolvedUrl("qrc:/assets/icons/full.svg")
                                     case WifiNetworkDetailsColl.StrengthGood:
@@ -200,12 +199,12 @@ BasicPage {
 
                             Icon {
                                 Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                icon: wifiNetworkDetails.activeSsid === wifiDetails.ssid ? "qrc:/assets/icons/menu.svg" : ""
-                                iconWidth: 20
-                                iconHeight: 20
+                                icon: active === "yes" ? "qrc:/assets/icons/menu_2.svg" : ""
+                                iconWidth: 24
+                                iconHeight: 24
                                 onClicked: {
-                                    if(wifiNetworkDetails.activeSsid === wifiDetails.ssid) {
-                                        pageStack.push(ssidDetailsPage, {"wifiSSID": wifiDetails.ssid})
+                                    if(active === "yes") {
+                                        pageStack.push(ssidDetailsPage, {"wifiSSID": ssid})
                                     }
                                 }
                             }

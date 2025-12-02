@@ -56,6 +56,9 @@ BasicPage {
                 case PrefsFooterLayout.TabType.Device:
                     pageStack.replace(null,deviceSettingsPage, {pageTitle: title })
                     break
+                case PrefsFooterLayout.TabType.Advanced:
+                    pageStack.replace(null,advancedSettingsPage, {pageTitle: title })
+                    break;
                 case PrefsFooterLayout.TabType.About:
                     pageStack.replace(null,deviceInfoPage, {pageTitle: title })
                     break
@@ -63,6 +66,13 @@ BasicPage {
                     pageStack.replace(null,serverSettingsPage, {pageTitle: title })
                 }
             }
+        }
+    }
+
+    Component {
+        id: advancedSettingsPage
+        AdvancedSettingsPage {
+            onBackToHome: { root.pageStack.pop() }
         }
     }
 

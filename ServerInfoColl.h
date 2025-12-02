@@ -8,7 +8,8 @@
 #include <atomic>
 #include <deque>
 #include <memory>
-
+#include "PersistData.h"
+#include "Application.h"
 #include "Database.h"
 
 class ServerInfo;
