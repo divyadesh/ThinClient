@@ -292,7 +292,9 @@ BasicPage {
                                 }
                             }
 
-                            PrefsSeparator {}
+                            PrefsSeparator {
+                                color: ipField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                            }
 
                             PrefsTextFieldSubDelegate {
                                 id: gatewayField
@@ -306,7 +308,9 @@ BasicPage {
                                 }
                             }
 
-                            PrefsSeparator {}
+                            PrefsSeparator {
+                                color: gatewayField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                            }
 
                             PrefsTextFieldSubDelegate {
                                 id: subnetField
@@ -320,7 +324,9 @@ BasicPage {
                                 }
                             }
 
-                            PrefsSeparator {}
+                            PrefsSeparator {
+                                color: subnetField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                            }
 
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
@@ -336,7 +342,9 @@ BasicPage {
                                 }
                             }
 
-                            PrefsSeparator {}
+                            PrefsSeparator {
+                                color: dns1Field.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                            }
 
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
@@ -399,6 +407,7 @@ BasicPage {
                     id: busyIndicator
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     visible: false
+                    running: visible
                     radius: 10
 
                     Connections {
@@ -436,12 +445,20 @@ BasicPage {
                                 return
                             }
 
+                            const ipAddress      = ipField.textFieldText.trim();
+                            const subnetMask     = subnetField.textFieldText.trim();
+                            const gatewayAddress = gatewayField.textFieldText.trim();
+                            const dnsList        = [
+                                dns1Field.text.trim(),
+                                dns2Field.text.trim()
+                            ];
+
                             wifi.setStaticIp(
-                                ipField.textFieldText.trim(),
-                                subnetField.textFieldText.trim(),
-                                gatewayField.textFieldText.trim(),
-                                [ dns1Field.text.trim(), dns2Field.text.trim() ]
-                            )
+                                ipAddress,
+                                subnetMask,
+                                gatewayAddress,
+                                dnsList
+                            );
 
                         } else {
                             wifi.setDhcp()

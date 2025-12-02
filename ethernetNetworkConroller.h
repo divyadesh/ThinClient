@@ -76,6 +76,7 @@ class EthernetNetworkConroller : public QObject
      * \brief Default gateway for the current IPv4 configuration.
      */
     Q_PROPERTY(QString gateway READ gateway WRITE setGateway NOTIFY gatewayChanged FINAL)
+    Q_PROPERTY(bool isBusy READ isBusy NOTIFY isBusyChanged)
 
 public:
     /*!
@@ -104,13 +105,6 @@ public:
     //! Returns the MAC address of the interface.
     QString macAddress() const { return m_mac; }
 
-    /*!
-     * \brief Enables DHCP-based configuration for the interface.
-     *
-     * Typically triggers startDhcp() and related behavior.
-     */
-    Q_INVOKABLE void enableDhcp();
-
     //! Returns the subnet mask for the current IPv4 configuration.
     QString subnetMask() const;
     //! Sets the subnet mask.
@@ -129,16 +123,20 @@ public:
     //! Sets the current IPv4 address string.
     void setIpAddress(const QString &newIpAddress);
 
+    bool isBusy() const;
+
 public slots:
     /*!
      * \brief Starts the DHCP client for this interface.
      */
-    void startDhcp();
+    void enableDhcpAsync();
+    bool enableDhcpWorker();
+    bool startDhcp();
 
     /*!
      * \brief Stops the DHCP client for this interface.
      */
-    void stopDhcp();
+    bool stopDhcp();
 
     /*!
      * \brief Refreshes the internal status information.
@@ -146,20 +144,6 @@ public slots:
      * Typically updates status, IP, speed, MAC, etc.
      */
     void refreshStatus();
-
-    /*!
-     * \brief Called when a "Connect" action is triggered from the UI.
-     *
-     * Implementation-specific: may start DHCP or apply static configuration.
-     */
-    void connectClicked();
-
-    /*!
-     * \brief Called when a "Disconnect" action is triggered from the UI.
-     *
-     * Implementation-specific: may stop DHCP and bring the link down.
-     */
-    void disconnectClicked();
 
     /*!
      * \brief Returns the NetworkManager connection name associated with a given interface.
@@ -178,7 +162,14 @@ public slots:
      * \param dns1     Primary DNS server.
      * \param dns2     Secondary DNS server (optional).
      */
-    void applyStaticConfig(
+    bool applyStaticConfigWorker(
+        const QString &ip,
+        int cidrMask,
+        const QString &gateway,
+        const QString &dns1,
+        const QString &dns2);
+
+    void applyStaticConfigAsync(
         const QString &ip,
         int cidrMask,
         const QString &gateway,
@@ -214,6 +205,11 @@ signals:
     //! Emitted when the DNS records list changes.
     void dnsRecordsChanged();
 
+    void operationStarted();
+    void operationFinished(bool success, const QString &message);
+
+    void isBusyChanged();
+
 private slots:
     /*!
      * \brief Handles standard output from the internal QProcess.
@@ -238,6 +234,15 @@ private:
     QString runCommandCollect(const QString &program,
                               const QStringList &args,
                               int timeoutMs = 3000);
+    bool runCommandBool(const QString &program,
+                   const QStringList &args,
+                   int timeoutMs = 3000);
+
+    void setBusy(bool b) {
+        if (m_isBusy == b) return;
+        m_isBusy = b;
+        emit isBusyChanged();
+    }
 
     QString   m_interface{"eth0"};   //!< Target Ethernet interface name.
     QString   m_status{"unknown"};   //!< Human-readable status.
@@ -250,6 +255,7 @@ private:
     QString   m_gateway;             //!< Default gateway.
     QStringList m_dnsRecords;        //!< DNS servers list.
     QString   m_ipAddress;           //!< Current IPv4 address.
+    bool m_isBusy{false};
 };
 
 #endif // ETHERNETNETWORKCONROLLER_H

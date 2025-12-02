@@ -86,7 +86,9 @@ BaseDialog {
                 Layout.fillWidth: true
             }
 
-            PrefsSeparator {}
+            PrefsSeparator {
+                color: ssidField.textField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+            }
 
             // ---------------------------
             // SECURITY TYPE
@@ -138,7 +140,6 @@ BaseDialog {
             }
 
             PrefsSeparator {
-                visible: securityCombo.currentValue !== AppEnums.securityOpen
             }
 
             // ---------------------------
@@ -216,7 +217,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: httpProxyField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: httpsProxyField
@@ -231,7 +234,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: httpsProxyField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: socksProxyField
@@ -246,7 +251,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: socksProxyField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: ignoreHostsField
@@ -266,7 +273,9 @@ BaseDialog {
                 visible: proxyCombo.currentValue === AppEnums.proxyAuto
                 Layout.fillWidth: true
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: ignoreHostsField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: pacUrlField
@@ -282,7 +291,9 @@ BaseDialog {
                 }
             }
 
-            PrefsSeparator {}
+            PrefsSeparator {
+                color: pacUrlField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+            }
 
             // ---------------------------
             // IP MODE (DHCP / STATIC)
@@ -337,7 +348,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: ipField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: routerField
@@ -352,7 +365,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: routerField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: prefixField
@@ -367,7 +382,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: prefixField.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: dns1Field
@@ -382,7 +399,9 @@ BaseDialog {
                     }
                 }
 
-                PrefsSeparator {}
+                PrefsSeparator {
+                    color: dns1Field.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+                }
 
                 PrefsTextFieldSubDelegate {
                     id: dns2Field
@@ -398,7 +417,9 @@ BaseDialog {
                 }
             }
 
-            PrefsSeparator {}
+            PrefsSeparator {
+                color: dns2Field.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
+            }
 
             // ---------------------------
             // MAC RANDOMIZATION

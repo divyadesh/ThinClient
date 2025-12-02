@@ -4,6 +4,7 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QBitArray>
+#include <QtConcurrent/QtConcurrent>
 
 EthernetNetworkConroller::EthernetNetworkConroller(QObject *parent)
     : QObject(parent)
@@ -33,6 +34,44 @@ QString EthernetNetworkConroller::runCommandCollect(const QString &program, cons
         return QString();
     }
     return QString::fromLocal8Bit(proc.readAllStandardOutput()).trimmed();
+}
+
+bool EthernetNetworkConroller::runCommandBool(const QString &program,
+                                              const QStringList &args,
+                                              int timeoutMs)
+{
+    QProcess proc;
+    proc.start(program, args);
+
+    if (!proc.waitForStarted()) {
+        emit logMessage(QStringLiteral("Failed to start command: %1 %2")
+                            .arg(program, args.join(' ')));
+        return false;
+    }
+
+    if (!proc.waitForFinished(timeoutMs)) {
+        proc.kill();
+        emit logMessage(QStringLiteral("Command timed out: %1 %2")
+                            .arg(program, args.join(' ')));
+        return false;
+    }
+
+    int exitCode = proc.exitCode();
+    QString stdoutOut = QString::fromLocal8Bit(proc.readAllStandardOutput()).trimmed();
+    QString stderrOut = QString::fromLocal8Bit(proc.readAllStandardError()).trimmed();
+
+    emit logMessage(QStringLiteral("[CMD] %1 %2").arg(program, args.join(' ')));
+    if (!stdoutOut.isEmpty())
+        emit logMessage(QStringLiteral("[OUT] %1").arg(stdoutOut));
+    if (!stderrOut.isEmpty())
+        emit logMessage(QStringLiteral("[ERR] %1").arg(stderrOut));
+
+    if (exitCode != 0) {
+        emit logMessage(QStringLiteral("Command failed with exit code %1").arg(exitCode));
+        return false;
+    }
+
+    return true;
 }
 
 QString cidrToNetmask(int cidrMask)
@@ -194,80 +233,137 @@ void EthernetNetworkConroller::refreshStatus()
     emit logMessage("──────────────── End Refresh Status ────────────────");
 }
 
-void EthernetNetworkConroller::startDhcp() {
+bool EthernetNetworkConroller::startDhcp()
+{
     emit logMessage(QStringLiteral("Starting DHCP client on %1").arg(m_interface));
+
+    // If already running, nothing to do
     if (m_dhcpRunning) {
-        emit logMessage("DHCP already running");
-        return;
+        emit logMessage("[DHCP] Already running, skipping start.");
+        return true;
     }
 
-    QStringList args = {"-i", m_interface, "-b", "-p", QString("/var/run/udhcpc.%1.pid").arg(m_interface), "-s", "/usr/share/udhcpc/default.script"};
+    // Build udhcpc arguments
+    QString pidfile = QString("/var/run/udhcpc.%1.pid").arg(m_interface);
+
+    QStringList args = {
+        "-i", m_interface,
+        "-b",
+        "-p", pidfile,
+        "-s", "/usr/share/udhcpc/default.script"
+    };
+
+    // Start DHCP client
     m_proc.start("udhcpc", args);
+
     if (!m_proc.waitForStarted(2000)) {
-        emit logMessage(QStringLiteral("Failed to start udhcpc"));
-        return;
+        emit logMessage(QStringLiteral("[DHCP] ERROR: Failed to start udhcpc"));
+        return false;
     }
+
+    // Success
     m_dhcpRunning = true;
     emit dhcpRunningChanged();
-    emit logMessage("DHCP client started");
+    emit logMessage("[DHCP] Client started successfully.");
+
     refreshStatus();
+    return true;
 }
 
-void EthernetNetworkConroller::enableDhcp()
+void EthernetNetworkConroller::enableDhcpAsync()
 {
-    emit logMessage("Switching interface to DHCP mode");
+    emit operationStarted();
+    setBusy(true);
 
-    // 0. Stop any running DHCP
-    stopDhcp();
+    QtConcurrent::run([=]() {
 
-    // 1. Remove static IP configuration
-    runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
-    runCommandCollect("ip", {"route", "flush", "dev", m_interface});
+        bool success = enableDhcpWorker();
+        QString message = success
+                              ? "DHCP mode enabled successfully."
+                              : "Failed to enable DHCP mode.";
 
-    // 2. Bring interface UP
-    runCommandCollect("ip", {"link", "set", m_interface, "up"});
+        // Deliver result back to UI thread
+        QMetaObject::invokeMethod(this, [this, success, message]() {
+            setBusy(false);
+            emit operationFinished(success, message);
+        });
+    });
+}
+
+bool EthernetNetworkConroller::enableDhcpWorker()
+{
+    emit logMessage("[Ethernet] Switching interface to DHCP mode");
+
+    bool ok = true;
+
+    // 0. Stop any running DHCP client
+    ok &= stopDhcp();
+    if (!ok) return false;
+
+    // 1. Flush static IP + routes
+    ok &= runCommandBool("ip", {"addr", "flush", "dev", m_interface});
+    if (!ok) return false;
+
+    ok &= runCommandBool("ip", {"route", "flush", "dev", m_interface});
+    if (!ok) return false;
+
+    // 2. Bring link UP
+    ok &= runCommandBool("ip", {"link", "set", m_interface, "up"});
+    if (!ok) return false;
 
     // 3. Start DHCP client
-    startDhcp();
+    ok &= startDhcp();
+    if (!ok) return false;
 
-    // 4. Update UI
+    // 4. Refresh UI data
     refreshStatus();
+
+    emit logMessage("[Ethernet] DHCP mode enabled successfully");
+
+    return true;
 }
 
-void EthernetNetworkConroller::stopDhcp() {
+bool EthernetNetworkConroller::stopDhcp()
+{
     emit logMessage(QStringLiteral("Stopping DHCP client on %1").arg(m_interface));
+    bool ok = true;
+
+    const QString pidfile = QString("/var/run/udhcpc.%1.pid").arg(m_interface);
+
+    auto readPid = [&]() -> QString {
+        return runCommandCollect("sh", {"-c", QString("cat %1 2>/dev/null || true").arg(pidfile)});
+    };
+
+    // If DHCP was NOT marked running, still try to kill stale client
     if (!m_dhcpRunning) {
-        // Attempt to release/kill anyway
-        QString pidfile = QString("/var/run/udhcpc.%1.pid").arg(m_interface);
-        QString pid = runCommandCollect("sh", {"-c", QString("cat %1 2>/dev/null || true").arg(pidfile)});
+        QString pid = readPid();
         if (!pid.isEmpty()) {
-            runCommandCollect("kill", {pid});
-            runCommandCollect("rm", {pidfile});
-            emit logMessage(QStringLiteral("Sent kill to pid %1").arg(pid));
+            ok &= runCommandBool("kill", { pid });
+            ok &= runCommandBool("rm",   { pidfile });
+
+            emit logMessage(QStringLiteral("Killed stale DHCP client (pid %1)").arg(pid));
         }
-        return;
+        return ok;
     }
 
-    // Try graceful release
-    runCommandCollect("udhcpc", {"-i", m_interface, "-x", "release"});
-    QString pidfile = QString("/var/run/udhcpc.%1.pid").arg(m_interface);
-    QString pid = runCommandCollect("sh", {"-c", QString("cat %1 2>/dev/null || true").arg(pidfile)});
+    // DHCP running → try graceful release
+    ok &= runCommandBool("udhcpc", { "-i", m_interface, "-x", "release" });
+
+    // Read PID again after release
+    QString pid = readPid();
     if (!pid.isEmpty()) {
-        runCommandCollect("kill", {pid});
-        runCommandCollect("rm", {pidfile});
-        emit logMessage(QStringLiteral("Sent kill to pid %1").arg(pid));
+        ok &= runCommandBool("kill", { pid });
+        ok &= runCommandBool("rm",   { pidfile });
+
+        emit logMessage(QStringLiteral("Sent kill to DHCP pid %1").arg(pid));
     }
+
+    // Update state
     m_dhcpRunning = false;
     emit dhcpRunningChanged();
     refreshStatus();
-}
 
-void EthernetNetworkConroller::connectClicked() {
-    startDhcp();
-}
-
-void EthernetNetworkConroller::disconnectClicked() {
-    stopDhcp();
+    return ok;
 }
 
 QString EthernetNetworkConroller::getNmConnectionForInterface(const QString &ifName)
@@ -303,7 +399,7 @@ QString EthernetNetworkConroller::getNmConnectionForInterface(const QString &ifN
     return {};
 }
 
-void EthernetNetworkConroller::applyStaticConfig(
+bool EthernetNetworkConroller::applyStaticConfigWorker(
     const QString &ip,
     int cidrMask,
     const QString &gateway,
@@ -317,132 +413,122 @@ void EthernetNetworkConroller::applyStaticConfig(
                         .arg(gateway)
                         .arg(m_interface));
 
-    // 1. Stop any external DHCP client (if you have one running outside NM)
+    // 1. Stop external DHCP client
     stopDhcp();
 
-    // 2. Determine the NetworkManager connection name for this interface
+    // 2. Find NM connection
     const QString connName = getNmConnectionForInterface(m_interface);
     if (connName.isEmpty()) {
         emit logMessage(QStringLiteral(
                             "[Ethernet] Cannot apply static config: no NetworkManager connection for %1.")
                             .arg(m_interface));
-        return;
+        return false;
     }
 
-    // 3. Build CIDR and DNS string
+    // 3. Prepare CIDR + DNS
     const QString cidr = QStringLiteral("%1/%2").arg(ip).arg(cidrMask);
+
     QStringList dnsList;
-    if (!dns1.trimmed().isEmpty())
-        dnsList << dns1.trimmed();
-    if (!dns2.trimmed().isEmpty())
-        dnsList << dns2.trimmed();
+    if (!dns1.trimmed().isEmpty()) dnsList << dns1.trimmed();
+    if (!dns2.trimmed().isEmpty()) dnsList << dns2.trimmed();
     const QString dnsStr = dnsList.join(' ');
 
-    // 4. Configure IPv4 method/manual + address + gateway
+    bool ok = true; // track cumulative result
+
+    // 4. Set IP + gateway
     emit logMessage(QStringLiteral(
                         "[Ethernet] Configuring NM connection \"%1\" with %2, gateway %3.")
                         .arg(connName, cidr, gateway));
 
-    runCommandCollect(QStringLiteral("nmcli"),
-                      { "connection", "modify", connName,
-                       "ipv4.method", "manual",
-                       "ipv4.addresses", cidr,
-                       "ipv4.gateway", gateway });
+    ok &= runCommandBool("nmcli",
+                         { "connection", "modify", connName,
+                          "ipv4.method", "manual",
+                          "ipv4.addresses", cidr,
+                          "ipv4.gateway", gateway });
 
-    // 5. Configure DNS via NetworkManager (persistent)
+    if (!ok) return false;
+
+    // 5. DNS configuration
     if (!dnsStr.isEmpty()) {
         emit logMessage(QStringLiteral(
                             "[Ethernet] Setting DNS for \"%1\" to: %2")
                             .arg(connName, dnsStr));
-        runCommandCollect(QStringLiteral("nmcli"),
-                          { "connection", "modify", connName,
-                           "ipv4.dns", dnsStr,
-                           "ipv4.ignore-auto-dns", "yes" });
+
+        ok &= runCommandBool("nmcli",
+                             { "connection", "modify", connName,
+                              "ipv4.dns", dnsStr,
+                              "ipv4.ignore-auto-dns", "yes" });
     } else {
         emit logMessage(QStringLiteral(
                             "[Ethernet] No DNS provided. Clearing manual DNS for \"%1\".")
                             .arg(connName));
-        runCommandCollect(QStringLiteral("nmcli"),
-                          { "connection", "modify", connName,
-                           "ipv4.dns", "",
-                           "ipv4.ignore-auto-dns", "no" });
+
+        ok &= runCommandBool("nmcli",
+                             { "connection", "modify", connName,
+                              "ipv4.dns", "",
+                              "ipv4.ignore-auto-dns", "no" });
     }
 
-    // 6. Make sure Ethernet prefers to auto-connect over Wi-Fi
+    if (!ok) return false;
+
+    // 6. Autoconnect priority
     emit logMessage(QStringLiteral(
                         "[Ethernet] Enabling autoconnect and setting high priority for \"%1\".")
                         .arg(connName));
 
-    runCommandCollect(QStringLiteral("nmcli"),
-                      { "connection", "modify", connName,
-                       "connection.autoconnect", "yes",
-                       "connection.autoconnect-priority", "999" });
+    ok &= runCommandBool("nmcli",
+                         { "connection", "modify", connName,
+                          "connection.autoconnect", "yes",
+                          "connection.autoconnect-priority", "999" });
 
-    // (You can set Wi-Fi connection.autoconnect-priority to a lower value
-    // in your Wi-Fi controller code, e.g. -999, as we discussed.)
+    if (!ok) return false;
 
-    // 7. Bring the connection down and up to apply changes immediately
+    // 7. Restart NM connection
     emit logMessage(QStringLiteral("[Ethernet] Restarting NM connection \"%1\" to apply changes.")
                         .arg(connName));
 
-    runCommandCollect(QStringLiteral("nmcli"),
-                      { "connection", "down", connName });
-    runCommandCollect(QStringLiteral("nmcli"),
-                      { "connection", "up", connName });
+    ok &= runCommandBool("nmcli", { "connection", "down", connName });
+    if (!ok) return false;
 
-    // 8. Refresh cached status / UI
+    ok &= runCommandBool("nmcli", { "connection", "up", connName });
+    if (!ok) return false;
+
+    // 8. Refresh UI
     refreshStatus();
 
     emit logMessage(QStringLiteral(
                         "[Ethernet] Static IP configuration applied and persisted for \"%1\".")
                         .arg(connName));
+
+    return true;
 }
 
-// void EthernetNetworkConroller::applyStaticConfig(
-//     const QString &ip,
-//     int cidrMask,
-//     const QString &gateway,
-//     const QString &dns1,
-//     const QString &dns2) {
+void EthernetNetworkConroller::applyStaticConfigAsync(
+    const QString &ip,
+    int cidrMask,
+    const QString &gateway,
+    const QString &dns1,
+    const QString &dns2)
+{
+    emit operationStarted();
+    setBusy(true);
 
-//     emit logMessage(QStringLiteral("Applying static IP: %1/%2").arg(ip).arg(cidrMask));
+    QtConcurrent::run([=]() {
 
-//     // 1. Stop DHCP client
-//     stopDhcp();
+        bool success = applyStaticConfigWorker(ip, cidrMask, gateway, dns1, dns2);
 
-//     // 2. Remove any existing IPs
-//     runCommandCollect("ip", {"addr", "flush", "dev", m_interface});
+        QString message = success
+                              ? "Static IP configuration applied successfully."
+                              : "Failed to apply static IP configuration.";
 
-//     // 3. Apply new static IP
-//     QString cidr = QString("%1/%2").arg(ip).arg(QString::number(cidrMask));
-//     runCommandCollect("ip", {"addr", "add", cidr, "dev", m_interface});
+        // Emit from background → must use queued connection
+        QMetaObject::invokeMethod(this, [this, success, message]() {
+            setBusy(false);
+            emit operationFinished(success, message);
+        });
+    });
+}
 
-//     // 4. Ensure interface is up
-//     runCommandCollect("ip", {"link", "set", m_interface, "up"});
-
-//     // 5. Set default route
-//     runCommandCollect("ip", {"route", "flush", "dev", m_interface});
-//     runCommandCollect("ip", {"route", "add", "default", "via", gateway, "dev", m_interface});
-
-//     // 6. Rewrite resolv.conf with both DNS servers
-//     QFile file("/etc/resolv.conf");
-//     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-//         QTextStream out(&file);
-
-//         if (!dns1.trimmed().isEmpty())
-//             out << "nameserver " << dns1.trimmed() << "\n";
-
-//         if (!dns2.trimmed().isEmpty())
-//             out << "nameserver " << dns2.trimmed() << "\n";
-
-//         file.close();
-//     } else {
-//         emit logMessage("Failed to open /etc/resolv.conf for writing");
-//     }
-
-//     // 7. Refresh network status
-//     refreshStatus();
-// }
 
 int EthernetNetworkConroller::maskToCidr(const QString &mask)
 {
@@ -517,4 +603,9 @@ void EthernetNetworkConroller::setIpAddress(const QString &newIpAddress)
         return;
     m_ipAddress = newIpAddress;
     emit ipAddressChanged();
+}
+
+bool EthernetNetworkConroller::isBusy() const
+{
+    return m_isBusy;
 }
