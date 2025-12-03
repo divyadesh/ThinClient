@@ -23,9 +23,6 @@ BasicPage {
     property string wifiSSID: ""
     property string errorMessage: ""
 
-    signal accepted()
-    signal rejected()
-
     background: BackgroundOverlay {}
 
     pageTitle: qsTr("Network Details")
@@ -35,6 +32,30 @@ BasicPage {
         ssid: wifiSSID
         onLogMessage: {
             console.log("[WiFi]", message)
+        }
+
+        onProcessStarted: {
+            console.log("[WiFi] Started configuration...")
+        }
+
+        onConnectionCompleted: function(success, message) {
+            if (success)
+                console.log("[WiFi][SUCCESS]", message)
+            else
+                console.log("[WiFi][ERROR]", message)
+
+            showAlert(message, success ? Type.Success : Type.Error)
+
+            // -------------------------
+            // 4) Post-call cleanup
+            // -------------------------
+            Qt.callLater(() => {
+                pageStack.pop()
+                wifi.refresh()
+                wifi.updateIpMode()
+            })
+
+            ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
         }
     }
 
@@ -250,25 +271,9 @@ BasicPage {
                             }
 
                             // Set initial mode
-                             Component.onCompleted: {
-                                 currentIndex = wifi.isStaticIp ? 1 : 0
-                             }
-
-                             // Update instantly when WiFiManager changes mode
-                             Connections {
-                                 target: wifi
-                                 function onIsStaticIpChanged() {
-                                     ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
-                                 }
-                             }
-
-                             // NEW: Listen for immediate programmatic change
-                             Connections {
-                                 target: wifi
-                                 function onIpModeChanged() {
-                                     ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
-                                 }
-                             }
+                            Component.onCompleted: {
+                                currentIndex = wifi.isStaticIp ? 1 : 0
+                            }
                         }
 
                         // ---------------------------
@@ -284,7 +289,7 @@ BasicPage {
                                 id: ipField
                                 text: qsTr("IP Address")
                                 textFieldText: wifi.ipAddress
-                                textFieldPlaceholderText: "e.g. 192.168.29.50"
+                                textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(ipField)
@@ -300,7 +305,7 @@ BasicPage {
                                 id: gatewayField
                                 text: qsTr("Gateway")
                                 textFieldText: wifi.gateway
-                                textFieldPlaceholderText: "e.g. 192.168.29.1"
+                                textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(gatewayField)
@@ -316,7 +321,7 @@ BasicPage {
                                 id: subnetField
                                 text: qsTr("Subnet Mask")
                                 textFieldText: wifi.subnetMask
-                                textFieldPlaceholderText: "e.g. 255.255.255.0"
+                                textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(subnetField)
@@ -333,7 +338,7 @@ BasicPage {
                                 text: qsTr("DNS 1")
                                 textFieldText: wifi.dnsServers && wifi.dnsServers.length > 0
                                                ? wifi.dnsServers[0]
-                                               : ""
+                                               : "8.8.8.8"
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
@@ -351,7 +356,7 @@ BasicPage {
                                 text: qsTr("DNS 2")
                                 textFieldText: wifi.dnsServers && wifi.dnsServers.length > 1
                                                ? wifi.dnsServers[1]
-                                               : ""
+                                               : "1.1.1.1"
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
@@ -395,10 +400,9 @@ BasicPage {
                 PrefsButton {
                     text: control.rejectedButtonText
                     radius: height / 2
-                    enabled: !busyIndicator.visible
+                    visible: !wifi.isBusy
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        control.rejected()
                         pageStack.pop()
                     }
                 }
@@ -406,87 +410,55 @@ BasicPage {
                 PrefsBusyIndicator {
                     id: busyIndicator
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    visible: false
-                    running: visible
+                    running: wifi.isBusy
+                    visible: wifi.isBusy
                     radius: 10
-
-                    Connections {
-                        target: wifi
-                        function onProcessStarted() {
-                            busyIndicator.visible  = true
-                        }
-                        function onProcessEnded() {
-                            busyIndicator.visible  = false
-                        }
-                    }
                 }
 
                 PrefsButton {
                     text: control.acceptedButtonText
                     radius: height / 2
                     highlighted: true
-                    visible: !busyIndicator.visible
+                    visible: !wifi.isBusy
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
+
+                        // -------------------------
+                        // 1) Validate static IP mode
+                        // -------------------------
                         if (ipModeCombo.currentValue === AppEnums.ipStatic) {
 
-                            if (!validateIp(ipField.textFieldText)) {
-                                errorMessage = qsTr("Invalid IP address")
-                                return
+                            function fail(msg) { errorMessage = msg; return }
+
+                            const ip      = ipField.textFieldText.trim()
+                            const mask    = subnetField.textFieldText.trim()
+                            const gateway = gatewayField.textFieldText.trim()
+
+                            // Validate IPs
+                            if (!validateIp(ip))      return fail(qsTr("Invalid IP address"))
+                            if (!validateIp(mask))    return fail(qsTr("Invalid subnet mask"))
+                            if (!validateIp(gateway)) return fail(qsTr("Invalid gateway"))
+
+                            // ----- DNS validation -----
+                            let dns1 = dns1Field.text.trim()
+                            let dns2 = dns2Field.text.trim()
+
+                            let dnsList = []
+                            if (isValidIpv4(dns1)) dnsList.push(dns1)
+                            if (isValidIpv4(dns2)) dnsList.push(dns2)
+
+                            if (dnsList.length === 0) {
+                                dnsList = ["8.8.8.8", "1.1.1.1"]     // default DNS
+                            } else if (dnsList.length === 1) {
+                                dnsList.push("1.1.1.1")             // fallback DNS
                             }
 
-                            if (!validateIp(subnetField.textFieldText)) {
-                                errorMessage = qsTr("Invalid subnet mask")
-                                return
-                            }
-
-                            if (!validateIp(gatewayField.textFieldText)) {
-                                errorMessage = qsTr("Invalid gateway")
-                                return
-                            }
-
-                            const ipAddress      = ipField.textFieldText.trim();
-                            const subnetMask     = subnetField.textFieldText.trim();
-                            const gatewayAddress = gatewayField.textFieldText.trim();
-                            const dnsList        = [
-                                dns1Field.text.trim(),
-                                dns2Field.text.trim()
-                            ];
-
-                            wifi.setStaticIp(
-                                ipAddress,
-                                subnetMask,
-                                gatewayAddress,
-                                dnsList
-                            );
+                            // ----- Apply Static IP -----
+                            wifi.setStaticIpAsync(ip, mask, gateway, dnsList)
 
                         } else {
-                            wifi.setDhcp()
+                            wifi.setDhcpAsync()
                         }
-
-                        Qt.callLater(function() {
-                            control.accepted()
-                            pageStack.pop()
-                            wifi.refresh()
-                            wifi.updateIpMode()
-                        })
-                    }
-
-                    function validateIp(ip) {
-                        let parts = ip.split(".")
-                        if (parts.length !== 4)
-                            return false
-
-                        for (let p of parts) {
-                            if (p === "" || isNaN(p))
-                                return false
-
-                            let n = Number(p)
-                            if (n < 0 || n > 255)
-                                return false
-                        }
-
-                        return true
                     }
                 }
 
@@ -495,5 +467,33 @@ BasicPage {
                 }
             }
         }
+    }
+
+    function isValidIpv4(ip) {
+        const parts = ip.split(".")
+        if (parts.length !== 4) return false
+
+        for (let p of parts) {
+            const n = parseInt(p)
+            if (isNaN(n) || n < 0 || n > 255) return false
+        }
+        return true
+    }
+
+    function validateIp(ip) {
+        let parts = ip.split(".")
+        if (parts.length !== 4)
+            return false
+
+        for (let p of parts) {
+            if (p === "" || isNaN(p))
+                return false
+
+            let n = Number(p)
+            if (n < 0 || n > 255)
+                return false
+        }
+
+        return true
     }
 }

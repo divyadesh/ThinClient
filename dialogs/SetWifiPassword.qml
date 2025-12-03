@@ -97,7 +97,7 @@ BasicPage {
                     }
                 }
 
-                PrefsButton {
+                PrefsDangerButton {
                     property bool forgotPassword: wifiSettings.hasSavedPassword(currentSsid)
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignVCenter
                     text: qsTr("Forgot")
@@ -111,17 +111,6 @@ BasicPage {
                     function forgotNetwork() {
                         wifiSettings.clearPassword(currentSsid)
                         wifiNetworkDetails.forgetWifiNetwork(currentSsid)
-                    }
-                }
-
-                PrefsDangerButton {
-                    id: disconnectWifi
-                    visible: !connectRequested
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignVCenter
-                    text: qsTr("Disconnect")
-                    onClicked: {
-                        showProgress = true
-                        wifiNetworkDetails.disconnectWifiNetwork(currentSsid)
                     }
                 }
 

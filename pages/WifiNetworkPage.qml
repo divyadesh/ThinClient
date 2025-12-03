@@ -266,12 +266,6 @@ BasicPage {
     }
 
     Component {
-        id: wifiDetailsComponent
-        WifiDetails {
-            objectName: "WifiDetails"
-        }
-    }
-    Component {
         id: setWifiPassword
         SetWifiPassword {
             objectName: "SetWifiPassword"

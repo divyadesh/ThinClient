@@ -15,7 +15,7 @@ ItemDelegate {
 
     property alias textFieldText: textField.text
     property string textFieldPlaceholderText: textField.text
-    property alais textField: textField
+    property alias textField: textField
 
     contentItem: TextField {
         id: textField

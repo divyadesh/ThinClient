@@ -155,7 +155,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "Ethernet :"
+                    text: "Ethernet MAC Address:"
                 }
 
                 PrefsControlLabel {
@@ -172,7 +172,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "Wifi :"
+                    text: "WiFi MAC Address:"
                 }
 
                 PrefsControlLabel {

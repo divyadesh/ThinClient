@@ -59,7 +59,7 @@ void DeviceInfoSettings::readBoardInfo()
         }
 
         if (!ethMac.isEmpty())
-            m_ethernet = QString("eth0: %1").arg(ethMac);
+            m_ethernet = QString("%1").arg(ethMac);
         else
             m_ethernet = "No Ethernet";
 
@@ -75,7 +75,7 @@ void DeviceInfoSettings::readBoardInfo()
         }
 
         if (!wifiMac.isEmpty())
-            m_wifi = QString("wlan0: %1").arg(wifiMac);
+            m_wifi = QString("%1").arg(wifiMac);
         else
             m_wifi = "No Wi-Fi";
     });

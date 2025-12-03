@@ -25,6 +25,8 @@ class WiFiManager : public QObject
     Q_PROPERTY(QString subnetMask READ subnetMask NOTIFY subnetMaskChanged)
     Q_PROPERTY(QString gateway READ gateway NOTIFY gatewayChanged)
     Q_PROPERTY(QStringList dnsServers READ dnsServers NOTIFY dnsServersChanged)
+    Q_PROPERTY(bool isBusy READ isBusy NOTIFY isBusyChanged)
+    Q_PROPERTY(QString activeInterface READ activeInterface NOTIFY activeInterfaceChanged)
 
 public:
     explicit WiFiManager(QObject *parent = nullptr);
@@ -55,6 +57,10 @@ public:
         const QStringList &args,
         std::function<void(QString)> callback);
 
+    bool isBusy() const;
+
+    QString activeInterface() const;
+
 public slots:
     void refresh();
     void startAutoRefresh();
@@ -65,6 +71,21 @@ public slots:
                      const QStringList &dns);
     bool setDhcp();
     void updateIpMode();
+    bool setDhcpWorker();
+    void setDhcpAsync();
+
+    void setStaticIpAsync(const QString &ip,
+                          const QString &subnetMask,
+                          const QString &gateway,
+                          const QStringList &dns);
+
+    bool setStaticIpWorker(const QString &ip,
+                           const QString &subnetMask,
+                           const QString &gateway,
+                           const QStringList &dns);
+
+    bool updateIpModeWorker();
+    void updateIpModeAsync();
 
 signals:
     void ipModeChanged();
@@ -86,11 +107,17 @@ signals:
     void dnsServersChanged();
 
     void logMessage(const QString &message);
+    void connectionCompleted(bool success, const QString &message);
 
     void isStaticIpChanged();
 
+    void isBusyChanged();
+
+    void activeInterfaceChanged();
+
 private:
     QString run(const QString &cmd, const QStringList &args) const;
+    bool runBool(const QString &cmd, const QStringList &args) const;
     QString cidrToNetmask(int cidr) const;
 
 private:
@@ -110,7 +137,16 @@ private:
     QStringList m_dnsServers;
 
     QTimer m_timer;
-    bool m_isStaticIp;
+    bool m_isStaticIp{false};
+    bool m_isBusy{false};
+
+    void setBusy(bool busy) {
+        if (m_isBusy == busy)
+            return;
+        m_isBusy = busy;
+        emit isBusyChanged();
+    }
+    QString m_activeInterface;
 };
 
 #endif // WIFI_MANAGER_H

@@ -77,6 +77,40 @@ QString WiFiManager::run(const QString &cmd, const QStringList &args) const
     return QString::fromLocal8Bit(p.readAllStandardOutput());
 }
 
+bool WiFiManager::runBool(const QString &cmd, const QStringList &args) const
+{
+    QProcess p;
+    p.setProgram(cmd);
+    p.setArguments(args);
+
+    // 1. Start command
+    p.start();
+    if (!p.waitForStarted(3000)) {
+        qWarning() << "[WiFi] Failed to start:" << cmd << args;
+        return false;
+    }
+
+    // 2. Wait for completion (up to 15 seconds)
+    if (!p.waitForFinished(15000)) {
+        qWarning() << "[WiFi] Command timed out:" << cmd << args;
+        p.kill();
+        p.waitForFinished();
+        return false;
+    }
+
+    // 3. Check exit code
+    if (p.exitCode() != 0) {
+        QString stderrOut = QString::fromLocal8Bit(p.readAllStandardError()).trimmed();
+        qWarning() << "[WiFi] Command failed with exit code"
+                   << p.exitCode() << ":" << cmd << args
+                   << "Error:" << stderrOut;
+        return false;
+    }
+
+    return true;
+}
+
+
 QString WiFiManager::cidrToNetmask(int cidr) const
 {
     quint32 mask = (cidr == 0 ? 0 : 0xFFFFFFFF << (32 - cidr));
@@ -108,6 +142,296 @@ void WiFiManager::stopAutoRefresh()
     emit logMessage("[WiFi] Auto-refresh stopped");
     m_timer.stop();
 }
+
+// bool WiFiManager::setDhcpWorker()
+// {
+//     emit logMessage("========== WiFi: Set DHCP ==========");
+
+//     // 1) Get current Wi-Fi connection name
+//     QString conName = getCurrentConnectionName();
+//     if (conName.isEmpty()) {
+//         emit logMessage("[WiFi] ERROR: No active WiFi connection found!");
+//         return false;
+//     }
+
+//     QString iface = m_activeInterface.isEmpty() ? "wlan0" : m_activeInterface;
+//     emit logMessage("[WiFi] Active interface = " + iface);
+//     emit logMessage("[WiFi] Switching IPv4 mode to DHCP...");
+
+//     // -------------------------------------------
+//     // STEP 1 — CLEAR gateway FIRST (NM requirement)
+//     // -------------------------------------------
+//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.gateway", ""})) {
+//         emit logMessage("[WiFi] WARN: Could not clear ipv4.gateway (continuing)");
+//     }
+
+//     // -------------------------------------------
+//     // STEP 2 — Clear IP addresses
+//     // -------------------------------------------
+//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.addresses", ""})) {
+//         emit logMessage("[WiFi] WARN: Could not clear ipv4.addresses (continuing)");
+//     }
+
+//     // -------------------------------------------
+//     // STEP 3 — Clear DNS
+//     // -------------------------------------------
+//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.dns", ""})) {
+//         emit logMessage("[WiFi] WARN: Could not clear ipv4.dns (continuing)");
+//     }
+
+//     // -------------------------------------------
+//     // STEP 4 — Set DHCP mode
+//     // -------------------------------------------
+//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.method", "auto"})) {
+//         emit logMessage("[WiFi] ERROR: Failed to set ipv4.method=auto");
+//         return false;
+//     }
+
+//     // 3) Flush all IPv4 addresses from the interface (important!)
+//     emit logMessage("[WiFi] Flushing IPs on device: " + iface);
+//     runBool("ip", {"addr", "flush", "dev", iface});
+
+//     // ---------------------------------------------------
+//     // STEP 5 — Safe reconnect (device disconnect + up)
+//     // ---------------------------------------------------
+//     emit logMessage("[WiFi] Disconnecting device " + iface + "...");
+//     runBool("nmcli", {"device", "disconnect", iface});
+
+//     emit logMessage("[WiFi] Reconnecting to " + conName + "...");
+//     if (!runBool("nmcli", {"connection", "up", conName})) {
+//         emit logMessage("[WiFi] ERROR: Failed to reconnect");
+//         return false;
+//     }
+
+//     emit logMessage("[WiFi] DHCP mode enabled successfully.");
+//     return true;
+// }
+
+bool WiFiManager::setDhcpWorker()
+{
+    emit logMessage("========== WiFi: Set DHCP ==========");
+
+    QString conName = getCurrentConnectionName();
+    if (conName.isEmpty()) {
+        emit logMessage("[WiFi] ERROR: No active WiFi connection found!");
+        return false;
+    }
+
+    QString iface = m_activeInterface.isEmpty() ? "p2p0" : m_activeInterface;
+    emit logMessage("[WiFi] Active interface = " + iface);
+
+    emit logMessage("[WiFi] Switching IPv4 mode to DHCP...");
+
+    // 1) Set DHCP method FIRST
+    if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.method", "auto"})) {
+        emit logMessage("[WiFi] ERROR: Failed to set ipv4.method=auto");
+        return false;
+    }
+
+    // 2) Disconnect device (this removes runtime static IPv4)
+    emit logMessage("[WiFi] Disconnecting device...");
+    runBool("nmcli", {"device", "disconnect", iface});
+
+    // 3) Now safe to clear static fields from profile
+    runBool("nmcli", {"connection", "modify", conName, "ipv4.gateway", ""});
+    runBool("nmcli", {"connection", "modify", conName, "ipv4.addresses", ""});
+    runBool("nmcli", {"connection", "modify", conName, "ipv4.dns", ""});
+
+    // 4) Flush leftover kernel IPs (NOW this is guaranteed to work)
+    emit logMessage("[WiFi] Flushing runtime IPs...");
+    runBool("ip", {"addr", "flush", "dev", iface});
+
+    // 5) Reconnect using DHCP
+    emit logMessage("[WiFi] Reconnecting...");
+    if (!runBool("nmcli", {"connection", "up", conName})) {
+        emit logMessage("[WiFi] ERROR: Failed to reconnect");
+        return false;
+    }
+
+    emit logMessage("[WiFi] DHCP mode enabled successfully.");
+    return true;
+}
+
+void WiFiManager::setDhcpAsync()
+{
+    setBusy(true);
+    emit processStarted();   // For UI BusyIndicator
+
+    QtConcurrent::run([=]() {
+        bool success = setDhcpWorker();
+
+        QString message = success
+                              ? "WiFi DHCP mode enabled successfully."
+                              : "Failed to enable WiFi DHCP mode.";
+
+        // Must invoke back on main thread:
+        QMetaObject::invokeMethod(this, [this, success, message]() {
+            emit connectionCompleted(success, message);
+            setBusy(false);
+        });
+    });
+}
+
+void WiFiManager::setStaticIpAsync(const QString &ip,
+                                   const QString &subnetMask,
+                                   const QString &gateway,
+                                   const QStringList &dns)
+{
+    setBusy(true);
+    emit processStarted();
+
+    QtConcurrent::run([=]() {
+
+        bool success = setStaticIpWorker(ip, subnetMask, gateway, dns);
+
+        QString message = success
+                              ? "WiFi static IP applied successfully."
+                              : "Failed to apply WiFi static IP.";
+
+        QMetaObject::invokeMethod(this, [=]() {
+            emit connectionCompleted(success, message);
+            setBusy(false);
+        });
+    });
+}
+
+bool WiFiManager::setStaticIpWorker(const QString &ip,
+                                    const QString &subnetMask,
+                                    const QString &gateway,
+                                    const QStringList &dns)
+{
+    emit logMessage("========== WiFi: Set Static IP ==========");
+    emit logMessage("[WiFi] Fetching active connection list...");
+
+    QString conList = run("nmcli", { "-t", "-f", "NAME,DEVICE", "connection", "show" }).trimmed();
+    emit logMessage("[WiFi] Connection list:\n" + conList);
+
+    QString conName;
+    for (const QString &line : conList.split("\n")) {
+        if (line.contains("wlan0") || line.contains("p2p0")) {
+            conName = line.split(":")[0];
+            emit logMessage("[WiFi] Active WiFi connection detected: " + conName);
+            break;
+        }
+    }
+
+    if (conName.isEmpty()) {
+        emit logMessage("[WiFi] ERROR: No active WiFi connection found!");
+        return false;
+    }
+
+    // Convert subnet mask → CIDR
+    emit logMessage("[WiFi] Converting subnet mask to CIDR: " + subnetMask);
+    QStringList parts = subnetMask.split(".");
+    if (parts.size() != 4) {
+        emit logMessage("[WiFi] ERROR: Invalid subnet mask!");
+        return false;
+    }
+
+    quint32 mask =
+        (parts[0].toInt() << 24) |
+        (parts[1].toInt() << 16) |
+        (parts[2].toInt() << 8)  |
+        (parts[3].toInt());
+
+    int cidr = 0;
+    while (mask & 0x80000000) {
+        cidr++;
+        mask <<= 1;
+    }
+
+    QString cidrIp = ip + "/" + QString::number(cidr);
+    emit logMessage("[WiFi] Calculated CIDR IP: " + cidrIp);
+
+    // Apply static IP settings
+    if (!runBool("nmcli", { "connection", "modify", conName,
+                           "ipv4.addresses", cidrIp,
+                           "ipv4.gateway",   gateway,
+                           "ipv4.method",    "manual" }))
+        return false;
+
+    // DNS settings
+    if (!dns.isEmpty()) {
+        QString dnsCombined = dns.join(",");
+        emit logMessage("[WiFi] Setting DNS: " + dnsCombined);
+
+        if (!runBool("nmcli", { "connection", "modify", conName,
+                               "ipv4.dns", dnsCombined }))
+            return false;
+    }
+
+    emit logMessage("[WiFi] Restarting connection...");
+
+    if (!runBool("nmcli", { "connection", "down", conName }))
+        return false;
+
+    if (!runBool("nmcli", { "connection", "up", conName }))
+        return false;
+
+    emit logMessage("[WiFi] Static IP applied successfully.");
+    return true;
+}
+
+bool WiFiManager::updateIpModeWorker()
+{
+    emit logMessage("========== WiFi: Update IP Mode ==========");
+    qInfo() << "[WiFiManager] Updating IP mode...";
+
+    QString conName = getCurrentConnectionName();
+    if (conName.isEmpty()) {
+        qWarning() << "[WiFiManager] Cannot update IP mode — no connection name.";
+        return false;
+    }
+
+    qDebug() << "[WiFiManager] Querying IPv4 method for connection:" << conName;
+
+    QString modeOut = run("nmcli", {
+                                       "-t", "-f", "ipv4.method", "connection", "show", conName
+                                   }).trimmed();
+
+    if (modeOut.isEmpty()) {
+        qWarning() << "[WiFiManager] ERROR: Failed to read IPv4 method.";
+        return false;
+    }
+
+    qInfo() << "[WiFiManager] ipv4.method =" << modeOut;
+
+    // Expecting something like: "ipv4.method:manual"
+    QStringList parts = modeOut.split(":");
+    QString mode = (parts.size() >= 2 ? parts[1].trimmed() : modeOut);
+
+    bool isStatic = (mode == "manual");
+    setIsStaticIp(isStatic);
+
+    qInfo() << "[WiFiManager] Current IP mode:"
+            << (isStatic ? "Static (manual)" : "DHCP (auto)");
+
+    emit logMessage("========== End Update IP Mode ==========");
+
+    return true;
+}
+
+void WiFiManager::updateIpModeAsync()
+{
+    setBusy(true);
+    emit processStarted();
+
+    QtConcurrent::run([=]() {
+
+        bool success = updateIpModeWorker();
+
+        QString message = success
+                              ? "WiFi IP mode refreshed successfully."
+                              : "Failed to refresh WiFi IP mode.";
+
+        QMetaObject::invokeMethod(this, [=]() {
+            emit connectionCompleted(success, message);
+            setBusy(false);
+            emit ipModeChanged();
+        });
+    });
+}
+
 
 bool WiFiManager::setDhcp()
 {
@@ -434,23 +758,45 @@ void WiFiManager::refresh()
 
     // ---------- DNS ----------
     emit logMessage("[WiFi] Reading DNS servers...");
+
     QStringList dns;
     QFile f("/etc/resolv.conf");
+
     if (f.open(QIODevice::ReadOnly)) {
         QTextStream in(&f);
 
         while (!in.atEnd()) {
-            QString line = in.readLine();
-            if (line.startsWith("nameserver"))
-                dns << line.split(" ")[1].trimmed();
+            QString line = in.readLine().trimmed();
+
+            if (line.startsWith("nameserver")) {
+                QString server = line.section(" ", 1, 1).trimmed();
+                if (!server.isEmpty())
+                    dns << server;
+            }
         }
     }
 
-    if (!dns.isEmpty()) {
-        m_dnsServers = dns;
-        emit dnsServersChanged();
-        emit logMessage("[WiFi] DNS: " + dns.join(", "));
+    // Default DNS fallback list
+    const QStringList defaultDns = { "8.8.8.8", "1.1.1.1" };
+
+    // Normalize results
+    if (dns.isEmpty()) {
+        dns = defaultDns;
+        emit logMessage("[WiFi] No DNS found. Using defaults: " + dns.join(", "));
     }
+    else if (dns.size() == 1) {
+        dns << defaultDns[1];
+        emit logMessage("[WiFi] Only one DNS found. Adding fallback: " + dns.join(", "));
+    }
+    else {
+        // optional: limit to first 2, because NM may return many IPv6 entries
+        dns = dns.mid(0, 2);
+        emit logMessage("[WiFi] DNS detected: " + dns.join(", "));
+    }
+
+    // Save final DNS list
+    m_dnsServers = dns;
+    emit dnsServersChanged();
 
     emit logMessage("=========== End Refresh ===========");
 }
@@ -533,4 +879,14 @@ void WiFiManager::setIsStaticIp(bool newIsStaticIp)
         return;
     m_isStaticIp = newIsStaticIp;
     emit isStaticIpChanged();
+}
+
+bool WiFiManager::isBusy() const
+{
+    return m_isBusy;
+}
+
+QString WiFiManager::activeInterface() const
+{
+    return m_activeInterface;
 }

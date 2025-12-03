@@ -43,7 +43,9 @@ BasicPage {
         // IPv4 address updated
         function onIpAddressChanged() {
             console.log("[Ethernet] IPv4 Address:", ethernetNetworkController.ipAddress)
-            ipv4Field.textFieldText = ethernetNetworkController.ipAddress
+            if(ethernetMonitor.connected) {
+                ipv4Field.textFieldText = ethernetNetworkController.ipAddress
+            }
         }
 
         // Link speed updated
@@ -58,27 +60,35 @@ BasicPage {
 
         // MAC address updated
         function onMacAddressChanged() {
-            console.log("[Ethernet] MAC Address:", ethernetNetworkController.macAddress)
-            macAddressField.textFieldText = ethernetNetworkController.macAddress
+            if(ethernetMonitor.connected) {
+                console.log("[Ethernet] MAC Address:", ethernetNetworkController.macAddress)
+                macAddressField.textFieldText = ethernetNetworkController.macAddress
+            }
         }
 
         // DNS records updated
         function onDnsRecordsChanged() {
-            console.log("[Ethernet] DNS Records:", ethernetNetworkController.dnsRecords)
-            dns1Field.textFieldText = primaryDnsValue()
-            dns2Field.textFieldText = secondaryDnsValue()
+            if(ethernetMonitor.connected) {
+                console.log("[Ethernet] DNS Records:", ethernetNetworkController.dnsRecords)
+                dns1Field.textFieldText = primaryDnsValue()
+                dns2Field.textFieldText = secondaryDnsValue()
+            }
         }
 
         // Subnet mask updated
         function onSubnetMaskChanged() {
-            console.log("[Ethernet] Subnet Mask:", ethernetNetworkController.subnetMask)
-            subnetMaskField.textFieldText = ethernetNetworkController.subnetMask
+            if(ethernetMonitor.connected) {
+                console.log("[Ethernet] Subnet Mask:", ethernetNetworkController.subnetMask)
+                subnetMaskField.textFieldText = ethernetNetworkController.subnetMask
+            }
         }
 
         // Gateway updated
         function onGatewayChanged() {
-            console.log("[Ethernet] Gateway:", ethernetNetworkController.gateway)
-            gatewayField.textFieldText = ethernetNetworkController.gateway
+            if(ethernetMonitor.connected) {
+                console.log("[Ethernet] Gateway:", ethernetNetworkController.gateway)
+                gatewayField.textFieldText = ethernetNetworkController.gateway
+            }
         }
     }
 
@@ -165,8 +175,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: ipv4Field
                                 text: qsTr("IPv4 address")
-                                textFieldText: ethernetNetworkController.ipAddress
-                                textFieldPlaceholderText: qsTr("192.168.1.100")
+                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.ipAddress : ""
+                                textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
                                 formField.onActiveFocusChanged: {
@@ -183,8 +193,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: subnetMaskField
                                 text: qsTr("Subnet mask")
-                                textFieldText: ethernetNetworkController.subnetMask
-                                textFieldPlaceholderText: qsTr("255.255.255.0")
+                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.subnetMask : ""
+                                textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
                                 formField.onActiveFocusChanged: {
@@ -201,8 +211,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: gatewayField
                                 text: qsTr("Gateway")
-                                textFieldText: ethernetNetworkController.gateway
-                                textFieldPlaceholderText: qsTr("192.168.1.1")
+                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.gateway : ""
+                                textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
                                 formField.onActiveFocusChanged: {
@@ -219,8 +229,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: primaryDnsValue()
-                                textFieldPlaceholderText: qsTr("8.8.8.8")
+                                textFieldText: ethernetMonitor.connected ? primaryDnsValue() : ""
+                                textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
                                 formField.onActiveFocusChanged: {
@@ -237,8 +247,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: secondaryDnsValue()
-                                textFieldPlaceholderText: qsTr("8.8.4.4")
+                                textFieldText: ethernetMonitor.connected ? secondaryDnsValue() : ""
+                                textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
                                 formField.onActiveFocusChanged: {
@@ -255,8 +265,8 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: macAddressField
                                 text: qsTr("MAC address")
-                                textFieldText: ethernetNetworkController.macAddress
-                                textFieldPlaceholderText: qsTr("AA:BB:CC:DD:EE:FF")
+                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.macAddress : "00:00:00:00:00:00"
+                                textFieldPlaceholderText: "00:00:00:00:00:00"
                                 readOnly: true
                                 enabled: !readOnly
                                 formField.onActiveFocusChanged: {
@@ -350,29 +360,29 @@ BasicPage {
         // Collect user input
         const ipAddress      = ipv4Field.textFieldText.trim();
         const cidrMask       = ethernetNetworkController.maskToCidr(
-                                   subnetMaskField.textFieldText.trim());
+                                 subnetMaskField.textFieldText.trim());
         const gatewayAddress = gatewayField.textFieldText.trim();
         const dnsPrimary     = dns1Field.textFieldText.trim();
         const dnsSecondary   = dns2Field.textFieldText.trim();
 
         console.log(`
-        ===== Ethernet Static Config Input =====
-         IP Address      : ${ipAddress}
-         CIDR Mask       : ${cidrMask}
-         Gateway         : ${gatewayAddress}
-         DNS Primary     : ${dnsPrimary}
-         DNS Secondary   : ${dnsSecondary}
-        ========================================
-        `);
+                    ===== Ethernet Static Config Input =====
+                    IP Address      : ${ipAddress}
+                    CIDR Mask       : ${cidrMask}
+                    Gateway         : ${gatewayAddress}
+                    DNS Primary     : ${dnsPrimary}
+                    DNS Secondary   : ${dnsSecondary}
+                    ========================================
+                    `);
 
         // Apply configuration
         ethernetNetworkController.applyStaticConfigAsync(
-            ipAddress,
-            parseInt(cidrMask),
-            gatewayAddress,
-            dnsPrimary,
-            dnsSecondary
-        );
+                    ipAddress,
+                    parseInt(cidrMask),
+                    gatewayAddress,
+                    dnsPrimary,
+                    dnsSecondary
+                    );
     }
 
     Connections {
