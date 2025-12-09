@@ -207,7 +207,7 @@ BasicPage {
 
             Icon {
                 id: wifi
-                visible: wifiMonitor.connected
+                visible: wifiMonitor.connected && !ethernetMonitor.connected
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")

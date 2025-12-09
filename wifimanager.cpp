@@ -143,70 +143,6 @@ void WiFiManager::stopAutoRefresh()
     m_timer.stop();
 }
 
-// bool WiFiManager::setDhcpWorker()
-// {
-//     emit logMessage("========== WiFi: Set DHCP ==========");
-
-//     // 1) Get current Wi-Fi connection name
-//     QString conName = getCurrentConnectionName();
-//     if (conName.isEmpty()) {
-//         emit logMessage("[WiFi] ERROR: No active WiFi connection found!");
-//         return false;
-//     }
-
-//     QString iface = m_activeInterface.isEmpty() ? "wlan0" : m_activeInterface;
-//     emit logMessage("[WiFi] Active interface = " + iface);
-//     emit logMessage("[WiFi] Switching IPv4 mode to DHCP...");
-
-//     // -------------------------------------------
-//     // STEP 1 — CLEAR gateway FIRST (NM requirement)
-//     // -------------------------------------------
-//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.gateway", ""})) {
-//         emit logMessage("[WiFi] WARN: Could not clear ipv4.gateway (continuing)");
-//     }
-
-//     // -------------------------------------------
-//     // STEP 2 — Clear IP addresses
-//     // -------------------------------------------
-//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.addresses", ""})) {
-//         emit logMessage("[WiFi] WARN: Could not clear ipv4.addresses (continuing)");
-//     }
-
-//     // -------------------------------------------
-//     // STEP 3 — Clear DNS
-//     // -------------------------------------------
-//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.dns", ""})) {
-//         emit logMessage("[WiFi] WARN: Could not clear ipv4.dns (continuing)");
-//     }
-
-//     // -------------------------------------------
-//     // STEP 4 — Set DHCP mode
-//     // -------------------------------------------
-//     if (!runBool("nmcli", {"connection", "modify", conName, "ipv4.method", "auto"})) {
-//         emit logMessage("[WiFi] ERROR: Failed to set ipv4.method=auto");
-//         return false;
-//     }
-
-//     // 3) Flush all IPv4 addresses from the interface (important!)
-//     emit logMessage("[WiFi] Flushing IPs on device: " + iface);
-//     runBool("ip", {"addr", "flush", "dev", iface});
-
-//     // ---------------------------------------------------
-//     // STEP 5 — Safe reconnect (device disconnect + up)
-//     // ---------------------------------------------------
-//     emit logMessage("[WiFi] Disconnecting device " + iface + "...");
-//     runBool("nmcli", {"device", "disconnect", iface});
-
-//     emit logMessage("[WiFi] Reconnecting to " + conName + "...");
-//     if (!runBool("nmcli", {"connection", "up", conName})) {
-//         emit logMessage("[WiFi] ERROR: Failed to reconnect");
-//         return false;
-//     }
-
-//     emit logMessage("[WiFi] DHCP mode enabled successfully.");
-//     return true;
-// }
-
 bool WiFiManager::setDhcpWorker()
 {
     emit logMessage("========== WiFi: Set DHCP ==========");
@@ -343,21 +279,61 @@ bool WiFiManager::setStaticIpWorker(const QString &ip,
     QString cidrIp = ip + "/" + QString::number(cidr);
     emit logMessage("[WiFi] Calculated CIDR IP: " + cidrIp);
 
+    // Clear old IP first
+    runBool("nmcli", {"connection", "modify", conName, "ipv4.addresses", ""});
+
     // Apply static IP settings
-    if (!runBool("nmcli", { "connection", "modify", conName,
-                           "ipv4.addresses", cidrIp,
-                           "ipv4.gateway",   gateway,
-                           "ipv4.method",    "manual" }))
+    bool success = runBool("nmcli", {
+                                        "connection", "modify", conName,
+                                        "ipv4.addresses", cidrIp,
+                                        "ipv4.gateway",   gateway,
+                                        "ipv4.method",    "manual"
+                                    });
+
+    if (!success) {
+        emit logMessage("[WiFi] ❌ Failed to apply static IP configuration");
+        emit logMessage("[WiFi] Details -> IP: " + cidrIp + ", Gateway: " + gateway);
         return false;
+    }
+
+    emit logMessage("[WiFi] ✔ Static IP applied successfully");
+    emit logMessage("[WiFi] Applied Settings -> IP: " + cidrIp + ", Gateway: " + gateway);
 
     // DNS settings
     if (!dns.isEmpty()) {
         QString dnsCombined = dns.join(",");
-        emit logMessage("[WiFi] Setting DNS: " + dnsCombined);
+        emit logMessage("[WiFi] Requested DNS: " + dnsCombined);
 
-        if (!runBool("nmcli", { "connection", "modify", conName,
-                               "ipv4.dns", dnsCombined }))
+        // ignore automatic DHCP DNS so manual DNS applies
+        runBool("nmcli", { "connection", "modify", conName, "ipv4.ignore-auto-dns", "yes" });
+
+        // apply DNS
+        if (!runBool("nmcli", { "connection", "modify", conName, "ipv4.dns", dnsCombined })) {
+            emit logMessage("[WiFi] ERROR: DNS change failed!");
             return false;
+        }
+        emit logMessage("[WiFi] DNS set. Applying connection...");
+
+        // reconnect to apply changes
+        if (!runBool("nmcli", { "connection", "up", conName })) {
+            emit logMessage("[WiFi] ERROR: Failed to re-activate connection after DNS update.");
+            return false;
+        }
+
+        // === VERIFY DNS APPLIED ===
+        QString device = runProcess("nmcli", {"-t","-f","DEVICE,STATE","device","status"})
+                             .split("\n").filter("connected").first().split(":").first();
+
+        QString appliedDns = runProcess("nmcli", { "device", "show", device });
+        emit logMessage("[WiFi] DNS Applied Info:\n" + appliedDns);
+
+        // extract DNS lines only
+        QStringList dnsLines;
+        for (const QString &line : appliedDns.split("\n")) {
+            if (line.contains("IP4.DNS"))
+                dnsLines << line.trimmed();
+        }
+        emit logMessage("[WiFi] Final Active DNS:\n" + dnsLines.join("\n"));
     }
 
     emit logMessage("[WiFi] Restarting connection...");

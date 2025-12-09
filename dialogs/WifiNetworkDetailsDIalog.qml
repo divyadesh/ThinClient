@@ -63,6 +63,7 @@ BasicPage {
         wifi.updateIpMode()
         wifi.startAutoRefresh()
     }
+
     Component.onDestruction: wifi.stopAutoRefresh()
 
     Page {
@@ -121,6 +122,14 @@ BasicPage {
                                     formFlickable.ensureVisible(ssidField)
                                 }
                             }
+
+                            formField.onCursorVisibleChanged: {
+                                if(formField.cursorVisible) {
+                                    if (wifi.isStaticIp) {
+                                        wifi.stopAutoRefresh()
+                                    }
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -139,6 +148,14 @@ BasicPage {
                                     formFlickable.ensureVisible(statusField)
                                 }
                             }
+
+                            formField.onCursorVisibleChanged: {
+                                if(formField.cursorVisible) {
+                                    if (wifi.isStaticIp) {
+                                        wifi.stopAutoRefresh()
+                                    }
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -155,6 +172,14 @@ BasicPage {
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(securityField)
+                                }
+                            }
+
+                            formField.onCursorVisibleChanged: {
+                                if(formField.cursorVisible) {
+                                    if (wifi.isStaticIp) {
+                                        wifi.stopAutoRefresh()
+                                    }
                                 }
                             }
                         }
@@ -176,6 +201,13 @@ BasicPage {
                                     formFlickable.ensureVisible(macField)
                                 }
                             }
+                            formField.onCursorVisibleChanged: {
+                                if(formField.cursorVisible) {
+                                    if (wifi.isStaticIp) {
+                                        wifi.stopAutoRefresh()
+                                    }
+                                }
+                            }
                         }
 
                         PrefsSeparator {}
@@ -188,11 +220,18 @@ BasicPage {
                             id: ipv4Field
                             text: qsTr("IPv4 address")
                             textFieldText: wifi.ipAddress
-                            textFieldPlaceholderText: qsTr("192.168.1.100")
+                            textFieldPlaceholderText: "0.0.0.0"
                             readOnly: true
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(ipv4Field)
+                                }
+                            }
+                            formField.onCursorVisibleChanged: {
+                                if(formField.cursorVisible) {
+                                    if (wifi.isStaticIp) {
+                                        wifi.stopAutoRefresh()
+                                    }
                                 }
                             }
                         }
@@ -295,6 +334,14 @@ BasicPage {
                                         formFlickable.ensureVisible(ipField)
                                     }
                                 }
+
+                                formField.onCursorVisibleChanged: {
+                                    if(formField.cursorVisible) {
+                                        if (wifi.isStaticIp) {
+                                            wifi.stopAutoRefresh()
+                                        }
+                                    }
+                                }
                             }
 
                             PrefsSeparator {
@@ -311,6 +358,14 @@ BasicPage {
                                         formFlickable.ensureVisible(gatewayField)
                                     }
                                 }
+
+                                formField.onCursorVisibleChanged: {
+                                    if(formField.cursorVisible) {
+                                        if (wifi.isStaticIp) {
+                                            wifi.stopAutoRefresh()
+                                        }
+                                    }
+                                }
                             }
 
                             PrefsSeparator {
@@ -325,6 +380,14 @@ BasicPage {
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(subnetField)
+                                    }
+                                }
+
+                                formField.onCursorVisibleChanged: {
+                                    if(formField.cursorVisible) {
+                                        if (wifi.isStaticIp) {
+                                            wifi.stopAutoRefresh()
+                                        }
                                     }
                                 }
                             }
@@ -345,6 +408,14 @@ BasicPage {
                                         formFlickable.ensureVisible(dns1Field)
                                     }
                                 }
+
+                                formField.onCursorVisibleChanged: {
+                                    if(formField.cursorVisible) {
+                                        if (wifi.isStaticIp) {
+                                            wifi.stopAutoRefresh()
+                                        }
+                                    }
+                                }
                             }
 
                             PrefsSeparator {
@@ -361,6 +432,13 @@ BasicPage {
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(dns2Field)
+                                    }
+                                }
+                                formField.onCursorVisibleChanged: {
+                                    if(formField.cursorVisible) {
+                                        if (wifi.isStaticIp) {
+                                            wifi.stopAutoRefresh()
+                                        }
                                     }
                                 }
                             }
@@ -433,25 +511,23 @@ BasicPage {
                             const ip      = ipField.textFieldText.trim()
                             const mask    = subnetField.textFieldText.trim()
                             const gateway = gatewayField.textFieldText.trim()
+                            // ----- DNS validation -----
+                            const dns1 = dns1Field.textFieldText.trim()
+                            const dns2 = dns2Field.textFieldText.trim()
 
                             // Validate IPs
                             if (!validateIp(ip))      return fail(qsTr("Invalid IP address"))
                             if (!validateIp(mask))    return fail(qsTr("Invalid subnet mask"))
                             if (!validateIp(gateway)) return fail(qsTr("Invalid gateway"))
-
-                            // ----- DNS validation -----
-                            let dns1 = dns1Field.text.trim()
-                            let dns2 = dns2Field.text.trim()
+                            if(!isValidDns(dns1))     return fail(qsTr("Invalid DNS 1"))
+                            if(!isValidDns(dns2))     return fail(qsTr("Invalid DNS 1"))
 
                             let dnsList = []
-                            if (isValidIpv4(dns1)) dnsList.push(dns1)
-                            if (isValidIpv4(dns2)) dnsList.push(dns2)
+                            if (dns1 !== "") dnsList.push(dns1)
+                            if (dns2 !== "") dnsList.push(dns2)
 
-                            if (dnsList.length === 0) {
-                                dnsList = ["8.8.8.8", "1.1.1.1"]     // default DNS
-                            } else if (dnsList.length === 1) {
-                                dnsList.push("1.1.1.1")             // fallback DNS
-                            }
+                            // Now dnsList contains valid DNS servers
+                            console.log("DNS list:", dnsList)
 
                             // ----- Apply Static IP -----
                             wifi.setStaticIpAsync(ip, mask, gateway, dnsList)
@@ -469,14 +545,24 @@ BasicPage {
         }
     }
 
-    function isValidIpv4(ip) {
+    function isValidDns(ip) {
+        if (!ip || ip.trim() === "") return true      // allow empty DNS if optional
+
         const parts = ip.split(".")
         if (parts.length !== 4) return false
 
         for (let p of parts) {
+            // block non-digit entries, leading spaces, characters
+            if (!/^\d+$/.test(p)) return false
+
             const n = parseInt(p)
-            if (isNaN(n) || n < 0 || n > 255) return false
+            if (n < 0 || n > 255) return false
         }
+
+        // block invalid DNS edge values
+        if (ip === "0.0.0.0") return false
+        if (ip === "255.255.255.255") return false
+
         return true
     }
 

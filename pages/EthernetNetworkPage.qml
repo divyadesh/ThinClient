@@ -259,13 +259,15 @@ BasicPage {
                             }
 
                             PrefsSeparator {
+                                visible: ethernetMonitor.connected
                                 color: dns2Field.formField.cursorVisible ? Colors.accentPrimary : Colors.btnBg
                             }
 
                             PrefsTextFieldSubDelegate {
                                 id: macAddressField
+                                visible: ethernetMonitor.connected
                                 text: qsTr("MAC address")
-                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.macAddress : "00:00:00:00:00:00"
+                                textFieldText:  ethernetNetworkController.macAddress
                                 textFieldPlaceholderText: "00:00:00:00:00:00"
                                 readOnly: true
                                 enabled: !readOnly

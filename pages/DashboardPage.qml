@@ -56,9 +56,6 @@ BasicPage {
                 case PrefsFooterLayout.TabType.Device:
                     pageStack.replace(null,deviceSettingsPage, {pageTitle: title })
                     break
-                case PrefsFooterLayout.TabType.Advanced:
-                    pageStack.replace(null,advancedSettingsPage, {pageTitle: title })
-                    break;
                 case PrefsFooterLayout.TabType.About:
                     pageStack.replace(null,deviceInfoPage, {pageTitle: title })
                     break

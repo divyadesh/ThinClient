@@ -106,20 +106,6 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Shutdown Device")
-                    radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: {
-                        if (resetManager.shutdown()) {
-                            console.log("Shutdown command executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Failed to shutdown")
-                        }
-                    }
-                }
-
-                PrefsButton {
                     text: qsTr("Factory Reset")
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter

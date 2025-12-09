@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.5
+import App.Styles 1.0
 import "../controls"
 
 TabBar {
@@ -7,7 +8,9 @@ TabBar {
     width: parent.width
     height: 70
     spacing: 0
-    background: null
+    background: Rectangle {
+        color: Colors.btnBg
+    }
 
     // Define your enum
     enum TabType {
@@ -24,6 +27,7 @@ TabBar {
     signal tabSelected(int tabType, string title)
 
     PageTabButton {
+        id: rdServerButton
         implicitHeight: parent.height
         icon.source: "qrc:/assets/settingsIcons/ic_rdserver.svg"
         text: qsTr("RD Servers")
@@ -52,12 +56,6 @@ TabBar {
         icon.source: "qrc:/assets/settingsIcons/ic_display.svg"
         text: qsTr("Device Settings")
         onClicked: root.tabSelected(PrefsFooterLayout.TabType.Device, text)
-    }
-    PageTabButton {
-        implicitHeight: parent.height
-        icon.source: "qrc:/assets/settingsIcons/advanced.svg"
-        text: qsTr("Advanced Settings")
-        onClicked: root.tabSelected(PrefsFooterLayout.TabType.Advanced, text)
     }
     PageTabButton {
         implicitHeight: parent.height

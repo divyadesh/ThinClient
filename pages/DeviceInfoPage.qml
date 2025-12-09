@@ -144,44 +144,7 @@ BasicPage {
                 }
             }
         }
-        // Network Info
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            RowLayout {
-                spacing: 20
-                Layout.fillWidth: true
-
-                PrefsControlLabel {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "Ethernet MAC Address:"
-                }
-
-                PrefsControlLabel {
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    Layout.fillWidth: true
-                    text: deviceInfoSettings.ethernet
-                }
-            }
-
-            RowLayout {
-                spacing: 20
-                Layout.fillWidth: true
-
-                PrefsControlLabel {
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "WiFi MAC Address:"
-                }
-
-                PrefsControlLabel {
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    Layout.fillWidth: true
-                    text: deviceInfoSettings.wifi
-                }
-            }
-        }
         // Firmware
 
         ColumnLayout {
