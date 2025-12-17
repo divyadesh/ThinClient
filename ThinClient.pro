@@ -23,6 +23,7 @@ SOURCES += \
         devicesettings.cpp \
         dnsnetworkinfo.cpp \
         ethernetmonitor.cpp \
+        ethernetnetworkinfo.cpp \
         ethernetworker.cpp \
         ethernetNetworkConroller.cpp \
         imageupdater.cpp \
@@ -40,8 +41,10 @@ SOURCES += \
         timezone_model.cpp \
         timezonemodel.cpp \
         wifiaddnetworkmanager.cpp \
+        wificonfigmanager.cpp \
         wifimanager.cpp \
         wifimonitor.cpp \
+        wifinetworkinfo.cpp \
         wifisettingsmanager.cpp \
         wifisortproxymodel.cpp \
         wifiworker.cpp
@@ -85,6 +88,7 @@ HEADERS += \
     devicesettings.h \
     dnsnetworkinfo.h \
     ethernetmonitor.h \
+    ethernetnetworkinfo.h \
     ethernetworker.h \
     ethernetNetworkConroller.h \
     imageupdater.h \
@@ -101,16 +105,31 @@ HEADERS += \
     timezone_model.h \
     timezonemodel.h \
     wifiaddnetworkmanager.h \
+    wificonfigmanager.h \
     wifimanager.h \
     wifimonitor.h \
+    wifinetworkinfo.h \
     wifisettingsmanager.h \
     wifisortproxymodel.h \
     wifiworker.h
 
-# --- Deployment section ---
-# TARGET = ThinClient
-# target.path = /root
-# INSTALLS += target
+# GLib/GIO paths
+INCLUDEPATH += /usr/include/glib-2.0
+INCLUDEPATH += /usr/lib/x86_64-linux-gnu/glib-2.0/include
+
+
+
+# libnm (NetworkManager C API dependency)
+INCLUDEPATH += /usr/include/libnm
+# -------------------------------------------------------------------
+# NetworkManagerQt (KF5)
+# -------------------------------------------------------------------
+# Includes
+INCLUDEPATH += /usr/include/KF5
+INCLUDEPATH += /usr/include/KF5/NetworkManagerQt
+
+# Link against the KDE NetworkManagerQt library
+LIBS += -lKF5NetworkManagerQt
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

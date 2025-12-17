@@ -16,6 +16,22 @@ BasicPage {
     padding: 20
     pageTitle: qsTr("Ethernet Details")
 
+    property string uiMethod: ""
+    property string uiIpAddress: ""
+    property string uiSubnet: ""
+    property string uiGateway: ""
+    property string uiDns1: ""
+    property string uiDns2: ""
+
+    function refreshFromBackend() {
+        uiMethod = ethernetNetworkInfo.method || ""
+        uiIpAddress = ethernetNetworkInfo.ipAddress || ""
+        uiSubnet    = ethernetNetworkInfo.subnet    || ""
+        uiGateway   = ethernetNetworkInfo.gateway   || ""
+        uiDns1      = ethernetNetworkInfo.dns1      || ""
+        uiDns2      = ethernetNetworkInfo.dns2      || ""
+    }
+
     // -------------------------------
     // INTERNAL HELPERS
     // -------------------------------
@@ -25,6 +41,45 @@ BasicPage {
         const mask    = subnetMaskField.textFieldText.trim();
         const gateway = gatewayField.textFieldText.trim();
 
+        function isValidIPv4(addr) {
+            const re =
+                /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+            return re.test(addr);
+        }
+
+
+        function isValidSubnetMask(mask) {
+            if (!isValidIPv4(mask))
+                return false;
+
+            const parts = mask.split(".").map(Number);
+
+            let seenZero = false;
+
+            for (let i = 0; i < 4; i++) {
+                let bytes = parts[i];
+
+                for (let bit = 7; bit >= 0; bit--) {
+                    const isOne = (bytes & (1 << bit)) !== 0;
+
+                    if (!isOne) {
+                        seenZero = true;
+                    } else if (seenZero) {
+                        // Found a 1 after a 0 → invalid mask
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        function ipv4ToInt(addr) {
+            return addr.split('.').reduce(function (res, octet) {
+                return (res << 8) + parseInt(octet);
+            }, 0) >>> 0;
+        }
+
+        /* ---- Required fields ---- */
         if (ip === "")
             return qsTr("IPv4 address cannot be empty");
 
@@ -34,61 +89,33 @@ BasicPage {
         if (gateway === "")
             return qsTr("Gateway cannot be empty");
 
+        /* ---- Format validation ---- */
+        if (!isValidIPv4(ip))
+            return qsTr("Invalid IPv4 address");
+
+        if (!isValidSubnetMask(mask))
+            return qsTr("Invalid subnet mask");
+
+        if (!isValidIPv4(gateway))
+            return qsTr("Invalid gateway address");
+
+        /* ---- Network consistency ---- */
+        const ipInt   = ipv4ToInt(ip);
+        const maskInt = ipv4ToInt(mask);
+        const gwInt   = ipv4ToInt(gateway);
+
+        if ((ipInt & maskInt) !== (gwInt & maskInt))
+            return qsTr("IP address and gateway must be in the same subnet");
+
         return "OK";
     }
 
+    Component.onCompleted: refreshFromBackend()
+
     Connections {
-        target: ethernetNetworkController
-
-        // IPv4 address updated
-        function onIpAddressChanged() {
-            console.log("[Ethernet] IPv4 Address:", ethernetNetworkController.ipAddress)
-            if(ethernetMonitor.connected) {
-                ipv4Field.textFieldText = ethernetNetworkController.ipAddress
-            }
-        }
-
-        // Link speed updated
-        function onLinkSpeedChanged() {
-            console.log(`[Ethernet] Link Speed: ${ethernetNetworkController.linkSpeed} Mbps`)
-        }
-
-        // Backend log messages
-        function onLogMessage(msg) {
-            console.log("[Ethernet][LOG]", msg)
-        }
-
-        // MAC address updated
-        function onMacAddressChanged() {
-            if(ethernetMonitor.connected) {
-                console.log("[Ethernet] MAC Address:", ethernetNetworkController.macAddress)
-                macAddressField.textFieldText = ethernetNetworkController.macAddress
-            }
-        }
-
-        // DNS records updated
-        function onDnsRecordsChanged() {
-            if(ethernetMonitor.connected) {
-                console.log("[Ethernet] DNS Records:", ethernetNetworkController.dnsRecords)
-                dns1Field.textFieldText = primaryDnsValue()
-                dns2Field.textFieldText = secondaryDnsValue()
-            }
-        }
-
-        // Subnet mask updated
-        function onSubnetMaskChanged() {
-            if(ethernetMonitor.connected) {
-                console.log("[Ethernet] Subnet Mask:", ethernetNetworkController.subnetMask)
-                subnetMaskField.textFieldText = ethernetNetworkController.subnetMask
-            }
-        }
-
-        // Gateway updated
-        function onGatewayChanged() {
-            if(ethernetMonitor.connected) {
-                console.log("[Ethernet] Gateway:", ethernetNetworkController.gateway)
-                gatewayField.textFieldText = ethernetNetworkController.gateway
-            }
+        target: ethernetNetworkInfo
+        function onChanged() {
+            refreshFromBackend()
         }
     }
 
@@ -155,10 +182,8 @@ BasicPage {
                                 textRole: "name"
                                 valueRole: "typeId"
 
-                                currentIndex: persistData.ethernet === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic
+                                currentIndex: page.uiMethod === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic
                                 onActivated: function(index) {
-                                    console.log("[Ethernet] Mode selection activated. Index:", index)
-
                                     if (currentValue === AppEnums.ipDHCP) {
                                         console.log("[Ethernet] Switching to DHCP mode…")
                                     } else {
@@ -175,7 +200,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: ipv4Field
                                 text: qsTr("IPv4 address")
-                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.ipAddress : ""
+                                textFieldText: ethernetMonitor.connected ? page.uiIpAddress : ""
                                 textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
@@ -193,7 +218,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: subnetMaskField
                                 text: qsTr("Subnet mask")
-                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.subnetMask : ""
+                                textFieldText: ethernetMonitor.connected ? page.uiSubnet : ""
                                 textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
@@ -211,7 +236,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: gatewayField
                                 text: qsTr("Gateway")
-                                textFieldText: ethernetMonitor.connected ? ethernetNetworkController.gateway : ""
+                                textFieldText: ethernetMonitor.connected ? page.uiGateway : ""
                                 textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
@@ -229,7 +254,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: ethernetMonitor.connected ? primaryDnsValue() : ""
+                                textFieldText: ethernetMonitor.connected ? page.uiDns1 : ""
                                 textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
@@ -247,7 +272,7 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: ethernetMonitor.connected ? secondaryDnsValue() : ""
+                                textFieldText: ethernetMonitor.connected ? page.uiDns2 : ""
                                 textFieldPlaceholderText: "0.0.0.0"
                                 readOnly: ipModeCombo.currentValue === AppEnums.ipDHCP
                                 enabled: !readOnly && !ethernetNetworkController.isBusy
@@ -267,7 +292,7 @@ BasicPage {
                                 id: macAddressField
                                 visible: ethernetMonitor.connected
                                 text: qsTr("MAC address")
-                                textFieldText:  ethernetNetworkController.macAddress
+                                textFieldText: ethernetNetworkInfo.mac
                                 textFieldPlaceholderText: "00:00:00:00:00:00"
                                 readOnly: true
                                 enabled: !readOnly
@@ -313,7 +338,8 @@ BasicPage {
                                     if(ipModeCombo.currentValue === AppEnums.ipStatic) {
                                         applySettings()
                                     }else {
-                                        ethernetNetworkController.enableDhcpAsync()
+                                        //ethernetNetworkController.enableDhcpAsync()
+                                        ethernetNetworkInfo.switchToDhcpAsync()
                                     }
                                 }
                             }
@@ -354,37 +380,17 @@ BasicPage {
     function applySettings() {
         let msg = page.validateStaticFields()
         if (msg !== "OK") {
-            console.log("Validation FAILED:", msg)
             showAlert(msg, Type.Error)
             return
         }
 
-        // Collect user input
-        const ipAddress      = ipv4Field.textFieldText.trim();
-        const cidrMask       = ethernetNetworkController.maskToCidr(
-                                 subnetMaskField.textFieldText.trim());
-        const gatewayAddress = gatewayField.textFieldText.trim();
-        const dnsPrimary     = dns1Field.textFieldText.trim();
-        const dnsSecondary   = dns2Field.textFieldText.trim();
-
-        console.log(`
-                    ===== Ethernet Static Config Input =====
-                    IP Address      : ${ipAddress}
-                    CIDR Mask       : ${cidrMask}
-                    Gateway         : ${gatewayAddress}
-                    DNS Primary     : ${dnsPrimary}
-                    DNS Secondary   : ${dnsSecondary}
-                    ========================================
-                    `);
-
-        // Apply configuration
-        ethernetNetworkController.applyStaticConfigAsync(
-                    ipAddress,
-                    parseInt(cidrMask),
-                    gatewayAddress,
-                    dnsPrimary,
-                    dnsSecondary
-                    );
+        ethernetNetworkInfo.switchToStaticAsync(
+            ipv4Field.textFieldText.trim(),
+            subnetMaskField.textFieldText.trim(),
+            gatewayField.textFieldText.trim(),
+            dns1Field.textFieldText.trim(),
+            dns2Field.textFieldText.trim()
+        )
     }
 
     Connections {
@@ -396,11 +402,27 @@ BasicPage {
 
         function onOperationFinished(success, message) {
             if(success) {
+                ethernetNetworkInfo.updateEthernetNetworkInfo()
                 persistData.ethernet = ipModeCombo.currentValue === AppEnums.ipDHCP ? "DHCP" : "Static"
                 console.log("Static IP configuration applied successfully")
             }else {
                 console.log("Failed to apply static IP configuration");
             }
+            showAlert(message, success ? Type.Success : Type.Error)
+        }
+    }
+
+    Connections {
+        target: ethernetNetworkInfo
+        function onOperationStarted() {
+            showAlert(qsTr("Operation started"), Type.Success)
+        }
+
+        function onOperationFinished(success, message) {
+            if(success){
+                ethernetNetworkInfo.updateEthernetNetworkInfo()
+            }
+
             showAlert(message, success ? Type.Success : Type.Error)
         }
     }

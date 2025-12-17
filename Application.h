@@ -43,6 +43,9 @@
 #include "boothelper.h"
 #include "NotificationItem.h"
 #include "wifisortproxymodel.h"
+#include "wifinetworkinfo.h"
+#include "ethernetnetworkinfo.h"
+#include "wificonfigmanager.h"
 
 class Application : public QObject
 {
@@ -81,6 +84,9 @@ public:
     static WiFiAddNetworkManager* wiFiAddNetworkManager();
     static ResolutionListModel* resolutionListModel();
     static SessionModel *sessionModel();
+    static WifiNetworkInfo *wifiNetworkInfo();
+    static EthernetNetworkInfo *ethernetNetworkInfo();
+    static WifiConfigManager *wifiConfigManager();
 
     Q_INVOKABLE void resetAllAsync();
 
@@ -144,6 +150,9 @@ private:
     ResolutionListModel *_resolutionListModel;
     SessionModel *_sessionModel;
     WifiSortProxyModel *_wifiSortProxyModel;
+    WifiNetworkInfo *_wifiNetworkInfo;
+    EthernetNetworkInfo *_ethernetNetworkInfo;
+    WifiConfigManager *_wifiConfigManager;
 
     // Threads
     QThread *m_wifiThread = nullptr;

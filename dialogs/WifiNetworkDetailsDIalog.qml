@@ -26,6 +26,7 @@ BasicPage {
     background: BackgroundOverlay {}
 
     pageTitle: qsTr("Network Details")
+    signal success()
 
     WiFiManager {
         id: wifi
@@ -39,32 +40,19 @@ BasicPage {
         }
 
         onConnectionCompleted: function(success, message) {
-            if (success)
-                console.log("[WiFi][SUCCESS]", message)
-            else
-                console.log("[WiFi][ERROR]", message)
-
             showAlert(message, success ? Type.Success : Type.Error)
 
-            // -------------------------
-            // 4) Post-call cleanup
-            // -------------------------
-            Qt.callLater(() => {
-                pageStack.pop()
-                wifi.refresh()
-                wifi.updateIpMode()
-            })
+            if (success) {
+                wifiNetworkInfo.updateWifiNetworkInfo()
+            }
 
-            ipModeCombo.currentIndex = wifi.isStaticIp ? 1 : 0
+            Qt.callLater(() => {
+                if (success) {
+                    pageStack.pop()
+                }
+            })
         }
     }
-
-    Component.onCompleted: {
-        wifi.updateIpMode()
-        wifi.startAutoRefresh()
-    }
-
-    Component.onDestruction: wifi.stopAutoRefresh()
 
     Page {
         id: page
@@ -122,14 +110,6 @@ BasicPage {
                                     formFlickable.ensureVisible(ssidField)
                                 }
                             }
-
-                            formField.onCursorVisibleChanged: {
-                                if(formField.cursorVisible) {
-                                    if (wifi.isStaticIp) {
-                                        wifi.stopAutoRefresh()
-                                    }
-                                }
-                            }
                         }
 
                         PrefsSeparator {}
@@ -140,20 +120,12 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: statusField
                             text: qsTr("Status")
-                            textFieldText: wifi.status
+                            textFieldText: wifiNetworkInfo.status
                             textFieldPlaceholderText: qsTr("e.g. Connected / Disconnected")
                             readOnly: true
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(statusField)
-                                }
-                            }
-
-                            formField.onCursorVisibleChanged: {
-                                if(formField.cursorVisible) {
-                                    if (wifi.isStaticIp) {
-                                        wifi.stopAutoRefresh()
-                                    }
                                 }
                             }
                         }
@@ -166,20 +138,12 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: securityField
                             text: qsTr("Security")
-                            textFieldText: wifi.security
+                            textFieldText: wifiNetworkInfo.security
                             textFieldPlaceholderText: qsTr("e.g. WPA2-PSK")
                             readOnly: true
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(securityField)
-                                }
-                            }
-
-                            formField.onCursorVisibleChanged: {
-                                if(formField.cursorVisible) {
-                                    if (wifi.isStaticIp) {
-                                        wifi.stopAutoRefresh()
-                                    }
                                 }
                             }
                         }
@@ -193,19 +157,12 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: macField
                             text: qsTr("MAC address")
-                            textFieldText: wifi.macAddress
+                            textFieldText: wifiNetworkInfo.mac
                             textFieldPlaceholderText: qsTr("e.g. AA:BB:CC:DD:EE:FF")
                             readOnly: true
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(macField)
-                                }
-                            }
-                            formField.onCursorVisibleChanged: {
-                                if(formField.cursorVisible) {
-                                    if (wifi.isStaticIp) {
-                                        wifi.stopAutoRefresh()
-                                    }
                                 }
                             }
                         }
@@ -219,19 +176,12 @@ BasicPage {
                         PrefsTextFieldSubDelegate {
                             id: ipv4Field
                             text: qsTr("IPv4 address")
-                            textFieldText: wifi.ipAddress
+                            textFieldText: wifiNetworkInfo.ipAddress
                             textFieldPlaceholderText: "0.0.0.0"
                             readOnly: true
                             formField.onActiveFocusChanged: {
                                 if(formField.activeFocus) {
                                     formFlickable.ensureVisible(ipv4Field)
-                                }
-                            }
-                            formField.onCursorVisibleChanged: {
-                                if(formField.cursorVisible) {
-                                    if (wifi.isStaticIp) {
-                                        wifi.stopAutoRefresh()
-                                    }
                                 }
                             }
                         }
@@ -295,23 +245,10 @@ BasicPage {
 
                             textRole: "name"
                             valueRole: "typeId"
-                            currentIndex: wifi.isStaticIp ? 1 : 0
+                            currentIndex: wifiNetworkInfo.method === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic
 
-                            onCurrentValueChanged: {
-                                console.log("[ADD NETWORK] IP Mode changed:", currentValue)
-
-                                if (currentValue === AppEnums.ipDHCP) {
-                                    console.log(" → DHCP Enabled")
-                                    wifi.startAutoRefresh()
-                                } else if (currentValue === AppEnums.ipStatic) {
-                                    console.log(" → Static IP Enabled")
-                                    wifi.stopAutoRefresh()
-                                }
-                            }
-
-                            // Set initial mode
                             Component.onCompleted: {
-                                currentIndex = wifi.isStaticIp ? 1 : 0
+                                currentIndex = Qt.binding(function(){return wifiNetworkInfo.method === "DHCP" ? AppEnums.ipDHCP : AppEnums.ipStatic})
                             }
                         }
 
@@ -327,19 +264,11 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: ipField
                                 text: qsTr("IP Address")
-                                textFieldText: wifi.ipAddress
+                                textFieldText: wifiNetworkInfo.ipAddress
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(ipField)
-                                    }
-                                }
-
-                                formField.onCursorVisibleChanged: {
-                                    if(formField.cursorVisible) {
-                                        if (wifi.isStaticIp) {
-                                            wifi.stopAutoRefresh()
-                                        }
                                     }
                                 }
                             }
@@ -351,19 +280,11 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: gatewayField
                                 text: qsTr("Gateway")
-                                textFieldText: wifi.gateway
+                                textFieldText: wifiNetworkInfo.gateway
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(gatewayField)
-                                    }
-                                }
-
-                                formField.onCursorVisibleChanged: {
-                                    if(formField.cursorVisible) {
-                                        if (wifi.isStaticIp) {
-                                            wifi.stopAutoRefresh()
-                                        }
                                     }
                                 }
                             }
@@ -375,19 +296,11 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: subnetField
                                 text: qsTr("Subnet Mask")
-                                textFieldText: wifi.subnetMask
+                                textFieldText: wifiNetworkInfo.subnet
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(subnetField)
-                                    }
-                                }
-
-                                formField.onCursorVisibleChanged: {
-                                    if(formField.cursorVisible) {
-                                        if (wifi.isStaticIp) {
-                                            wifi.stopAutoRefresh()
-                                        }
                                     }
                                 }
                             }
@@ -399,21 +312,11 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns1Field
                                 text: qsTr("DNS 1")
-                                textFieldText: wifi.dnsServers && wifi.dnsServers.length > 0
-                                               ? wifi.dnsServers[0]
-                                               : "8.8.8.8"
+                                textFieldText: wifiNetworkInfo.dns1
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(dns1Field)
-                                    }
-                                }
-
-                                formField.onCursorVisibleChanged: {
-                                    if(formField.cursorVisible) {
-                                        if (wifi.isStaticIp) {
-                                            wifi.stopAutoRefresh()
-                                        }
                                     }
                                 }
                             }
@@ -425,20 +328,11 @@ BasicPage {
                             PrefsTextFieldSubDelegate {
                                 id: dns2Field
                                 text: qsTr("DNS 2")
-                                textFieldText: wifi.dnsServers && wifi.dnsServers.length > 1
-                                               ? wifi.dnsServers[1]
-                                               : "1.1.1.1"
+                                textFieldText: wifiNetworkInfo.dns2
                                 textFieldPlaceholderText: "e.g. 0.0.0.0"
                                 formField.onActiveFocusChanged: {
                                     if(formField.activeFocus) {
                                         formFlickable.ensureVisible(dns2Field)
-                                    }
-                                }
-                                formField.onCursorVisibleChanged: {
-                                    if(formField.cursorVisible) {
-                                        if (wifi.isStaticIp) {
-                                            wifi.stopAutoRefresh()
-                                        }
                                     }
                                 }
                             }

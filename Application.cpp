@@ -83,6 +83,12 @@ ResolutionListModel *Application::resolutionListModel()         { return s_insta
 
 SessionModel *Application::sessionModel()                       { return s_instance ? s_instance->_sessionModel   : nullptr; }
 
+WifiNetworkInfo *Application::wifiNetworkInfo()                 { return s_instance ? s_instance->_wifiNetworkInfo   : nullptr; }
+
+EthernetNetworkInfo *Application::ethernetNetworkInfo()         { return s_instance ? s_instance->_ethernetNetworkInfo   : nullptr; }
+
+WifiConfigManager *Application::wifiConfigManager()             { return s_instance ? s_instance->_wifiConfigManager   : nullptr; }
+
 void Application::resetAllAsync()
 {
     if (m_resetInProgress)
@@ -157,6 +163,8 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent)
     registerTypesAndContext();
     setupNetworkMonitors();
     qInfo() << "[App] Initialization complete";
+
+    WifiNetworkInfo *info = new WifiNetworkInfo();
 }
 
 Application::~Application()
@@ -224,7 +232,10 @@ void Application::initModels()
     _database = DataBase::instance(this);
     _resolutionListModel = new ResolutionListModel(this);
     _languageModel = new LanguageModel(this);
-    _sessionModel  = new SessionModel();
+    _sessionModel  = new SessionModel(this);
+    _wifiConfigManager = new WifiConfigManager(this);
+    _wifiNetworkInfo = new WifiNetworkInfo(this);
+    _ethernetNetworkInfo = new EthernetNetworkInfo(this);
 
     _wifiSortProxyModel->setSourceModel(_wifiNetworkDetailsColl);
     _wifiSortProxyModel->sort(0);   // activate sorting
@@ -342,6 +353,10 @@ void Application::registerTypesAndContext()
     ctx->setContextProperty("deviceInfoSettings", _deviceInfoSettings);
     ctx->setContextProperty("resetManager", _resetManager);
     ctx->setContextProperty("resolutionListModel", _resolutionListModel);
+
+    ctx->setContextProperty("wifiConfigManager", _wifiConfigManager);
+    ctx->setContextProperty("wifiNetworkInfo", _wifiNetworkInfo);
+    ctx->setContextProperty("ethernetNetworkInfo", _ethernetNetworkInfo);
 
     qmlRegisterUncreatableType<ConnectionInfo>("App.Backend", 1, 0, "ConnectionInfo",
                                                "ConnectionInfo cannot be created in QML");

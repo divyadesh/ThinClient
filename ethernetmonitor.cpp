@@ -22,9 +22,12 @@ void EthernetMonitor::setIsConnected(bool newConnected)
     m_connected = newConnected;
     emit connectedChanged();
 
-    if(m_connected) {
-        QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi off");
-    }else {
+    // if(m_connected) {
+    //     QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi off");
+    // }else {
+    //     QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi on");
+    // }
+    if(!m_connected) {
         QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi on");
     }
 }
