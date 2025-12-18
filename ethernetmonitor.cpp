@@ -1,19 +1,29 @@
 #include "ethernetmonitor.h"
+#include <QFile>
+#include <QTextStream>
+#include <QDebug>
+#include <QProcess>
 
 EthernetMonitor::EthernetMonitor(QObject *parent)
-    : QObject(parent), m_connected(false)
-{}
+    : QObject(parent)
+{
+}
 
 bool EthernetMonitor::isConnected() const
 {
     return m_connected;
 }
 
-void EthernetMonitor::setConnected(bool connected)
+void EthernetMonitor::setIsConnected(bool newConnected)
 {
-    if (m_connected != connected) {
-        m_connected = connected;
-        emit connectedChanged(m_connected);
+    if (m_connected == newConnected)
+        return;
+    m_connected = newConnected;
+    emit connectedChanged();
+
+    if(m_connected) {
+        QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi off");
+    }else {
+        QProcess::execute("sh", QStringList() << "-c" << "nmcli radio wifi on");
     }
 }
-

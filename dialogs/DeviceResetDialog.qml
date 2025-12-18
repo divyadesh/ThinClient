@@ -3,6 +3,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
@@ -16,21 +17,38 @@ import "../controls"
 
 BasicPage {
     id: control
-    background: Rectangle {
-        color: "#000000"
-        opacity: 0.3
+    background: BackgroundOverlay {}
+
+    // Show progress log
+    Connections {
+        target: cApplication
+
+        function onResetStarted() {
+            console.log("Reset started")
+            progressLog.text = ""
+            progressBar.visible = true
+        }
+
+        function onResetProgress(message) {
+            progressLog.text += message + "\n"
+        }
+
+        function onResetFinished(success) {
+            progressLog.text += (success ? "Reset completed.\n" : "Reset failed.\n")
+            if(!success) {
+                progressBar.visible = false
+            }
+        }
+
+        function onResetRebooting() {
+            progressLog.text += "Rebooting...\n"
+        }
     }
 
     Page {
         anchors.centerIn: parent
         width: 480
-
-        background: Rectangle {
-            radius: 8
-            color: Colors.steelGray
-            border.width: 1
-            border.color: Colors.borderColor
-        }
+        background: DialogBackground{}
 
         header: Control {
             implicitHeight: 52
@@ -45,17 +63,29 @@ BasicPage {
             }
         }
 
-        contentItem: Control {
-            padding: 20
+        contentItem: ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 20
 
-            contentItem: PrefsLabel {
-                text: qsTr("Are you are sure you want to reset the device ?")
-                font.pixelSize: 16
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
+            Item {Layout.fillWidth: true}
+
+            PrefsBusyIndicator {
+                id: progressBar
+                visible: false
+                running: true
+                Layout.alignment: Qt.AlignHCenter
             }
-        }
 
+            PrefsLabel {
+                id: progressLog
+                text: qsTr("Are you sure you want to reset the device?")
+                font.pixelSize: 16
+                Layout.alignment: Qt.AlignHCenter
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Item {Layout.fillWidth: true}
+        }
 
         footer: Control {
             implicitHeight: 72
@@ -68,20 +98,6 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    text: qsTr("Yes")
-                    radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: {
-                        if (resetManager.reboot()) {
-                            console.log("Reboot command executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Failed to reboot")
-                        }
-                    }
-                }
-
-                PrefsButton {
                     text: qsTr("No")
                     highlighted: true
                     radius: height / 2
@@ -90,34 +106,11 @@ BasicPage {
                 }
 
                 PrefsButton {
-                    visible: false
-                    text: qsTr("Shutdown Device")
-                    highlighted: true
-                    radius: height / 2
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                    onClicked: {
-                        if (resetManager.shutdown()) {
-                            console.log("Shutdown command executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Failed to shutdown")
-                        }
-                    }
-                }
-
-                PrefsButton {
                     text: qsTr("Factory Reset")
-                    visible: false
-                    highlighted: true
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        if (resetManager.factoryReset("/usr/bin/factory_reset.sh")) {
-                            console.log("Factory reset executed")
-                            pageStack.pop()
-                        }else {
-                            console.log("Factory reset failed")
-                        }
+                        cApplication.resetAllAsync()
                     }
                 }
 

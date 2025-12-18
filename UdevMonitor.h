@@ -18,8 +18,13 @@ public:
 signals:
     void usbConnectedChanged();
     void usbEvent(const QString &action, const QString &device);
-
     void usbStoragePortChanged();
+
+public slots:
+    void handleEthernetEvent(const QString &interfaceName,
+                       const QString &state,
+                       const QString &action);
+
 
 private:
     QSocketNotifier *notifier = nullptr;

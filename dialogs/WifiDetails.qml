@@ -3,6 +3,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
@@ -10,23 +11,13 @@ import "../controls"
 
 BasicPage {
     id: control
-    background: Rectangle {
-        color: "#000000"
-        opacity: 0.3
-    }
-
     property QtObject wifiDetail: null
+    background: BackgroundOverlay {}
 
     Page {
         anchors.centerIn: parent
         width: 480
-
-        background: Rectangle {
-            radius: 8
-            color: Colors.steelGray
-            border.width: 1
-            border.color: Colors.borderColor
-        }
+        background: DialogBackground{}
 
         header: Control {
             implicitHeight: 52

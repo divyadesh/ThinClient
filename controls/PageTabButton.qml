@@ -1,15 +1,38 @@
 import QtQuick 2.15
-import QtQuick.Controls 2.5
+import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 
 TabButton {
     id: control
-    padding: 10
-    checkable: true
+    property int radius: 0
+    property bool isActiveFocus: activeFocus &&
+                                 (focusReason === Qt.TabFocusReason ||
+                                  focusReason === Qt.BacktabFocusReason)
+    hoverEnabled: true
+    scale: control.pressed ? 0.98 : 1.0
+    palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
+    display: AbstractButton.TextUnderIcon
+    activeFocusOnTab: true
+    focusPolicy: Qt.StrongFocus
 
     background: Rectangle {
-        color: control.checked ? Colors.accentHover : Colors.secondaryBackground
-        radius: 6
+        implicitHeight: 34
+        implicitWidth: 120
+        radius: control.radius
+        border.color: control.isActiveFocus ? "#FFFFFF" : "transparent"
+        border.width: control.isActiveFocus ? 2 : 0
+
+        color: {
+            if (!control.enabled) {
+                return control.checked ? Colors.accentDisabled : Colors.btnBgDisabled;
+            }
+
+            if (control.checked) {
+                return control.hovered ? Colors.accentHover : Colors.accentPrimary;
+            }
+
+            return Colors.btnBg;
+        }
     }
 }

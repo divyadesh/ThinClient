@@ -3,6 +3,7 @@ import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import App.Styles 1.0
 import AppSecurity 1.0
+import App.Backend 1.0
 
 import "../controls"
 import "../components"
@@ -21,26 +22,82 @@ BasicPage {
         id: unlockManager
     }
 
+    Connections {
+        target: wifiMonitor
+
+        // Fired when WiFi connects
+        function onWifiConnected(ssid) {
+            console.log("WiFi Connected:", ssid)
+        }
+
+        // Fired when WiFi disconnects
+        function onWifiDisconnected() {
+            console.log("WiFi Disconnected")
+        }
+
+        // Fired on ANY state change
+        function onWifiStateChanged(state) {
+            console.log("WiFi State Changed:", state)
+        }
+    }
+
     ButtonGroup { id: tabGroup }
+
+    Component.onCompleted: {
+        console.log("[AutoConnect] Component loaded")
+        console.log("[AutoConnect] autoConnectionId =", sessionModel.autoConnectionId)
+
+        // Must call function → shouldShowRebootDialog()
+        if (BootHelper.shouldShowRebootDialog()
+                && sessionModel.autoConnectionId) {
+
+            console.log("[AutoConnect] Reboot detected → scheduling auto connect for ID:",
+                        sessionModel.autoConnectionId)
+
+            connectRDServer(sessionModel.autoConnectionId, 5000)
+        } else {
+            console.log("[AutoConnect] No auto connect triggered → conditions not met")
+            console.log("  bootHelper =", BootHelper.shouldShowRebootDialog())
+            console.log("  autoConnectionId =", sessionModel.autoConnectionId)
+        }
+    }
 
     Timer {
         id: delayedConnectTimer
-        interval: 5000    // 5 seconds delay
+        interval: 5000
         repeat: false
         running: false
-        property string connectionId: ""
 
         onTriggered: {
-            if(pageStack.currentItem.objectName === "HomePage") {
-                pageStack.push(autoConnectServer, {"connectionId": connectionId})
+            console.log("[AutoConnect] Timer triggered after", interval, "ms")
+
+            console.log("[AutoConnect] Current page:", pageStack.currentItem.objectName)
+            console.log("[AutoConnect] autoConnectionId:", sessionModel.autoConnectionId)
+
+            if (pageStack.currentItem.objectName === "HomePage"
+                    && sessionModel.autoConnectionId) {
+
+                console.log("[AutoConnect] Navigating to auto-connect server page with ID:",
+                            sessionModel.autoConnectionId)
+
+                pageStack.push(autoConnectServer, {
+                                   "connectionId": sessionModel.autoConnectionId
+                               })
+            } else {
+                console.warn("[AutoConnect] Conditions failed → auto connect aborted")
             }
         }
     }
 
     function connectRDServer(connectionId, delayMs) {
+        console.log("[AutoConnect] Preparing delayed connection")
+        console.log("   → connectionId:", connectionId)
+        console.log("   → delay:", delayMs, "ms")
+
         delayedConnectTimer.interval = delayMs
-        delayedConnectTimer.connectionId = connectionId
         delayedConnectTimer.start()
+
+        console.log("[AutoConnect] Timer started")
     }
 
     Image {
@@ -52,49 +109,133 @@ BasicPage {
         source: (logoLoader && logoLoader.logo) ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
+
     Control {
-        width: parent.width * 0.8
-        height: parent.height * 0.6
+        id: tileArea
+        width:  parent.width * 0.8
+        height: parent.height * 0.8
         anchors.centerIn: parent
-        padding: 120
 
-        contentItem: GridView {
-            id: grid
-            anchors.fill: parent
-            cellWidth: 220; cellHeight: 220
+        contentItem: Flickable {
+            id: flikable
+            width: parent.width
+            height: parent.height
+            contentHeight: layout.height
             clip: true
+            property real spacing: (tileArea.height - gridControl.height) / 2
 
-            model: serverModel
+            ColumnLayout {
+                id: layout
+                spacing: 0
+                width: parent.width
+                clip: true
 
-            highlight: null
-            focus: true
+                Item {
+                    Layout.preferredHeight: flikable.spacing
+                }
 
-            delegate: Control {
-                padding: 20
-                implicitWidth: grid.cellWidth
-                implicitHeight: grid.cellHeight
+                Control {
+                    id: gridControl
+                    Layout.fillWidth: true
+                    clip: true
+                    Layout.preferredHeight: Math.min(grid.contentHeight, tileArea.height)
 
-                contentItem: HomeTabButton {
-                    id: tabButton
-                    ButtonGroup.group: tabGroup
-                    text: connectionName
-                    icon.source: Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+                    property int cellHeight: 220
+                    property int cellWidth: 220
+                    property int maxPerLine: grid.count
+                    property int minWidthToSwitch: 0
 
-                    onClicked: {
-                        serverInfo.connectRdServer(connectionId)
-                    }
+                    GridView {
+                        id: grid
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        cellHeight: gridControl.cellHeight
+                        cellWidth: gridControl.cellWidth
+                        property int rowPerWidth: Math.floor(tileArea.width / cellWidth)
+                        width: {
+                            const columns = Math.min(count, rowPerWidth)
+                            return columns * cellWidth
+                        }
 
-                    background: Rectangle {
-                        anchors.fill: parent
-                        color: tabButton.checked ? Colors.accentHover : Colors.surfaceBackground
-                        radius: 8
+                        clip: true
+                        model: serverModel
+                        highlight: null
+                        focus: true
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        delegate: Control {
+                            padding: 20
+                            implicitWidth: grid.cellWidth
+                            implicitHeight: grid.cellHeight
+
+                            Connections {
+                                target: serverInfo
+
+                                // 1️⃣ Connecting started
+                                function onRdpSessionStarted(id) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = true
+                                    showAlert("Connecting to server...", Type.Info)
+                                }
+
+                                // 2️⃣ Connected successfully
+                                function onRdpConnected(id) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = false
+                                    showAlert("Connected successfully!", Type.Success)
+                                    removeAutoConnectPageIfActive()
+                                }
+
+                                // 3️⃣ Connection failed
+                                function onRdpConnectionFailed(id, reason) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = false
+                                    showAlert("Connection failed: " + reason, Type.Error)
+                                    removeAutoConnectPageIfActive()
+                                }
+
+                                // 4️⃣ Server disconnected
+                                function onRdpDisconnected(id) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = false
+                                    showAlert("RDP session disconnected", Type.Warning)
+                                    removeAutoConnectPageIfActive()
+                                }
+                            }
+
+                            PrefsBusyIndicator {
+                                id: showProgress
+                                visible: false
+                                anchors.centerIn: parent
+                            }
+
+                            contentItem: HomeTabButton {
+                                id: tabButton
+                                ButtonGroup.group: tabGroup
+                                text: showProgress.visible ? "" : connectionName
+                                icon.source: showProgress.visible ? "" : Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+
+                                onClicked: {
+                                    serverInfo.connectRdServer(connectionId)
+                                }
+
+                                background: Rectangle {
+                                    anchors.fill: parent
+                                    color: tabButton.checked ? Colors.accentHover : "#2A2A2A"
+                                    radius: 8
+                                }
+                            }
+                        }
                     }
                 }
 
-                Component.onCompleted: {
-                    if(autoConnect) {
-                        connectRDServer(connectionId, 5000) // will run after 5 seconds
-                    }
+                Item {
+                    Layout.preferredHeight: flikable.spacing
                 }
             }
         }
@@ -111,7 +252,7 @@ BasicPage {
 
             Icon {
                 id: wifi
-                visible: wifiMonitor.connected
+                visible: wifiMonitor.connected && !ethernetMonitor.connected
                 iconWidth: Theme.iconLarge
                 iconHeight: Theme.iconLarge
                 icon: Qt.resolvedUrl("qrc:/assets/icons/wifi.png")
@@ -179,6 +320,7 @@ BasicPage {
     Component {
         id: autoConnectServer
         AutoConnect {
+            objectName: "AutoConnect"
             onCancelled: {}
         }
     }
@@ -187,6 +329,24 @@ BasicPage {
         target: dataBase
         function onRefreshTable() {
             serverModel.refresh()
+        }
+    }
+
+    function removeAutoConnectPageIfActive() {
+        const current = pageStack.currentItem
+
+        if (!current) {
+            console.warn("[AutoConnect] No current page → nothing to remove")
+            return
+        }
+
+        console.log("[AutoConnect] Current page =", current.objectName)
+
+        if (current.objectName === "AutoConnect") {
+            console.log("[AutoConnect] AutoConnect page detected → removing")
+            pageStack.pop()
+        } else {
+            console.log("[AutoConnect] AutoConnect page not active → no action")
         }
     }
 }

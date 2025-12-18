@@ -9,6 +9,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 import AppSecurity 1.0
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
@@ -19,10 +20,7 @@ BasicPage {
     signal setPassword()
     signal removePassword()
 
-    background: Rectangle {
-        color: "#000000"
-        opacity: 0.3
-    }
+    background: BackgroundOverlay {}
 
     UnlockManager {
         id: unlockManager
@@ -31,13 +29,7 @@ BasicPage {
     Page {
         anchors.centerIn: parent
         width: 600
-
-        background: Rectangle {
-            radius: 8
-            color: Colors.steelGray
-            border.width: 1
-            border.color: Colors.borderColor
-        }
+        background: DialogBackground{}
 
         header: Control {
             implicitHeight: 52

@@ -4,6 +4,8 @@
 #include <QAbstractListModel>
 #include <QLocale>
 #include <QVector>
+#include <QTranslator>
+#include <QQmlEngine>
 
 struct LanguageItem {
     QString localeId;   // e.g. "en_US"
@@ -15,7 +17,9 @@ class LanguageModel : public QAbstractListModel {
 public:
     enum Roles {
         LocaleIdRole = Qt::UserRole + 1,
-        DisplayNameRole
+        DisplayNameRole,
+        NativeNameRole,
+        FullNameRole
     };
 
     explicit LanguageModel(QObject *parent = nullptr);
@@ -27,10 +31,13 @@ public:
     Q_INVOKABLE QVariantMap get(int index) const;
 
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE bool setSystemLanguage(const QString &locale);
+signals:
+    void languageChanged();
 
 private:
     void load();
-
+    QTranslator m_translator;
     QVector<LanguageItem> m_items;
 };
 

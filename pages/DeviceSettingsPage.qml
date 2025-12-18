@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.3
 import App.Styles 1.0
 import App.Enums 1.0
 import G1.ThinClient 1.0
+import App.Backend 1.0
 
 import "../components"
 import "../controls"
@@ -13,7 +14,12 @@ BasicPage {
     id: page
     StackView.visible: true
     padding: 20
-    property bool addNewServer: false
+
+    Connections {
+        target: languageModel
+        function onLanguageChanged() {
+        }
+    }
 
     header: PageHeader {
         pageTitle: page.pageTitle
@@ -26,9 +32,8 @@ BasicPage {
         }
     }
 
-    contentItem: Flickable {
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.height
         contentWidth: layout.width
 
@@ -38,25 +43,12 @@ BasicPage {
             spacing: 40
             clip: true
 
-
             Control {
                 Layout.fillWidth: true
                 padding: 20
 
-                background: Rectangle {
-                    color: Colors.btnBg
-                    radius: 8
-                }
-
                 contentItem: ColumnLayout {
                     spacing: 10
-
-                    PrefsLabel {
-                        font.pixelSize: 24
-                        text: qsTr("Device Settings")
-                    }
-
-                    Item {Layout.fillWidth: true}
 
                     PrefsItemDelegate {
                         id: audio
@@ -65,7 +57,7 @@ BasicPage {
 
                         // keep it simple: store as int (0 Jack, 1 USB, 2 HDMI)
                         property int audioSelection: {
-                            const v = persistData.getData("Audio");
+                            const v = persistData.audio;
                             if (v === "" || v === undefined) return Audio.Jack; // default
                             return parseInt(v);
                         }
@@ -87,7 +79,8 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Jack) {
                                         audio.audioSelection = Audio.Jack;
-                                        persistData.saveData("Audio", audio.audioSelection); // ✅ persist
+                                        persistData.audio = Audio.Jack
+                                        DeviceSettings.setAudioOutput("jack");
                                     }
                                 }
                             }
@@ -102,7 +95,8 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Usb) {
                                         audio.audioSelection = Audio.Usb;
-                                        persistData.saveData("Audio", audio.audioSelection);
+                                        persistData.audio = Audio.Usb
+                                        DeviceSettings.setAudioOutput("usb");
                                     }
                                 }
                             }
@@ -117,7 +111,8 @@ BasicPage {
                                 onClicked: {
                                     if (audio.audioSelection !== Audio.Hdmi) {
                                         audio.audioSelection = Audio.Hdmi;
-                                        persistData.saveData("Audio", audio.audioSelection);
+                                        persistData.audio = Audio.Hdmi
+                                        DeviceSettings.setAudioOutput("hdmi");
                                     }
                                 }
                             }
@@ -129,30 +124,17 @@ BasicPage {
                         Layout.fillWidth: true
                         text: qsTr("Time Zone")
 
-                        indicator: PrefsComboBox {
+                        indicator:  TimeZoneSelector {
                             id: timeZoneComboBox
                             x: timezone.width - width - timezone.rightPadding
                             y: timezone.topPadding + (timezone.availableHeight - height) / 2
+                            control_width: Math.max(260, audio.indicator.implicitWidth)
 
+                            initialTimezone: persistData.timeZone
                             model: timezoneModel
-                            textRole: "tzId"
-                            //imezoneProxyModel.filterString = text
-
-                            Component.onCompleted: {
-                                let timeZone = persistData.getData("TimeZone")
-                                if(timeZone) {
-                                    for (var i = 0; i < timeZoneComboBox.count; ++i) {
-                                        if (timezoneModel.get(i).tzId === timeZone) {
-                                            currentIndex = i;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
                             onActivated: {
-                                var obj = timezoneModel.get(currentIndex)
-                                persistData.saveData("TimeZone", obj.tzId)
+                                persistData.timeZone = currentValue
+                                timezoneModel.setSystemTimezone(currentValue)
                             }
                         }
                     }
@@ -166,25 +148,42 @@ BasicPage {
                             id: languageComboBox
                             x: language.width - width - language.rightPadding
                             y: language.topPadding + (language.availableHeight - height) / 2
+                            control_width: Math.max(260, audio.indicator.implicitWidth)
 
                             model: languageModel
                             textRole: "displayName"
+                            valueRole: "localeId"
 
                             Component.onCompleted: {
-                                let language = persistData.getData("Language")
-                                if(language) {
-                                    for (var i = 0; i < languageComboBox.count; ++i) {
-                                        if (languageModel.get(i).displayName === language) {
-                                            currentIndex = i;
-                                            break;
-                                        }
+                                let saved = persistData.language
+
+                                if (!saved || saved === "") {
+                                    // Fallback to English
+                                    saved = "en_US"
+                                }
+
+                                // Step 1: search by valueRole (localeId)
+                                let indexFound = -1
+                                for (let i = 0; i < languageComboBox.count; i++) {
+                                    let obj = languageComboBox.model.get(i)
+                                    if (obj.localeId === saved) {
+                                        indexFound = i
+                                        break
                                     }
+                                }
+
+                                if (indexFound >= 0)
+                                    languageComboBox.currentIndex = indexFound
+                                else {
+                                    // fallback: English
+                                    languageComboBox.currentIndex = 0
                                 }
                             }
 
                             onActivated: {
-                                var obj = languageModel.get(currentIndex)
-                                persistData.saveData("Language", obj.displayName)
+                                let obj = languageComboBox.model.get(currentIndex)
+                                persistData.language = obj.localeId
+                                languageModel.setSystemLanguage(currentValue)
                             }
                         }
                     }
@@ -192,72 +191,6 @@ BasicPage {
                     Item {
                         Layout.preferredHeight: 20
                         Layout.fillWidth: true
-                    }
-
-                    // --- Enable On Screen Keyboard ---
-                    PrefsItemDelegate {
-                        id: enableOnScreenKeyboard
-                        Layout.fillWidth: true
-                        text: qsTr("Enable On Screen Keyboard")
-
-                        indicator: RowLayout {
-                            x: enableOnScreenKeyboard.width - width - enableOnScreenKeyboard.rightPadding
-                            y: enableOnScreenKeyboard.topPadding + (enableOnScreenKeyboard.availableHeight - height) / 2
-
-                            PrefsButton {
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                font.weight: Font.Normal
-
-                                Component.onCompleted: {
-                                    // Load saved setting
-                                    let savedValue = persistData.getData("EnableOnScreenKeyboard")
-                                    if (savedValue === "true" || savedValue === true) {
-                                        checked = true
-                                    } else {
-                                        checked = false
-                                    }
-                                }
-
-                                onClicked: {
-                                    // Toggle and save persistently
-                                    persistData.saveData("EnableOnScreenKeyboard", checked)
-                                }
-                            }
-                        }
-                    }
-
-                    // --- Enable Touch Screen ---
-                    PrefsItemDelegate {
-                        id: enableTouchScreen
-                        Layout.fillWidth: true
-                        text: qsTr("Enable Touch Screen")
-
-                        indicator: RowLayout {
-                            x: enableTouchScreen.width - width - enableTouchScreen.rightPadding
-                            y: enableTouchScreen.topPadding + (enableTouchScreen.availableHeight - height) / 2
-
-                            PrefsButton {
-                                checkable: true
-                                implicitWidth: 260
-                                text: qsTr("Enable")
-                                font.weight: Font.Normal
-
-                                Component.onCompleted: {
-                                    let savedValue = persistData.getData("EnableTouchScreen")
-                                    if (savedValue === "true" || savedValue === true) {
-                                        checked = true
-                                    } else {
-                                        checked = false
-                                    }
-                                }
-
-                                onClicked: {
-                                    persistData.saveData("EnableTouchScreen", checked)
-                                }
-                            }
-                        }
                     }
 
                     PrefsItemDelegate {
@@ -268,7 +201,7 @@ BasicPage {
                         indicator: PrefsButton {
                             x: updatePwdDelegate.width - width - updatePwdDelegate.rightPadding
                             y: updatePwdDelegate.topPadding + (updatePwdDelegate.availableHeight - height) / 2
-                            implicitWidth: 260
+                            implicitWidth: Math.max(260, audio.indicator.implicitWidth)
                             text: qsTr("Update")
                             onClicked: pageStack.push(updatePassword)
                         }
@@ -277,80 +210,83 @@ BasicPage {
 
                     Item {
                         Layout.fillWidth: true
+                        Layout.preferredHeight: 30
+                    }
+
+                    PrefsItemDelegate {
+                        Layout.fillWidth: true
+                        padding: 20
+
+                        background: Item {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                        }
+
+                        contentItem: ColumnLayout {
+                            spacing: 10
+
+                            PrefsLabel {
+                                font.pixelSize: 24
+                                text: qsTr("Device Restore & Upgrade")
+                            }
+
+                            Item {Layout.fillWidth: true}
+
+                            RowLayout {
+                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                Layout.fillWidth: true
+                                spacing: 150
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    text: qsTr("Reset")
+                                    onClicked: pageStack.push(deviceReset)
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    enabled: usbMonitor.usbConnected
+                                    text: qsTr("Update From USB")
+                                    onClicked: pageStack.push(updateDialog)
+                                }
+
+                                PrefsButton {
+                                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                                    Layout.fillWidth: true
+                                    radius: height / 2
+                                    text: exporter.busy ? "Exporting..." : "Export Logs to USB"
+                                    enabled: !exporter.busy && usbMonitor.usbConnected
+                                    onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
+                                }
+
+                                BusyIndicator {
+                                    running: exporter.busy
+                                    visible: exporter.busy
+                                }
+                            }
+
+                            Item {Layout.fillWidth: true}
+
+                            Label {
+                                id: messageLabel
+                                text: exporter.statusMessage
+                                visible: text
+                                wrapMode: Text.WordWrap
+                                font.pixelSize: 14
+                            }
+
+                            Item {Layout.fillWidth: true}
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
                         Layout.preferredHeight: 5
                     }
-                }
-            }
-
-            Control {
-                Layout.fillWidth: true
-                padding: 20
-
-                background: Rectangle {
-                    color: Colors.steelGray
-                    radius: 8
-                    border.width: 1
-                    border.color: Colors.borderColor
-                }
-
-                contentItem: ColumnLayout {
-                    spacing: 10
-
-                    PrefsLabel {
-                        font.pixelSize: 24
-                        text: qsTr("Device Restore & Upgrade")
-                    }
-
-                    Item {Layout.fillWidth: true}
-
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                        Layout.fillWidth: true
-                        spacing: 150
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            text: qsTr("Reset")
-                            onClicked: pageStack.push(deviceReset)
-                        }
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            enabled: usbMonitor.usbConnected
-                            text: qsTr("Update From USB")
-                            onClicked: pageStack.push(updateDialog)
-                        }
-
-                        PrefsButton {
-                            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                            Layout.fillWidth: true
-                            radius: height / 2
-                            text: exporter.busy ? "Exporting..." : "Export Logs to USB"
-                            enabled: !exporter.busy && usbMonitor.usbConnected
-                            onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
-                        }
-
-                        BusyIndicator {
-                            running: exporter.busy
-                            visible: exporter.busy
-                        }
-                    }
-
-                    Item {Layout.fillWidth: true}
-
-                    Label {
-                        id: messageLabel
-                        text: exporter.statusMessage
-                        visible: text
-                        wrapMode: Text.WordWrap
-                        font.pixelSize: 14
-                    }
-
-                    Item {Layout.fillWidth: true}
                 }
             }
         }
@@ -385,11 +321,11 @@ BasicPage {
     }
 
     LogExporter {
-         id: exporter
-         onExportFinished: (success, msg) => {
-             messageLabel.text = msg
-             if (success) messageLabel.color = "green"
-             else messageLabel.color = "red"
-         }
-     }
+        id: exporter
+        onExportFinished: function(success, msg) {
+            messageLabel.text = msg
+            if (success) messageLabel.color = "green"
+            else messageLabel.color = "red"
+        }
+    }
 }

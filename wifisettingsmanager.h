@@ -1,6 +1,3 @@
-#ifndef WIFIMANAGER_H
-#define WIFIMANAGER_H
-
 #include <QObject>
 #include <QSettings>
 #include <QDebug>
@@ -22,4 +19,3 @@ private:
     void logChange(const QString &ssid, const QString &action);
 };
 
-#endif // WIFIMANAGER_H

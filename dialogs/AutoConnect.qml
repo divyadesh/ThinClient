@@ -9,6 +9,7 @@ import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.3
 
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../pages"
 import "../components"
@@ -20,10 +21,7 @@ BasicPage {
 
     signal cancelled()
 
-    background: Rectangle {
-        color: "#000000"
-        opacity: 0.3
-    }
+    background: BackgroundOverlay {}
 
     Component.onCompleted: {
         autoConnectTimer.start()
@@ -42,13 +40,7 @@ BasicPage {
     Page {
         anchors.centerIn: parent
         width: 480
-
-        background: Rectangle {
-            radius: 8
-            color: Colors.steelGray
-            border.width: 1
-            border.color: Colors.borderColor
-        }
+        background: DialogBackground{}
 
         header: Control {
             implicitHeight: 52
@@ -56,7 +48,7 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Auto Connect RD Server")
+                text: qsTr("RD Server")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter

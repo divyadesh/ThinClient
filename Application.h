@@ -35,10 +35,22 @@
 #include "UdevMonitor.h"
 #include "wifisettingsmanager.h"
 #include "logexporter.h"
+#include "wifiaddnetworkmanager.h"
+#include "DisplaySettings.h"
+#include "timezonemodel.h"
+#include "resolutionlistmodel.h"
+#include "sessionmodel.h"
+#include "boothelper.h"
+#include "NotificationItem.h"
+#include "wifisortproxymodel.h"
+#include "wifinetworkinfo.h"
+#include "ethernetnetworkinfo.h"
+#include "wificonfigmanager.h"
 
 class Application : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool resetInProgress READ resetInProgress NOTIFY resetInProgressChanged)
 public:
     // --- Singleton lifecycle ---
     static void initialize(QQmlApplicationEngine *engine);
@@ -58,7 +70,7 @@ public:
     static LogoLoader *logoLoader();
     static DNSNetworkInfo *dnsNetworkInfo();
     static LanguageModel *languageModel();
-    static TimezoneModel *timezoneModel();
+    static TimeZoneModel *timezoneModel();
     static TimezoneFilterModel *timezoneProxy();
     static UdevMonitor *usbMonitor();
     static WifiNetworkDetailsColl *wifiNetworkDetails();
@@ -69,6 +81,23 @@ public:
     static SystemResetManager *resetManager();
     static RdServerModel *serverModel();
     static DataBase *db();
+    static WiFiAddNetworkManager* wiFiAddNetworkManager();
+    static ResolutionListModel* resolutionListModel();
+    static SessionModel *sessionModel();
+    static WifiNetworkInfo *wifiNetworkInfo();
+    static EthernetNetworkInfo *ethernetNetworkInfo();
+    static WifiConfigManager *wifiConfigManager();
+
+    Q_INVOKABLE void resetAllAsync();
+
+    bool resetInProgress() const;
+
+signals:
+    void resetInProgressChanged();
+    void resetStarted();
+    void resetProgress(const QString &message);
+    void resetFinished(bool success);
+    void resetRebooting();
 
 private:
     explicit Application(QQmlApplicationEngine *engine, QObject *parent = nullptr);
@@ -82,6 +111,8 @@ private:
     void setupNetworkMonitors();
 
 private:
+
+    void setResetInProgress(bool v);
 
     static Application *s_instance;
     QQmlApplicationEngine *m_engine = nullptr;
@@ -102,7 +133,7 @@ private:
     DeviceSettings *_deviceSettings = nullptr;
     UdevMonitor *_monitor = nullptr;
 
-    TimezoneModel *_tzModel = nullptr;
+    TimeZoneModel *_tzModel = nullptr;
     TimezoneFilterModel *_proxy = nullptr;
     WiFiSettingsManager *_wifiSettings = nullptr;
 
@@ -115,8 +146,16 @@ private:
     SystemResetManager *_resetManager = nullptr;
     RdServerModel *_serverModel = nullptr;
     DataBase *_database = nullptr; // assumed singleton; do not delete
+    WiFiAddNetworkManager *_wiFiAddNetworkManager;
+    ResolutionListModel *_resolutionListModel;
+    SessionModel *_sessionModel;
+    WifiSortProxyModel *_wifiSortProxyModel;
+    WifiNetworkInfo *_wifiNetworkInfo;
+    EthernetNetworkInfo *_ethernetNetworkInfo;
+    WifiConfigManager *_wifiConfigManager;
 
     // Threads
     QThread *m_wifiThread = nullptr;
     QThread *m_ethThread = nullptr;
+    bool m_resetInProgress;
 };

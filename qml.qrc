@@ -9,7 +9,7 @@
         <file>styles/Theme.qml</file>
         <file>utils/StateManager.qml</file>
         <file>pages/HomePage.qml</file>
-        <file>pages/NetworkPage.qml</file>
+        <file>pages/WifiNetworkPage.qml</file>
         <file>pages/DisplayPage.qml</file>
         <file>pages/DeviceSettingsPage.qml</file>
         <file>pages/DeviceInfoPage.qml</file>
@@ -31,7 +31,6 @@
         <file>controls/PrefsTabBar.qml</file>
         <file>controls/PageTabButton.qml</file>
         <file>controls/PrefsStackView.qml</file>
-        <file>pages/EthernetManualItem.qml</file>
         <file>controls/PrefsLabel.qml</file>
         <file>controls/PrefsButton.qml</file>
         <file>assets/icons/back.png</file>
@@ -73,5 +72,52 @@
         <file>dialogs/SetWifiPassword.qml</file>
         <file>dialogs/AutoConnect.qml</file>
         <file>assets/icons/usb.svg</file>
+        <file>components/PrefsFooterLayout.qml</file>
+        <file>assets/settingsIcons/ic_wifi.svg</file>
+        <file>assets/settingsIcons/ic_ethernet.svg</file>
+        <file>assets/settingsIcons/ic_display.svg</file>
+        <file>assets/settingsIcons/ic_device.svg</file>
+        <file>assets/settingsIcons/ic_about.svg</file>
+        <file>assets/settingsIcons/ic_rdserver.svg</file>
+        <file>pages/EthernetNetworkPage.qml</file>
+        <file>controls/PrefsTimeZoneBox.qml</file>
+        <file>assets/font/Rubik-Black.ttf</file>
+        <file>assets/font/Rubik-BlackItalic.ttf</file>
+        <file>assets/font/Rubik-Bold.ttf</file>
+        <file>assets/font/Rubik-BoldItalic.ttf</file>
+        <file>assets/font/Rubik-Italic.ttf</file>
+        <file>assets/font/Rubik-Light.ttf</file>
+        <file>assets/font/Rubik-LightItalic.ttf</file>
+        <file>assets/font/Rubik-Medium.ttf</file>
+        <file>assets/font/Rubik-MediumItalic.ttf</file>
+        <file>assets/font/Rubik-Regular.ttf</file>
+        <file>assets/icons/ic_refresh.svg</file>
+        <file>pages/WifiNetworkDetails.qml</file>
+        <file>dialogs/AddNetwork.qml</file>
+        <file>assets/icons/ic_eye-off.svg</file>
+        <file>assets/icons/ic_eye-on.svg</file>
+        <file>controls/PrefsSeparator.qml</file>
+        <file>controls/PrefsTextFieldDelegate.qml</file>
+        <file>controls/PrefsTextFieldPasswordDelegate.qml</file>
+        <file>controls/PrefsComboBoxDelegate.qml</file>
+        <file>controls/PrefsFrame.qml</file>
+        <file>controls/PrefsGroupBox.qml</file>
+        <file>controls/PrefsTextFieldSubDelegate.qml</file>
+        <file>dialogs/BaseDialog.qml</file>
+        <file>components/DialogBackground.qml</file>
+        <file>components/BackgroundOverlay.qml</file>
+        <file>dialogs/AddNetworkEnums.qml</file>
+        <file>dialogs/WifiNetworkDetailsDIalog.qml</file>
+        <file>dialogs/RootDialog.qml</file>
+        <file>components/TimeZoneSelector.qml</file>
+        <file>assets/icons/ic_aux.svg</file>
+        <file>pages/AddCustomResolution.qml</file>
+        <file>pages/Notification.qml</file>
+        <file>pages/NotificationManager.qml</file>
+        <file>RDConnectionsView.qml</file>
+        <file>components/PrefsFlickable.qml</file>
+        <file>assets/icons/menu_2.svg</file>
+        <file>pages/AdvancedSettingsPage.qml</file>
+        <file>assets/settingsIcons/advanced.svg</file>
     </qresource>
 </RCC>

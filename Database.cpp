@@ -31,10 +31,11 @@ DataBase *DataBase::s_instance = nullptr;
  * @param path Absolute path to the SQLite database file.
  */
 DataBase::DataBase(QObject *parent, const QString &path)
-    : QObject{parent}
+    : QObject{parent},
+    m_path{path}
 {
     db = QSqlDatabase::addDatabase("QSQLITE", "ThinClientConnection");
-    db.setDatabaseName(path);
+    db.setDatabaseName(m_path);
 }
 
 /**
@@ -570,6 +571,8 @@ QStringList DataBase::queryResultList() const
     return m_queryResultList;
 }
 
+QString DataBase::getPath() { return m_path; }
+
 void DataBase::setQueryResultList(QStringList newQueryResultList)
 {
     if (m_queryResultList == newQueryResultList)
@@ -629,5 +632,28 @@ bool DataBase::serverExists(const QString &connectionId)
     }
 
     return (query.next() && query.value(0).toInt() > 0);
+}
+
+bool DataBase::resetDatabase()
+{
+    QSqlDatabase m_db = QSqlDatabase::database("ThinClientConnection");
+    if (m_db.isOpen()) {
+        m_db.close();
+    }
+
+    QFile dbFile(m_path);
+
+    if (!dbFile.exists()) {
+        qInfo() << "[FactoryReset] DB file does not exist, skipping.";
+        return true;
+    }
+
+    if (!dbFile.remove()) {
+        qWarning() << "[FactoryReset] Failed to delete database: " << m_path;
+        return false;
+    }
+
+    qInfo() << "[FactoryReset] Database deleted:" << m_path;
+    return true;
 }
 

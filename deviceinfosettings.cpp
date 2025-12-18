@@ -48,36 +48,36 @@ void DeviceInfoSettings::readBoardInfo()
         QString ramInfo = execCommand("free -h | grep Mem | awk '{print $2}'");
         m_ram = ramInfo.isEmpty() ? "Unknown RAM" : ramInfo.trimmed();
 
-        // --- Ethernet ---
-        QString ethInterface = execCommand("ip link | grep -E 'eth|en' | awk -F: '{print $2}' | head -n1").trimmed();
-        if (!ethInterface.isEmpty()) {
-            QString ethSpeed = execCommand(QString("cat /sys/class/net/%1/speed 2>/dev/null").arg(ethInterface)).trimmed();
-            if (ethSpeed.isEmpty()) ethSpeed = "Unknown speed";
-            m_ethernet = QString("%1 (%2 Mb/s)").arg(ethInterface).arg(ethSpeed);
-        } else {
+        // --- Ethernet MAC ---
+        QString ethMac;
+        {
+            QFile f("/sys/class/net/eth0/address");
+            if (f.exists() && f.open(QIODevice::ReadOnly)) {
+                ethMac = QString(f.readAll()).trimmed();
+                f.close();
+            }
+        }
+
+        if (!ethMac.isEmpty())
+            m_ethernet = QString("%1").arg(ethMac);
+        else
             m_ethernet = "No Ethernet";
+
+
+        // --- Wi-Fi MAC ---
+        QString wifiMac;
+        {
+            QFile f("/sys/class/net/wlan0/address");
+            if (f.exists() && f.open(QIODevice::ReadOnly)) {
+                wifiMac = QString(f.readAll()).trimmed();
+                f.close();
+            }
         }
 
-        // --- Wi-Fi ---
-        QString wifiInterface = execCommand("ip link | grep -E 'wlan|wl' | awk -F: '{print $2}' | head -n1").trimmed();
-        if (!wifiInterface.isEmpty()) {
-            // Get driver
-            QString driverPath = QString("/sys/class/net/%1/device/driver").arg(wifiInterface);
-            QString wifiDriver;
-            QFileInfo fi(driverPath);
-            if (fi.exists())
-                wifiDriver = fi.symLinkTarget().split("/").last();
-            else
-                wifiDriver = "Unknown driver";
-
-            // Get bus info
-            QString busInfo = execCommand(QString("basename $(readlink /sys/class/net/%1/device)").arg(wifiInterface)).trimmed();
-            if (busInfo.isEmpty()) busInfo = "Unknown bus";
-
-            m_wifi = QString("%1 (%2, bus %3)").arg(wifiInterface).arg(wifiDriver).arg(busInfo);
-        } else {
+        if (!wifiMac.isEmpty())
+            m_wifi = QString("%1").arg(wifiMac);
+        else
             m_wifi = "No Wi-Fi";
-        }
     });
 
     // Notify GUI when done

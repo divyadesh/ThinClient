@@ -1,218 +1,300 @@
 #include "ServerInfoColl.h"
 #include "ServerInfo.h"
-#include "Application.h"
-#include "PersistData.h"
 #include <QQmlEngine>
-#include <QtConcurrent/QtConcurrent>
-#include <QProcess>
-#include <QDebug>
 #include <QLoggingCategory>
 
 Q_LOGGING_CATEGORY(lcServerInfo, "app.serverinfo")
 
+// ------------------------------------------------------
+//  Constructor
+// ------------------------------------------------------
 ServerInfoColl::ServerInfoColl(QObject *parent)
-    : QAbstractListModel{parent}
+    : QAbstractListModel(parent)
 {
-    _database = DataBase::instance(parent);
-    connect(&_rdpWatcher, &QFutureWatcher<void>::finished, this, &ServerInfoColl::onRdpFinished);
+    m_database = DataBase::instance(parent);
 }
 
-// === QAbstractListModel implementation ===
-
+// ------------------------------------------------------
+//  QAbstractListModel Implementation
+// ------------------------------------------------------
 QHash<int, QByteArray> ServerInfoColl::roleNames() const
 {
-    return {{eServerInfoCollectionRole, "serverInformation"}};
+    return {
+        { eServerInfoCollectionRole, "serverInformation" }
+    };
 }
 
-int ServerInfoColl::rowCount(const QModelIndex & /*parent*/) const
+int ServerInfoColl::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return static_cast<int>(m_ServerInfoColl.size());
 }
 
 QVariant ServerInfoColl::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_ServerInfoColl.size()))
+    if (!index.isValid()
+        || index.row() < 0
+        || index.row() >= (int)m_ServerInfoColl.size())
         return {};
 
     if (role == eServerInfoCollectionRole)
-        return QVariant::fromValue(static_cast<QObject*>(m_ServerInfoColl.at(index.row()).get()));
+        return QVariant::fromValue(
+            static_cast<QObject*>(m_ServerInfoColl.at(index.row()).get()));
 
     return {};
 }
 
-// === Core logic ===
-
+// ------------------------------------------------------
+//  Helper — find index by ID
+// ------------------------------------------------------
 int ServerInfoColl::getIndexToBeRemoved(const QString &connectionId)
 {
-    for (int i = 0; i < static_cast<int>(m_ServerInfoColl.size()); ++i) {
-        const auto &info = m_ServerInfoColl.at(i);
-        if (info->connectionId() == connectionId)
+    for (int i = 0; i < (int)m_ServerInfoColl.size(); ++i) {
+        if (m_ServerInfoColl[i]->connectionId() == connectionId)
             return i;
     }
     return -1;
 }
 
-void ServerInfoColl::setAutoConnect(const QString &connectionId)
-{
-//need to impement in better way
-}
-
+// ------------------------------------------------------
+//  Add server entry to model
+// ------------------------------------------------------
 void ServerInfoColl::setServerInfo(const QString &connectionId)
 {
-    beginInsertRows(QModelIndex{}, rowCount(), rowCount());
-    auto spServerInfo = std::make_shared<ServerInfo>(connectionId, this);
-    QQmlEngine::setObjectOwnership(spServerInfo.get(), QQmlEngine::CppOwnership);
-    m_ServerInfoColl.emplace_back(spServerInfo);
+    beginInsertRows({}, rowCount(), rowCount());
+    auto item = std::make_shared<ServerInfo>(connectionId, this);
+    QQmlEngine::setObjectOwnership(item.get(), QQmlEngine::CppOwnership);
+    m_ServerInfoColl.emplace_back(item);
     endInsertRows();
 }
 
+// ------------------------------------------------------
+//  Remove server
+// ------------------------------------------------------
 void ServerInfoColl::removeConnection(const QString &connectionId)
 {
-    int index = getIndexToBeRemoved(connectionId);
-    if (index < 0) return;
+    int idx = getIndexToBeRemoved(connectionId);
+    if (idx < 0) return;
 
-    beginRemoveRows(QModelIndex(), index, index);
-    m_ServerInfoColl.erase(m_ServerInfoColl.begin() + index);
+    beginRemoveRows({}, idx, idx);
+    m_ServerInfoColl.erase(m_ServerInfoColl.begin() + idx);
     endRemoveRows();
 }
 
-void ServerInfoColl::resetAutoConnect()
-{
-}
+// ------------------------------------------------------
+//  Auto-connect placeholder
+// ------------------------------------------------------
+void ServerInfoColl::setAutoConnect(const QString &) {}
+void ServerInfoColl::resetAutoConnect() {}
 
-// === RDP logic ===
 
+// ------------------------------------------------------
+//  Main entry: start RDP session
+// ------------------------------------------------------
 void ServerInfoColl::connectRdServer(const QString &connectionId)
 {
-    if (_already_running) {
-        qCInfo(lcServerInfo) << "RDP session already running — skipping new request.";
+    if (m_running) {
+        qInfo(lcServerInfo) << "RDP already running";
+        emit rdpConnectionFailed(connectionId, "Session already active");
         return;
     }
 
-    if (!_database) {
-        qCWarning(lcServerInfo) << "Database instance is null — cannot query.";
+    if (!m_database) {
+        emit rdpConnectionFailed(connectionId, "Database unavailable");
         return;
     }
 
-    ServerInfoStruct info = _database->qmlQueryServerTable(connectionId);
-    qCInfo(lcServerInfo) << "Queried server info for" << connectionId << ":" << info.deviceName;
+    ServerInfoStruct info = m_database->qmlQueryServerTable(connectionId);
 
     if (info.ip.isEmpty()) {
-        qCWarning(lcServerInfo) << "Insufficient data from qmlQueryServerTable — aborting.";
+        emit rdpConnectionFailed(connectionId, "Invalid server data");
         return;
     }
 
-    const QString server   = info.ip.trimmed();
-    const QString username = info.username.trimmed();
-    const QString password = info.password.trimmed();
+    m_running = true;
+    m_connectionId = connectionId;
 
-    _already_running.store(true);
-    emit rdpSessionStarted();
+    emit rdpSessionStarted(connectionId);
 
-    QFuture<void> future = QtConcurrent::run([this, server, username, password]() {
-        launchRDPSequence(server, username, password);
-    });
-
-    _rdpWatcher.setFuture(future);
+    startRdp(info);
 }
 
-QString buildFreerdpParams(const SystemSettings &settings)
+// ------------------------------------------------------
+//  Cleanup process safely
+// ------------------------------------------------------
+void ServerInfoColl::cleanupProcess()
 {
-    QStringList params;
-
-    // --- AUDIO ---
-    switch (settings.audio.toInt()) {
-    case 0: // Jack (analog)
-        params << "/sound:sys:alsa,dev:0";
-        params << "/microphone:sys:alsa,dev:0";
-        break;
-    case 1: // USB
-        params << "/sound:sys:alsa,dev:1";
-        params << "/microphone:sys:alsa,dev:1";
-        break;
-    case 2: // HDMI
-        params << "/sound:sys:alsa,dev:2";
-        params << "/microphone:sys:alsa,dev:2";
-        break;
-    default:
-        // fallback if something is wrong
-        params << "-sound";
-        break;
+    if (m_rdp) {
+        m_rdp->deleteLater();
+        m_rdp = nullptr;
     }
-
-    // --- RESOLUTION ---
-    if (!settings.resolution.isEmpty() && settings.resolution != "Auto")
-        params << QString("/size:%1").arg(settings.resolution);
-    // if "Auto", skip — FreeRDP uses default display resolution automatically
-
-    // --- ORIENTATION ---
-    // Always pass orientation (since 0 = Landscape is valid)
-    params << QString("/orientation:%1").arg(settings.orientation);
-
-    // --- TOUCH + OSK ---
-    if (settings.enableOnScreenKeyboard)
-        params << "+osk"; // or your custom flag
-    if (settings.enableTouchScreen)
-        params << "+multitouch";
-
-    // --- DEVICE / DISPLAY OFF ---
-    // Only add if > 0 (meaning enabled for X mins/hours)
-    if (settings.deviceOff > 0)
-        params << QString("/device-off:%1").arg(settings.deviceOff);
-    if (settings.displayOff > 0)
-        params << QString("/display-off:%1").arg(settings.displayOff);
-
-    // --- TIMEZONE ---
-    if (!settings.timeZone.isEmpty())
-        params << QString("/tz:%1").arg(settings.timeZone);
-
-    // --- DEFAULT FIXED PARAMS ---
-    params << "+clipboard";
-    params << "/drive:home,/home/user";
-    params << "/printer";
-
-    return params.join(" ");
+    m_running = false;
 }
 
-void ServerInfoColl::launchRDPSequence(const QString &server, const QString &username, const QString &password)
+// ------------------------------------------------------
+//  Start FreeRDP with QProcess
+// ------------------------------------------------------
+void ServerInfoColl::startRdp(const ServerInfoStruct &info)
 {
-    QString script = "/usr/bin/run_rdp.sh";
+    cleanupProcess();
+    m_rdp = new QProcess(this);
 
-    // Run the RDP launcher as an independent systemd scope
-    SystemSettings settings = Application::persistData()->systemSettings();
-    QString freerdpArgs = buildFreerdpParams(settings);
+    // --- Connect QProcess signals ---
+    connect(m_rdp, &QProcess::started,
+            this, &ServerInfoColl::onRdpStarted);
 
-    qDebug()<<"Display and Device Settings Parameter :: "<<freerdpArgs;
+    connect(m_rdp,
+            qOverload<QProcess::ProcessError>(&QProcess::errorOccurred),
+            this, &ServerInfoColl::onRdpError);
 
+    connect(m_rdp,
+            qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            this, &ServerInfoColl::onRdpFinished);
+
+    connect(m_rdp, &QProcess::readyReadStandardOutput,
+            this, &ServerInfoColl::onRdpStdOut);
+
+    connect(m_rdp, &QProcess::readyReadStandardError,
+            this, &ServerInfoColl::onRdpStdErr);
+
+
+    // ============================================
+    // Parse Struct Values (same as your old code)
+    // ============================================
+    const QString id          = info.id.trimmed();
+    const QString name        = info.name.trimmed();
+    const QString server      = info.ip.trimmed();
+    const QString deviceName  = info.deviceName.trimmed();
+    const QString username    = info.username.trimmed();
+    const QString password    = info.password.trimmed();
+    const QString performance = info.performance.trimmed();
+
+    const bool audio          = info.audio;
+    const bool mic            = info.mic;
+    const bool redirectDrive  = info.redirectDrive;
+    const bool redirectUsb    = info.redirectUsb;
+    const bool securityNla    = info.security;
+    const bool useGateway     = info.gateway;
+
+    const QString gatewayIp   = info.gatewayIp.trimmed();
+    const QString gatewayUser = info.gatewayUser.trimmed();
+    const QString gatewayPass = info.gatewayPass.trimmed();
+
+    // Logs (same as your old version)
+    qInfo() << "-------------------------------------------";
+    qInfo() << "[RDP] Starting RDP Connection for device name : " << deviceName;
+    qInfo() << " ID:              " << id;
+    qInfo() << " Name:            " << name;
+    qInfo() << " Server IP:       " << server;
+    qInfo() << " Username:        " << username;
+
+    // ============================================
+    // Build FreeRDP Command    (same as old)
+    // ============================================
     QStringList args;
-    args << "--scope"
-         << "--slice=rdp"
-         << script
-         << server
-         << username
-         << password;
+    args << "/f"
+         << "/bpp:32"
+         << "/cert-ignore"
+         << "+auto-reconnect"
+         << "/auto-reconnect-max-retries:6";
 
-    QProcess *process = new QProcess(this);
-    process->setProgram("systemd-run");
-    process->setArguments(args);
+    if (securityNla)
+        args << "/sec:nla";
+    else
+        args << "-sec-nla";
 
-    qInfo() << "Starting RDP launcher via systemd-run:" << args.join(" ");
-
-    // Start detached so it won’t be killed when this Qt process stops
-    bool started = process->startDetached();
-
-    if (!started) {
-        qWarning() << "Failed to start RDP launcher using systemd-run.";
-        delete process;
-        return;
+    if (performance.compare("best", Qt::CaseInsensitive) == 0) {
+        args << "/network:lan"
+             << "+bitmap-cache"
+             << "+offscreen-cache"
+             << "+glyph-cache";
+    } else {
+        args << "/network:auto";
     }
 
-    qInfo() << "RDP launcher started successfully in separate scope.";
+    args << "/gfx:avc420"
+         << "+gfx-progressive"
+         << "+gfx-thin-client"
+         << "+gfx-small-cache"
+         << "+fast-path";
+
+    if (audio)
+        args << "/sound:sys:alsa,latency:450,rate:44100,channel:2";
+
+    if (mic)
+        args << "/microphone:sys:alsa";
+
+    if (redirectDrive)
+        args << "/drives";
+
+    if (redirectUsb)
+        args << "/usb:auto";
+
+    if (useGateway) {
+        args << QString("/g:%1").arg(gatewayIp);
+        args << QString("/gu:%1").arg(gatewayUser);
+        args << QString("/gp:%1").arg(gatewayPass);
+    }
+
+    args << QString("/v:%1").arg(server)
+         << QString("/u:%1").arg(username)
+         << QString("/p:%1").arg(password);
+
+    // Log final command
+    qInfo() << "[RDP] Final Command:";
+    qInfo() << "wlfreerdp" << args.join(" ");
+    qInfo() << "-------------------------------------------";
+
+    // Start FreeRDP (controlled mode)
+    m_rdp->start("wlfreerdp", args);
 }
 
-void ServerInfoColl::onRdpFinished()
+
+// ------------------------------------------------------
+//  Slots: Process events
+// ------------------------------------------------------
+void ServerInfoColl::onRdpStarted()
 {
-    _already_running.store(false);
-    emit rdpSessionFinished(true);
-    qCInfo(lcServerInfo) << "RDP session completed and flag reset.";
+    qInfo(lcServerInfo) << "RDP Started";
+}
+
+void ServerInfoColl::onRdpError(QProcess::ProcessError err)
+{
+    emit rdpConnectionFailed(m_connectionId,
+                             QString("Process error %1").arg(err));
+    cleanupProcess();
+}
+
+void ServerInfoColl::onRdpFinished(int exitCode,
+                                   QProcess::ExitStatus status)
+{
+    if (exitCode == 0)
+        emit rdpDisconnected(m_connectionId);
+    else
+        emit rdpConnectionFailed(m_connectionId,
+                                 QString("Exited %1").arg(exitCode));
+
+    cleanupProcess();
+}
+
+void ServerInfoColl::onRdpStdOut()
+{
+    QString out = m_rdp->readAllStandardOutput();
+    qInfo(lcServerInfo) << "[STDOUT]" << out.trimmed();
+
+    if (out.contains("connected", Qt::CaseInsensitive)) {
+        emit rdpConnected(m_connectionId);
+    }
+}
+
+void ServerInfoColl::onRdpStdErr()
+{
+    QString err = m_rdp->readAllStandardError();
+    qWarning(lcServerInfo) << "[STDERR]" << err.trimmed();
+
+    if (err.contains("Authentication", Qt::CaseInsensitive))
+        emit rdpConnectionFailed(m_connectionId, "Authentication failed");
+
+    if (err.contains("unable to connect", Qt::CaseInsensitive))
+        emit rdpConnectionFailed(m_connectionId, "Unable to connect");
 }

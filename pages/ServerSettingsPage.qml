@@ -2,11 +2,14 @@ import QtQuick 2.15
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.impl 2.12
+
 import App.Styles 1.0
+import App.Backend 1.0
 
 import "../components"
 import "../controls"
 import "../dialogs"
+import "../"
 
 BasicPage {
     id: page
@@ -51,9 +54,8 @@ BasicPage {
         }
     }
 
-    contentItem: Flickable {
-        width: parent.width
-        clip: true
+    contentItem: PrefsFlickable {
+        id: formFlickable
         contentHeight: layout.height
         contentWidth: layout.width
 
@@ -63,258 +65,86 @@ BasicPage {
             spacing: 10
             clip: true
 
-            PrefsHeader {
-                Layout.fillWidth: true
-                text: qsTr("RD Servers")
-            }
-
             Control {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 400
                 Layout.maximumHeight: page.height /3
-
                 padding: 20
+                contentItem: RDConnectionsView {
+                    onPopulateConnection: function(connectionId) {
+                        let session = sessionModel.getSessionById(connectionId);
 
-                background: Rectangle {
-                    color: Colors.btnBg
-                    radius: 8
-                }
-
-                contentItem: ListView {
-                    id: listView
-
-                    spacing: 8
-                    clip: true
-
-                    ScrollBar.vertical: ScrollBar{
-                        //policy: "AlwaysOn"
-                    }
-                    ScrollIndicator.vertical: ScrollIndicator { }
-
-                    model: serverModel
-                    header: Control {
-                        width: listView.width
-                        padding: 20
-
-                        contentItem:  RowLayout {
-                            spacing: 20
-
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-
-                                PrefsLabel {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    font.weight: Font.DemiBold
-                                    text: qsTr("Connection Name")
-                                    font.pixelSize: 18
-                                }
-                            }
-
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-
-                                PrefsLabel {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Server IP")
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-
-                                PrefsLabel {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Auto")
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
-
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-
-                                PrefsLabel {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: qsTr("Manage")
-                                    font.pixelSize: 18
-                                    font.weight: Font.DemiBold
-                                }
-                            }
+                        if (!session) {
+                            console.warn("❌ No session found for ID:", connectionId);
+                            return;
                         }
+
+                        console.log("✅ Session Loaded:");
+                        console.log("ID:", session.connectionId);
+                        console.log("Name:", session.connectionName);
+                        console.log("Server:", session.serverIp);
+                        console.log("User:", session.userName);
+                        console.log("Device:", session.deviceName);
+                        console.log("AutoConnect:", session.autoConnect);
+
+                        populateConnectionFields(session);
                     }
 
-                    delegate: Control {
-                        id: _controlDelegate
-                        width: ListView.view.width
-                        padding: 20
-                        topPadding: 12
-                        bottomPadding: 12
-                        hoverEnabled: true
+                    function populateConnectionFields(session) {
 
-                        background: Rectangle {
-                            implicitWidth: 100
-                            implicitHeight: 28
-                            radius: height / 2
-                            color: _controlDelegate.hovered ? Colors.steelGray : "transparent"
-                            border.width: 1
-                            border.color: _controlDelegate.hovered ? Colors.borderColor : "transparent"
+                        if (!session) {
+                            console.warn("❌ populateConnectionFields(): session is null");
+                            return;
                         }
 
-                        contentItem: RowLayout {
-                            spacing: 20
+                        // -------------------------
+                        // Core text fields
+                        // -------------------------
+                        page.connectionId      = session.connectionId       || ""
+                        connectionField.text   = session.connectionName     || "";
+                        serverIpField.text     = session.serverIp           || "";
+                        deviceNameField.text   = session.deviceName         || "";
+                        usernameField.text     = session.userName           || "";
+                        passwordField.text     = session.password           || "";
 
-                            // Name
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        // -------------------------
+                        // Performance radio buttons
+                        // "Best" / "Auto"
+                        // -------------------------
+                        performanceRadioButton.leftButton.checked  = (session.performance === "Best");
+                        performanceRadioButton.rightButton.checked = (session.performance === "Auto");
 
-                                PrefsLabel {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    horizontalAlignment: Label.AlignLeft
-                                    verticalAlignment: Label.AlignVCenter
-                                    text: connectionName
-                                }
-                            }
+                        // -------------------------
+                        // Feature toggles
+                        // -------------------------
+                        audioButton.checked        = session.enableAudio;
+                        microphoneButton.checked   = session.enableMicrophone;
+                        driveButton.checked        = session.redirectDrive;
+                        usbDeviceButton.checked    = session.redirectUsbDevice;
+                        securityButton.checked     = session.security;
 
-                            // IP
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                        // -------------------------
+                        // Gateway
+                        // -------------------------
+                        rdGateWay.checked = session.gateway;
 
-                                RowLayout {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 20
-
-                                    PrefsLabel {
-                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                        horizontalAlignment: Label.AlignLeft
-                                        verticalAlignment: Label.AlignVCenter
-                                        text: serverIp
-                                    }
-
-                                    PrefsBusyIndicator {
-                                        id: busyIndicator
-                                        radius: 10
-                                        running: false
-                                        visible: running
-                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                                    }
-                                }
-                            }
-
-                            // Switch
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                RadioButton {
-                                    id: autoConnectRadioButton
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    palette.text: Colors.accentPrimary
-                                    palette.windowText: Colors.textPrimary
-                                    text: qsTr("Auto-connect")
-                                    visible: !!text
-                                    font.weight: Font.Normal
-                                    spacing: 10
-                                    ButtonGroup.group: radioGroup
-                                    checked: autoConnect
-
-                                    onCheckedChanged: {
-                                        serverInfo.resetAutoConnect()
-                                        autoConnect = checked
-                                    }
-                                }
-                            }
-
-                            // Action buttons
-
-                            Control {
-                                Layout.preferredWidth: listView.width / 4
-                                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-                                contentItem:  RowLayout {
-                                    spacing: 10
-
-                                    PrefsLink {
-                                        text: qsTr("Connect")
-                                        onClicked: {
-                                            serverInfo.connectRdServer(connectionId)
-                                        }
-                                    }
-
-                                    PrefsLink {
-                                        text: qsTr("Edit")
-                                        onClicked: {
-                                            page.connectionId = connectionId
-                                            populateConnectionFields()
-                                        }
-
-                                        function populateConnectionFields() {
-                                            // --- Text fields ---
-                                            connectionField.text   = connectionName || ""
-                                            serverIpField.text     = serverIp || ""
-                                            deviceNameField.text   = deviceName || ""
-                                            usernameField.text     = userName || ""
-                                            passwordField.text     = password || ""
-
-                                            // --- Performance radio ---
-                                            performanceRadioButton.leftButton.checked  = (performance === "Best")
-                                            performanceRadioButton.rightButton.checked = (performance === "Auto")
-
-                                            // --- Feature toggles ---
-                                            audioButton.checked        = isTrue(enableAudio)
-                                            microphoneButton.checked   = isTrue(enableMicrophone)
-                                            driveButton.checked        = isTrue(redirectDrive)
-                                            usbDeviceButton.checked    = isTrue(redirectUsbDevice)
-                                            securityButton.checked     = isTrue(security)
-                                            rdGateWay.checked          = isTrue(gatewayValue)
-
-                                            // --- Gateway fields ---
-                                            if(gatewayValue) {
-                                                gatewayIp.text        = gatewayIpValue || ""
-                                                gatewayUserName.text  = gatewayUserNameValue || ""
-                                                gatewayPassword.text  = gatewayPasswordValue || ""
-                                            }
-
-                                            console.log(`✅ Populated fields for connection: ${connectionName} (${serverIp})`)
-                                        }
-
-                                        function isTrue(value) {
-                                            return value === "true" || value === true
-                                        }
-                                    }
-
-                                    PrefsLink {
-                                        text: qsTr("Delete")
-                                        onClicked: {
-                                            page.connectionId = connectionId
-                                            pageStack.push(deleteConnection)
-                                        }
-                                    }
-
-                                    Item {
-                                        Layout.fillWidth: true
-                                    }
-                                }
-                            }
+                        if (session.gateway) {
+                            gatewayIp.text        = session.gatewayIp        || "";
+                            gatewayUserName.text  = session.gatewayUserName  || "";
+                            gatewayPassword.text  = session.gatewayPassword  || "";
                         }
+
+                        // -------------------------
+                        // Auto-connect (if needed)
+                        // -------------------------
+                        if (typeof autoConnectSwitch !== "undefined")
+                            autoConnectSwitch.checked = session.autoConnect;
+
+                        console.log(`✅ Fields populated for ${session.connectionName} → ${session.serverIp}`);
+                    }
+
+                    function isTrue(v) {
+                        return v === true || v === "true" || v === 1;
                     }
                 }
             }
@@ -345,6 +175,12 @@ BasicPage {
 
                                 placeholderText : qsTr("Enter %1").arg(connection.text)
                                 onTextChanged: page.errorMessage = ""
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(connectionField)
+                                    }
+                                }
                             }
                         }
                         PrefsItemDelegate {
@@ -369,6 +205,12 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(serverIp.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(serverIpField)
+                                    }
+                                }
                             }
                         }
 
@@ -384,6 +226,12 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(deviceName.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(deviceNameField)
+                                    }
+                                }
                             }
                         }
 
@@ -404,6 +252,13 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(username.text)
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(usernameField)
+                                    }
+                                }
+
                             }
                         }
 
@@ -419,7 +274,31 @@ BasicPage {
 
                                 onTextChanged: page.errorMessage = ""
                                 placeholderText : qsTr("Enter %1").arg(password.text)
-                                echoMode: TextInput.Password
+                                onActiveFocusChanged: {
+                                    if (activeFocus) {
+                                        // Ensures the field is visible above the keyboard
+                                        formFlickable.ensureVisible(passwordField)
+                                    }
+                                }
+
+                                echoMode: eyeButton.checked ? TextField.Normal : TextField.Password
+                                rightPadding: 40
+
+                                ToolButton {
+                                    id: eyeButton
+                                    anchors.right: parent.right
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    anchors.rightMargin: 6
+                                    checkable: true
+                                    checked: false
+                                    z: 10
+                                    icon.source: checked ? "qrc:/assets/icons/ic_eye-on.svg" : "qrc:/assets/icons/ic_eye-off.svg"
+                                    icon.color: Colors.textSecondary
+                                    background: Item {
+                                        implicitWidth: 28
+                                        implicitHeight: 28
+                                    }
+                                }
                             }
                         }
                     }
@@ -514,44 +393,46 @@ BasicPage {
                                 }
                             }
                         }
-                    }
-                }
 
-                PrefsItemDelegate {
-                    id: rdGateway
-                    Layout.fillWidth: true
-                    text: qsTr("RD Gateway")
-
-                    contentItem: RowLayout {
-                        PrefsButton {
-                            id: rdGateWay
-                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                            checkable: true
-                            text: qsTr("RD Gateway")
-                            onClicked: {}
-                        }
-                    }
-
-                    indicator: ColumnLayout {
-                        enabled: rdGateWay.checked
-                        x: rdGateway.width - width - rdGateway.rightPadding
-                        y: rdGateway.topPadding + (rdGateway.availableHeight - height) / 2
-                        spacing: 10
-
-                        RowLayout {
+                        PrefsItemDelegate {
+                            id: enableGateway
                             Layout.fillWidth: true
+                            implicitHeight: 48
+                            text: qsTr("Enable RD Gateway")
 
-                            Item { Layout.fillWidth: true }
+                            indicator: PrefsSwitch {
+                                x: enableGateway.width - width - enableGateway.rightPadding
+                                y: enableGateway.topPadding + (enableGateway.availableHeight - height) / 2
+                                id: rdGateWay
+                                checkable: true
+                                rightPadding: 0
+                                onClicked: {}
+                            }
+                        }
 
-                            ColumnLayout {
-                                spacing: 20
-                                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                        PrefsItemDelegate {
+                            id: rdGateway
+                            Layout.fillWidth: true
+                            text: qsTr("RD Gateway")
+                            visible: rdGateWay.checked
+
+                            indicator: ColumnLayout {
+                                x: rdGateway.width - width - rdGateway.rightPadding
+                                y: rdGateway.topPadding + (rdGateway.availableHeight - height) / 2
+                                spacing: 10
 
                                 PrefsTextField {
                                     id: gatewayIp
                                     Layout.preferredWidth: bottomLayout.implicitWidth
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     placeholderText: qsTr("Gateway IP")
+
+                                    onActiveFocusChanged: {
+                                        if (activeFocus) {
+                                            // Ensures the field is visible above the keyboard
+                                            formFlickable.ensureVisible(gatewayIp)
+                                        }
+                                    }
                                 }
 
                                 RowLayout {
@@ -563,6 +444,13 @@ BasicPage {
                                         id: gatewayUserName
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Username")
+
+                                        onActiveFocusChanged: {
+                                            if (activeFocus) {
+                                                // Ensures the field is visible above the keyboard
+                                                formFlickable.ensureVisible(gatewayUserName)
+                                            }
+                                        }
                                     }
 
                                     PrefsTextField {
@@ -570,6 +458,187 @@ BasicPage {
                                         Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                         placeholderText: qsTr("Password")
                                         echoMode: TextInput.Password
+
+                                        onActiveFocusChanged: {
+                                            if (activeFocus) {
+                                                // Ensures the field is visible above the keyboard
+                                                formFlickable.ensureVisible(gatewayPassword)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
+                        PrefsItemDelegate {
+                            id: saveButton
+                            Layout.fillWidth: true
+                            rightPadding: 0
+                            leftPadding: 0
+                            text: page.hasError ? page.errorMessage : ""
+                            palette.text: Colors.statusError
+
+                            background: Item {
+                                implicitWidth: 100
+                                implicitHeight: 40
+                            }
+
+                            indicator: RowLayout {
+                                x: saveButton.width - width - saveButton.rightPadding
+                                y: saveButton.topPadding + (saveButton.availableHeight - height) / 2
+
+                                spacing: 20
+
+                                PrefsButton {
+                                    text: qsTr("Clear")
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                                    onClicked: {
+                                        page.errorMessage = ""
+                                        saveBtn.clearEntryFields()
+                                    }
+                                }
+
+                                PrefsButton {
+                                    id: saveBtn
+                                    text: qsTr("Save")
+                                    highlighted: true
+                                    enabled: !page.hasError
+                                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+
+                                    // property var dummyConnections: [
+                                    //     ["Conn 1",  "192.168.0.1",  "PC-01", "user1",  "pass1",  "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 2",  "192.168.0.2",  "PC-02", "user2",  "pass2",  "Performance", true,  false, true,  false, false, true,  "gw.local",       "gwuser2",     "gwpass2"],
+                                    //     ["Conn 3",  "192.168.0.3",  "PC-03", "user3",  "pass3",  "Low",         false, false, false, true,  true,  false, "",               "",            ""],
+                                    //     ["Conn 4",  "192.168.0.4",  "PC-04", "user4",  "pass4",  "Best",        true,  true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 5",  "192.168.0.5",  "PC-05", "user5",  "pass5",  "Performance", true,  false, false, true,  true,  true,  "gateway5.com",  "gwuser5",     "gwpass5"],
+                                    //     ["Conn 6",  "192.168.0.6",  "PC-06", "user6",  "pass6",  "Best",        false, true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 7",  "192.168.0.7",  "PC-07", "user7",  "pass7",  "Low",         false, false, false, false, true,  true,  "gw7.net",       "gwuser7",     "gwpass7"],
+                                    //     ["Conn 8",  "192.168.0.8",  "PC-08", "user8",  "pass8",  "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 9",  "192.168.0.9",  "PC-09", "user9",  "pass9",  "Performance", true,  false, true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 10", "192.168.0.10", "PC-10", "user10", "pass10", "Low",         false, true,  false, false, true,  true,  "gw10.com",      "gwuser10",    "gwpass10"],
+
+                                    //     ["Conn 11", "192.168.0.11", "PC-11", "user11", "pass11", "Best",        true,  true,  true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 12", "192.168.0.12", "PC-12", "user12", "pass12", "Performance", true,  false, false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 13", "192.168.0.13", "PC-13", "user13", "pass13", "Low",         false, false, true,  false, false, true,  "gw13.net",      "gwuser13",    "gwpass13"],
+                                    //     ["Conn 14", "192.168.0.14", "PC-14", "user14", "pass14", "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 15", "192.168.0.15", "PC-15", "user15", "pass15", "Performance", true,  false, true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 16", "192.168.0.16", "PC-16", "user16", "pass16", "Low",         false, true,  false, false, true,  true,  "gw16.com",      "gwuser16",    "gwpass16"],
+                                    //     ["Conn 17", "192.168.0.17", "PC-17", "user17", "pass17", "Best",        true,  true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 18", "192.168.0.18", "PC-18", "user18", "pass18", "Performance", true,  false, false, true,  true,  false, "",               "",            ""],
+                                    //     ["Conn 19", "192.168.0.19", "PC-19", "user19", "pass19", "Low",         false, false, false, false, false, true,  "gw19.net",      "gwuser19",    "gwpass19"],
+                                    //     ["Conn 20", "192.168.0.20", "PC-20", "user20", "pass20", "Best",        true,  true,  false, false, true,  false, "",               "",            ""]
+                                    // ]
+
+                                    // function insertDummy() {
+                                    //     for (var i = 0; i < dummyConnections.length; i++) {
+                                    //         dataBase.insertIntoValues = dummyConnections[i];
+                                    //         dataBase.qmlInsertServerData()
+                                    //     }
+                                    // }
+
+                                    onClicked: {
+                                        // 1️⃣ Validate form input
+                                        if (!validateRequiredFields()) {
+                                            console.warn("Validation failed — missing required fields.")
+                                            return
+                                        }
+
+                                        // 2️⃣ Collect all field values in proper order
+                                        const newList = [
+                                                          connectionField.text.trim(),
+                                                          serverIpField.text.trim(),
+                                                          deviceNameField.text.trim(),
+                                                          usernameField.text.trim(),
+                                                          passwordField.text.trim(),
+                                                          performanceRadioButton.tabGroup.checkedButton
+                                                          ? performanceRadioButton.tabGroup.checkedButton.text
+                                                          : "Best",
+                                                          audioButton.checked,
+                                                          microphoneButton.checked,
+                                                          driveButton.checked,
+                                                          usbDeviceButton.checked,
+                                                          securityButton.checked,
+                                                          rdGateWay.checked,
+                                                          gatewayIp.text.trim(),
+                                                          gatewayUserName.text.trim(),
+                                                          gatewayPassword.text.trim()
+                                                      ]
+
+                                        dataBase.insertIntoValues = newList
+
+                                        // 3️⃣ Check if connection already exists (simple existence check)
+                                        const exists = dataBase.serverExists(page.connectionId)
+
+                                        if (exists) {
+                                            dataBase.qmlUpdateServerData(page.connectionId)
+                                            serverInfo.removeConnection(page.connectionId)
+                                            console.log("🔄 Existing connection updated:", connectionField.text.trim())
+                                        } else {
+                                            dataBase.qmlInsertServerData()
+                                            console.log("✅ New connection added:", connectionField.text.trim())
+                                        }
+
+                                        // 4️⃣ Refresh server list model
+                                        serverInfo.setServerInfo(page.connectionId)
+
+                                        // 5️⃣ Reset form
+                                        clearEntryFields()
+                                    }
+
+                                    function clearEntryFields() {
+                                        // --- Text Fields ---
+                                        const textFields = [
+                                                             connectionField,
+                                                             serverIpField,
+                                                             deviceNameField,
+                                                             usernameField,
+                                                             passwordField,
+                                                             gatewayIp,
+                                                             gatewayUserName,
+                                                             gatewayPassword
+                                                         ]
+
+                                        for (const field of textFields)
+                                            field.text = ""
+
+                                        // --- Toggle / Check Buttons ---
+                                        const toggleButtons = [
+                                                                audioButton,
+                                                                microphoneButton,
+                                                                driveButton,
+                                                                usbDeviceButton,
+                                                                securityButton,
+                                                                rdGateWay
+                                                            ]
+
+                                        for (const btn of toggleButtons)
+                                            btn.checked = false
+
+                                        // Optional: reset any displayed messages or validation
+                                        page.errorMessage = ""
+                                        page.connectionId = ""
+                                    }
+
+                                    function validateRequiredFields() {
+                                        page.errorMessage = ""
+
+                                        const fields = [
+                                                         { value: connectionField.text, label: qsTr("Connection Name") },
+                                                         { value: serverIpField.text,  label: qsTr("Server IP") },
+                                                         { value: deviceNameField.text, label: qsTr("Device Name") },
+                                                         { value: usernameField.text,   label: qsTr("Username") },
+                                                         { value: passwordField.text,   label: qsTr("Password") }
+                                                     ]
+
+                                        for (const field of fields) {
+                                            if (!field.value || field.value.trim() === "") {
+                                                page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
+                                                return false
+                                            }
+                                        }
+
+                                        return true
                                     }
                                 }
                             }
@@ -579,143 +648,6 @@ BasicPage {
             }
 
             Item { Layout.fillHeight: true }
-        }
-    }
-
-    footer: Control {
-        padding: 20
-        clip: true
-
-        background: Rectangle {
-            implicitHeight: 84
-            color: Colors.headerColor
-        }
-
-        contentItem: ColumnLayout {
-            spacing: 10
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                PrefsLabel {
-                    visible: page.hasError
-                    text: page.errorMessage
-                    color: Colors.statusError
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                }
-
-                Item { Layout.fillWidth: true }
-
-                PrefsButton {
-                    text: qsTr("Save")
-                    highlighted: true
-                    enabled: !page.hasError
-                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                    onClicked: {
-                        // 1️⃣ Validate form input
-                        if (!validateRequiredFields()) {
-                            console.warn("Validation failed — missing required fields.")
-                            return
-                        }
-
-                        // 2️⃣ Collect all field values in proper order
-                        const newList = [
-                                          connectionField.text.trim(),
-                                          serverIpField.text.trim(),
-                                          deviceNameField.text.trim(),
-                                          usernameField.text.trim(),
-                                          passwordField.text.trim(),
-                                          performanceRadioButton.tabGroup.checkedButton
-                                          ? performanceRadioButton.tabGroup.checkedButton.text
-                                          : "Best",
-                                          audioButton.checked,
-                                          microphoneButton.checked,
-                                          driveButton.checked,
-                                          usbDeviceButton.checked,
-                                          securityButton.checked,
-                                          rdGateWay.checked,
-                                          gatewayIp.text.trim(),
-                                          gatewayUserName.text.trim(),
-                                          gatewayPassword.text.trim()
-                                      ]
-
-                        dataBase.insertIntoValues = newList
-
-                        // 3️⃣ Check if connection already exists (simple existence check)
-                        const exists = dataBase.serverExists(page.connectionId)
-
-                        if (exists) {
-                            dataBase.qmlUpdateServerData(page.connectionId)
-                            serverInfo.removeConnection(page.connectionId)
-                            console.log("🔄 Existing connection updated:", connectionField.text.trim())
-                        } else {
-                            dataBase.qmlInsertServerData()
-                            console.log("✅ New connection added:", connectionField.text.trim())
-                        }
-
-                        // 4️⃣ Refresh server list model
-                        serverInfo.setServerInfo(page.connectionId)
-
-                        // 5️⃣ Reset form
-                        clearEntryFields()
-                    }
-
-                    function clearEntryFields() {
-                        // --- Text Fields ---
-                        const textFields = [
-                            connectionField,
-                            serverIpField,
-                            deviceNameField,
-                            usernameField,
-                            passwordField,
-                            gatewayIp,
-                            gatewayUserName,
-                            gatewayPassword
-                        ]
-
-                        for (const field of textFields)
-                            field.text = ""
-
-                        // --- Toggle / Check Buttons ---
-                        const toggleButtons = [
-                            audioButton,
-                            microphoneButton,
-                            driveButton,
-                            usbDeviceButton,
-                            securityButton,
-                            rdGateWay
-                        ]
-
-                        for (const btn of toggleButtons)
-                            btn.checked = false
-
-                        // Optional: reset any displayed messages or validation
-                        page.errorMessage = ""
-                        page.connectionId = ""
-                    }
-
-                    function validateRequiredFields() {
-                        page.errorMessage = ""
-
-                        const fields = [
-                            { value: connectionField.text, label: qsTr("Connection Name") },
-                            { value: serverIpField.text,  label: qsTr("Server IP") },
-                            { value: deviceNameField.text, label: qsTr("Device Name") },
-                            { value: usernameField.text,   label: qsTr("Username") },
-                            { value: passwordField.text,   label: qsTr("Password") }
-                        ]
-
-                        for (const field of fields) {
-                            if (!field.value || field.value.trim() === "") {
-                                page.errorMessage = qsTr("%1 cannot be empty").arg(field.label)
-                                return false
-                            }
-                        }
-
-                        return true
-                    }
-                }
-            }
         }
     }
 
@@ -758,21 +690,10 @@ BasicPage {
         }
     }
 
-    Component {
-        id: deleteConnection
-        DeleteWifiConnection {
-            onSigDelete: {
-                dataBase.removeServer(page.connectionId)
-                serverInfo.removeConnection(page.connectionId)
-                page.connectionId = ""
-            }
-        }
-    }
-
     Connections {
         target: dataBase
         function onRefreshTable() {
-            serverModel.refresh()
+            sessionModel.reloadServers()
         }
     }
 }
