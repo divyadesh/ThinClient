@@ -8,6 +8,38 @@
 
 // ======================= ctor =======================
 
+static QString detectWifiInterface()
+{
+    QProcess p;
+    p.start("nmcli", {"-t", "-f", "DEVICE,TYPE,STATE", "device"});
+    p.waitForFinished();
+
+    const QString out = QString::fromUtf8(p.readAllStandardOutput());
+    const auto lines = out.split('\n', Qt::SkipEmptyParts);
+
+    // Prefer normal Wi-Fi
+    for (const QString &line : lines) {
+        const auto parts = line.split(':');
+        if (parts.size() >= 3 &&
+            parts[1] == "wifi" &&
+            parts[2] != "unavailable") {
+            return parts[0];
+        }
+    }
+
+    // Fallback to Wi-Fi P2P
+    for (const QString &line : lines) {
+        const auto parts = line.split(':');
+        if (parts.size() >= 3 &&
+            parts[1] == "wifi-p2p") {
+            return parts[0];
+        }
+    }
+
+    return {};
+}
+
+
 WiFiAddNetworkManager::WiFiAddNetworkManager(QObject *parent)
     : QObject(parent)
 {
@@ -410,8 +442,7 @@ void WiFiAddNetworkManager::addNetwork()
 
 // ======================= worker logic =======================
 
-WiFiAddNetworkManager::AddResult
-WiFiAddNetworkManager::doAddNetwork(const AddParams &p)
+WiFiAddNetworkManager::AddResult WiFiAddNetworkManager::doAddNetwork(const AddParams &p)
 {
     AddResult result;
 
@@ -429,7 +460,7 @@ WiFiAddNetworkManager::doAddNetwork(const AddParams &p)
     QString outAdd = runProcess("nmcli", {
                                              "connection", "add",
                                              "type", "wifi",
-                                             "ifname", "wlan0",
+                                             "ifname", "p2p0",
                                              "con-name", conName,
                                              "ssid", ssidTrimmed
                                          });

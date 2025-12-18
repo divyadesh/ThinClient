@@ -137,23 +137,68 @@ void WifiMonitor::deviceStateChanged(uint newState, uint oldState, uint reason)
 
     emit infoMessage(QString("WiFi State changed: %1 (%2)").arg(reasonStr, userMessage));
 
-    if (newState == 120) { // NM_DEVICE_STATE_FAILED
+
+
+    switch (newState) {
+
+    // ================= CONNECTED =================
+    case 100: // NM_DEVICE_STATE_ACTIVATED
+        handleActivated(100);
+        break;
+
+    // ================= DISCONNECTED =================
+    case 30: // NM_DEVICE_STATE_DISCONNECTED
+
+        /*
+         * Reason 38 = dependency failure
+         * Happens when:
+         *  - user forgets network
+         *  - profile deleted
+         *  - connection removed intentionally
+         *
+         * This is NOT an error.
+         */
+        if (reason == 38) {
+            qDebug() << "[WiFiMonitor] Wi-Fi disconnected (network forgotten)";
+            emit infoMessage("Wi-Fi disconnected.");
+            emit wifiDisconnected();
+            break;
+        }
+
+        qWarning() << "[WiFiMonitor] Wi-Fi disconnected:" << userMessage;
+        emit errorMessage("Wi-Fi disconnected: " + userMessage);
+        emit wifiDisconnected();
+        break;
+
+    // ================= FAILED =================
+    case 120: // NM_DEVICE_STATE_FAILED
 
         if (isAuthError(reason)) {
-            qWarning() << "[WiFiMonitor] Authentication failed.";
+            qWarning() << "[WiFiMonitor] Authentication failed";
             emit errorMessage("Authentication failed. Please check your Wi-Fi password.");
             emit wifiAuthFailed();
-            return;
+            emit wifiDisconnected();
+            break;
         }
 
         if (isSsidNotFound(reason)) {
-            qWarning() << "[WiFiMonitor] SSID not found.";
+            qWarning() << "[WiFiMonitor] SSID not found";
             emit errorMessage("Wi-Fi network not found.");
-            return;
+            emit wifiDisconnected();
+            break;
         }
 
-        // Generic error
+        qWarning() << "[WiFiMonitor] Wi-Fi connection failed:" << userMessage;
         emit errorMessage("Wi-Fi connection failed: " + userMessage);
+        emit wifiDisconnected();
+        break;
+
+    default:
+        // Other transitional states (PREPARE, CONFIG, IP_CONFIG, etc.)
+        break;
+    }
+
+    if(newState == 100) {
         return;
     }
 
@@ -161,6 +206,67 @@ void WifiMonitor::deviceStateChanged(uint newState, uint oldState, uint reason)
     if (newState == 100) { // NM_DEVICE_STATE_ACTIVATED
         emit successMessage("Connected to Wi-Fi successfully.");
     }
+}
+
+void WifiMonitor::handleActivated(uint reason)
+{
+    Q_UNUSED(reason);
+
+    qDebug() << "[WiFiMonitor] Wi-Fi connected";
+    QString ssid = getActiveSSID();
+
+    emit successMessage("Connected to Wi-Fi successfully.");
+    emit wifiConnected(ssid);
+}
+
+
+void WifiMonitor::handleDisconnected(uint reason)
+{
+    if (isUserInitiatedDisconnect(reason)) {
+        qDebug() << "[WiFiMonitor] Wi-Fi disconnected by user";
+        emit infoMessage("Wi-Fi disconnected.");
+    } else {
+        qWarning() << "[WiFiMonitor] Wi-Fi disconnected unexpectedly";
+        emit errorMessage("Wi-Fi disconnected.");
+    }
+
+    emit wifiDisconnected();
+}
+
+void WifiMonitor::handleFailed(uint reason)
+{
+    if (isAuthError(reason)) {
+        qWarning() << "[WiFiMonitor] Authentication failed";
+        emit errorMessage("Authentication failed. Please check your Wi-Fi password.");
+        emit wifiAuthFailed();
+        emit wifiDisconnected();
+        return;
+    }
+
+    if (isSsidNotFound(reason)) {
+        qWarning() << "[WiFiMonitor] SSID not found";
+        emit errorMessage("Wi-Fi network not found.");
+        emit wifiDisconnected();
+        return;
+    }
+
+    QString userMessage = reasonToUserMessage(reason);
+    qWarning() << "[WiFiMonitor] Connection failed:" << userMessage;
+
+    emit errorMessage("Wi-Fi connection failed: " + userMessage);
+    emit wifiDisconnected();
+}
+
+
+
+bool WifiMonitor::isUserInitiatedDisconnect(uint reason) const
+{
+    // Reason 38 = dependency failure
+    // Happens when:
+    // - user forgets network
+    // - profile deleted
+    // - connection removed manually
+    return (reason == 38);
 }
 
 void WifiMonitor::nmStateChanged(uint newState)

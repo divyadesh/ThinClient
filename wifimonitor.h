@@ -45,4 +45,10 @@ private:
     QString reasonToString(uint reason) const;
     QString reasonToUserMessage(uint reason) const;
 
+    void handleActivated(uint reason);
+    void handleDisconnected(uint reason);
+    void handleFailed(uint reason);
+
+    bool isUserInitiatedDisconnect(uint reason) const;
+
 };

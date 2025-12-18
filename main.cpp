@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 #endif
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl"));
+    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl")); //"eglfs"/*
 
     // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
     // qputenv("QT_VNC_SIZE", "1920x1080");

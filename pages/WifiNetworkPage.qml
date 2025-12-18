@@ -15,33 +15,33 @@ BasicPage {
     StackView.visible: true
     padding: 20
 
-    // Connections {
-    //     target: ethernetMonitor
-    //     function onConnectedChanged() {
-    //         if (ethernetMonitor.connected) {
-    //             showAlert("Wi-Fi disconnected because an Ethernet connection is established.", Type.Info);
-    //             removeWifiPopupPagesIfActive()
-    //         }else {
-    //             showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", Type.Info);
-    //         }
-    //         wifiNetworkDetails.scanWifiNetworksAsync()
-    //     }
-    // }
+    Connections {
+        target: ethernetMonitor
+        function onConnectedChanged() {
+            if (ethernetMonitor.connected) {
+                showAlert("Wi-Fi disconnected because an Ethernet connection is established.", Type.Info);
+                removeWifiPopupPagesIfActive()
+            }else {
+                showAlert("Wi-Fi has been enabled because the Ethernet connection is disconnected.", Type.Info);
+            }
+            wifiNetworkDetails.scanWifiNetworksAsync()
+        }
+    }
 
-    // PrefsLabel {
-    //     visible: ethernetMonitor.connected
-    //     anchors.centerIn: parent
-    //     leftPadding: 50
-    //     rightPadding: 50
-    //     width: parent.width
-    //     text: qsTr("Wi-Fi cannot be enabled while an active Ethernet connection is detected. Disconnect Ethernet to proceed with Wi-Fi connectivity.")
-    //     font.pixelSize: 16
-    //     font.weight: Font.Normal
-    //     horizontalAlignment: Text.AlignHCenter
-    //     verticalAlignment: Text.AlignVCenter
-    //     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-    //     color: Colors.statusError
-    // }
+    PrefsLabel {
+        visible: ethernetMonitor.connected
+        anchors.centerIn: parent
+        leftPadding: 50
+        rightPadding: 50
+        width: parent.width
+        text: qsTr("Wi-Fi cannot be enabled while an active Ethernet connection is detected. Disconnect Ethernet to proceed with Wi-Fi connectivity.")
+        font.pixelSize: 16
+        font.weight: Font.Normal
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        color: Colors.statusError
+    }
 
     Component.onCompleted: {
          wifiNetworkDetails.scanWifiNetworksAsync()
@@ -58,7 +58,7 @@ BasicPage {
         }
 
         Control {
-            // visible: !ethernetMonitor.connected
+            visible: !ethernetMonitor.connected
             anchors.right: parent.right
             anchors.rightMargin: 60
             anchors.verticalCenter: parent.verticalCenter
@@ -221,7 +221,7 @@ BasicPage {
                         id: addSSIDDelegate
                         width: ListView.view.width
                         hoverEnabled: true
-                        visible: /*!ethernetMonitor.connected &&*/ ssidListView.count > 0
+                        visible: !ethernetMonitor.connected && ssidListView.count > 0
                         text: qsTr("Add Network")
 
                         background: Rectangle {
