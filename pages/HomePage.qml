@@ -109,88 +109,133 @@ BasicPage {
         source: (logoLoader && logoLoader.logo) ? "file://" + logoLoader.logo  : Qt.resolvedUrl("qrc:/assets/icons/logos/logo.png")
     }
 
+
     Control {
-        width: parent.width * 0.8
-        height: parent.height * 0.6
+        id: tileArea
+        width:  parent.width * 0.8
+        height: parent.height * 0.8
         anchors.centerIn: parent
-        padding: 120
 
-        contentItem: GridView {
-            id: grid
-            anchors.fill: parent
-            cellWidth: 220; cellHeight: 220
+        contentItem: Flickable {
+            id: flikable
+            width: parent.width
+            height: parent.height
+            contentHeight: layout.height
             clip: true
+            property real spacing: (tileArea.height - gridControl.height) / 2
 
-            model: serverModel
+            ColumnLayout {
+                id: layout
+                spacing: 0
+                width: parent.width
+                clip: true
 
-            highlight: null
-            focus: true
+                Item {
+                    Layout.preferredHeight: flikable.spacing
+                }
 
-            delegate: Control {
-                padding: 20
-                implicitWidth: grid.cellWidth
-                implicitHeight: grid.cellHeight
+                Control {
+                    id: gridControl
+                    Layout.fillWidth: true
+                    clip: true
+                    Layout.preferredHeight: Math.min(grid.contentHeight, tileArea.height)
 
-                Connections {
-                    target: serverInfo
+                    property int cellHeight: 220
+                    property int cellWidth: 220
+                    property int maxPerLine: grid.count
+                    property int minWidthToSwitch: 0
 
-                    // 1️⃣ Connecting started
-                    function onRdpSessionStarted(id) {
-                        if (id !== connectionId) return
+                    GridView {
+                        id: grid
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        cellHeight: gridControl.cellHeight
+                        cellWidth: gridControl.cellWidth
+                        property int rowPerWidth: Math.floor(tileArea.width / cellWidth)
+                        width: {
+                            const columns = Math.min(count, rowPerWidth)
+                            return columns * cellWidth
+                        }
 
-                        showProgress.visible = true
-                        showAlert("Connecting to server...", Type.Info)
-                    }
+                        clip: true
+                        model: serverModel
+                        highlight: null
+                        focus: true
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        boundsBehavior: Flickable.StopAtBounds
 
-                    // 2️⃣ Connected successfully
-                    function onRdpConnected(id) {
-                        if (id !== connectionId) return
+                        delegate: Control {
+                            padding: 20
+                            implicitWidth: grid.cellWidth
+                            implicitHeight: grid.cellHeight
 
-                        showProgress.visible = false
-                        showAlert("Connected successfully!", Type.Success)
-                        removeAutoConnectPageIfActive()
-                    }
+                            Connections {
+                                target: serverInfo
 
-                    // 3️⃣ Connection failed
-                    function onRdpConnectionFailed(id, reason) {
-                        if (id !== connectionId) return
+                                // 1️⃣ Connecting started
+                                function onRdpSessionStarted(id) {
+                                    if (id !== connectionId) return
 
-                        showProgress.visible = false
-                        showAlert("Connection failed: " + reason, Type.Error)
-                        removeAutoConnectPageIfActive()
-                    }
+                                    showProgress.visible = true
+                                    showAlert("Connecting to server...", Type.Info)
+                                }
 
-                    // 4️⃣ Server disconnected
-                    function onRdpDisconnected(id) {
-                        if (id !== connectionId) return
+                                // 2️⃣ Connected successfully
+                                function onRdpConnected(id) {
+                                    if (id !== connectionId) return
 
-                        showProgress.visible = false
-                        showAlert("RDP session disconnected", Type.Warning)
-                        removeAutoConnectPageIfActive()
+                                    showProgress.visible = false
+                                    showAlert("Connected successfully!", Type.Success)
+                                    removeAutoConnectPageIfActive()
+                                }
+
+                                // 3️⃣ Connection failed
+                                function onRdpConnectionFailed(id, reason) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = false
+                                    showAlert("Connection failed: " + reason, Type.Error)
+                                    removeAutoConnectPageIfActive()
+                                }
+
+                                // 4️⃣ Server disconnected
+                                function onRdpDisconnected(id) {
+                                    if (id !== connectionId) return
+
+                                    showProgress.visible = false
+                                    showAlert("RDP session disconnected", Type.Warning)
+                                    removeAutoConnectPageIfActive()
+                                }
+                            }
+
+                            PrefsBusyIndicator {
+                                id: showProgress
+                                visible: false
+                                anchors.centerIn: parent
+                            }
+
+                            contentItem: HomeTabButton {
+                                id: tabButton
+                                ButtonGroup.group: tabGroup
+                                text: showProgress.visible ? "" : connectionName
+                                icon.source: showProgress.visible ? "" : Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
+
+                                onClicked: {
+                                    serverInfo.connectRdServer(connectionId)
+                                }
+
+                                background: Rectangle {
+                                    anchors.fill: parent
+                                    color: tabButton.checked ? Colors.accentHover : "#2A2A2A"
+                                    radius: 8
+                                }
+                            }
+                        }
                     }
                 }
 
-                PrefsBusyIndicator {
-                    id: showProgress
-                    visible: false
-                    anchors.centerIn: parent
-                }
-
-                contentItem: HomeTabButton {
-                    id: tabButton
-                    ButtonGroup.group: tabGroup
-                    text: showProgress.visible ? "" : connectionName
-                    icon.source: showProgress.visible ? "" : Qt.resolvedUrl("qrc:/assets/icons/rd-client.png")
-
-                    onClicked: {
-                        serverInfo.connectRdServer(connectionId)
-                    }
-
-                    background: Rectangle {
-                        anchors.fill: parent
-                        color: tabButton.checked ? Colors.accentHover : "#2A2A2A"
-                        radius: 8
-                    }
+                Item {
+                    Layout.preferredHeight: flikable.spacing
                 }
             }
         }

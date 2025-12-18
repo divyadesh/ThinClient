@@ -23,6 +23,15 @@ Item {
         headerView.forceLayout()
     }
 
+    Shortcut {
+        sequence: "Ctrl+U"
+        enabled: true
+        onActivated: {
+            console.log("Ctrl+U pressed")
+            sessionModel.disableAutoConnectForAll()
+        }
+    }
+
     ButtonGroup { id: radioGroup }
 
     QtObject {

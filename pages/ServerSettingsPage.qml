@@ -506,6 +506,37 @@ BasicPage {
                                     enabled: !page.hasError
                                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
 
+                                    // property var dummyConnections: [
+                                    //     ["Conn 1",  "192.168.0.1",  "PC-01", "user1",  "pass1",  "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 2",  "192.168.0.2",  "PC-02", "user2",  "pass2",  "Performance", true,  false, true,  false, false, true,  "gw.local",       "gwuser2",     "gwpass2"],
+                                    //     ["Conn 3",  "192.168.0.3",  "PC-03", "user3",  "pass3",  "Low",         false, false, false, true,  true,  false, "",               "",            ""],
+                                    //     ["Conn 4",  "192.168.0.4",  "PC-04", "user4",  "pass4",  "Best",        true,  true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 5",  "192.168.0.5",  "PC-05", "user5",  "pass5",  "Performance", true,  false, false, true,  true,  true,  "gateway5.com",  "gwuser5",     "gwpass5"],
+                                    //     ["Conn 6",  "192.168.0.6",  "PC-06", "user6",  "pass6",  "Best",        false, true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 7",  "192.168.0.7",  "PC-07", "user7",  "pass7",  "Low",         false, false, false, false, true,  true,  "gw7.net",       "gwuser7",     "gwpass7"],
+                                    //     ["Conn 8",  "192.168.0.8",  "PC-08", "user8",  "pass8",  "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 9",  "192.168.0.9",  "PC-09", "user9",  "pass9",  "Performance", true,  false, true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 10", "192.168.0.10", "PC-10", "user10", "pass10", "Low",         false, true,  false, false, true,  true,  "gw10.com",      "gwuser10",    "gwpass10"],
+
+                                    //     ["Conn 11", "192.168.0.11", "PC-11", "user11", "pass11", "Best",        true,  true,  true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 12", "192.168.0.12", "PC-12", "user12", "pass12", "Performance", true,  false, false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 13", "192.168.0.13", "PC-13", "user13", "pass13", "Low",         false, false, true,  false, false, true,  "gw13.net",      "gwuser13",    "gwpass13"],
+                                    //     ["Conn 14", "192.168.0.14", "PC-14", "user14", "pass14", "Best",        true,  true,  false, false, true,  false, "",               "",            ""],
+                                    //     ["Conn 15", "192.168.0.15", "PC-15", "user15", "pass15", "Performance", true,  false, true,  true,  false, false, "",               "",            ""],
+                                    //     ["Conn 16", "192.168.0.16", "PC-16", "user16", "pass16", "Low",         false, true,  false, false, true,  true,  "gw16.com",      "gwuser16",    "gwpass16"],
+                                    //     ["Conn 17", "192.168.0.17", "PC-17", "user17", "pass17", "Best",        true,  true,  true,  false, false, false, "",               "",            ""],
+                                    //     ["Conn 18", "192.168.0.18", "PC-18", "user18", "pass18", "Performance", true,  false, false, true,  true,  false, "",               "",            ""],
+                                    //     ["Conn 19", "192.168.0.19", "PC-19", "user19", "pass19", "Low",         false, false, false, false, false, true,  "gw19.net",      "gwuser19",    "gwpass19"],
+                                    //     ["Conn 20", "192.168.0.20", "PC-20", "user20", "pass20", "Best",        true,  true,  false, false, true,  false, "",               "",            ""]
+                                    // ]
+
+                                    // function insertDummy() {
+                                    //     for (var i = 0; i < dummyConnections.length; i++) {
+                                    //         dataBase.insertIntoValues = dummyConnections[i];
+                                    //         dataBase.qmlInsertServerData()
+                                    //     }
+                                    // }
+
                                     onClicked: {
                                         // 1️⃣ Validate form input
                                         if (!validateRequiredFields()) {

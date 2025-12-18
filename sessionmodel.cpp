@@ -123,7 +123,7 @@ bool SessionModel::setData(const QModelIndex &index, const QVariant &value, int 
         updateAutoConnect(session->connectionId(), value.toBool());
         changed = true;
     }
-        break;
+    break;
     default:
         break;
     }
@@ -229,6 +229,25 @@ QList<double> SessionModel::columnSizes() const
     // columnWidth = table.width / 4 for each column.
     return {4.0, 4.0, 4.0, 4.0};
 }
+
+void SessionModel::disableAutoConnectForAll()
+{
+    if (rowCount() == 0)
+        return;
+
+    const int autoConnectColumn = 2; // 3rd column (0-based)
+    for (int row = 0; row < m_sessions.size(); ++row) {
+        ConnectionInfo *info = m_sessions.at(row);
+        if (!info)
+            continue;
+
+        if (info->autoConnect()) {
+            QModelIndex idx = index(row, autoConnectColumn);
+            setData(idx, false, RoleAutoConnect);
+        }
+    }
+}
+
 
 /* ----------------------------------------------
  * Helpers
@@ -409,7 +428,7 @@ void SessionModel::deleteServer(const QString &connectionId)
 
 void SessionModel::updateServerById(const QString &connectionId)
 {
-    Q_UNUSED(connectionId)
+    Q_UNUSED(connectionId);
     // For simplicity — just reload model for now
     reloadServers();
 }

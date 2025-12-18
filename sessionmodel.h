@@ -70,7 +70,7 @@ public:
          */
         RoleColumnType
     };
-    Q_ENUM(ConnectionRole)
+    Q_ENUM(ConnectionRole);
 
     Q_PROPERTY(QString autoConnectionId READ autoConnectionId WRITE setAutoConnectionId NOTIFY autoConnectionIdChanged FINAL)
 
@@ -124,6 +124,8 @@ public:
      * To get 4 equal columns, all factors must be the same (4.0).
      */
     Q_INVOKABLE QList<double> columnSizes() const;
+
+    Q_INVOKABLE void disableAutoConnectForAll();
 
     /**
      * @brief Clears all sessions from the model.

@@ -33,6 +33,7 @@ SOURCES += \
         logger.cpp \
         logoloader.cpp \
         main.cpp \
+        qpaplatform.cpp \
         rdservermodel.cpp \
         resolutionlistmodel.cpp \
         sessionmodel.cpp \
@@ -97,6 +98,7 @@ HEADERS += \
     logexporter.h \
     logger.h \
     logoloader.h \
+    qpaplatform.h \
     rdservermodel.h \
     resolutionlistmodel.h \
     sessionmodel.h \

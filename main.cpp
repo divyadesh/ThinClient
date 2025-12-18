@@ -18,6 +18,7 @@
 #include "Application.h"
 #include "logger.h"
 #include "inputactivityfilter.h"
+#include "qpaplatform.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,13 +28,10 @@ int main(int argc, char *argv[])
 #endif
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    qputenv("QT_QPA_PLATFORM", QByteArray("wayland-egl")); //"eglfs"/*
-
-    // qputenv("QT_QPA_PLATFORM", QByteArray("vnc"));
-    // qputenv("QT_VNC_SIZE", "1920x1080");
+    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Eglfs));
 
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
-    qputenv("QT_QUICK_BACKEND", "software");  // double-ensure
+    qputenv("QT_QUICK_BACKEND", "software");
 
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");
