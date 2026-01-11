@@ -51,6 +51,7 @@ class Application : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool resetInProgress READ resetInProgress NOTIFY resetInProgressChanged)
+    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
 public:
     // --- Singleton lifecycle ---
     static void initialize(QQmlApplicationEngine *engine);
@@ -89,8 +90,12 @@ public:
     static WifiConfigManager *wifiConfigManager();
 
     Q_INVOKABLE void resetAllAsync();
+    Q_INVOKABLE void factoryReset();
+    Q_INVOKABLE void partialUpdate();
 
     bool resetInProgress() const;
+
+    bool busy() const;
 
 signals:
     void resetInProgressChanged();
@@ -98,6 +103,14 @@ signals:
     void resetProgress(const QString &message);
     void resetFinished(bool success);
     void resetRebooting();
+    void factoryResetStarted();              // Script executed
+    void factoryResetFailed(QString reason); // Script failed
+
+    void partialUpdateStarted();
+    void partialUpdateLog(const QString &log);
+    void partialUpdateSuccess();
+    void partialUpdateFailed(const QString &reason);
+    void busyChanged();
 
 private:
     explicit Application(QQmlApplicationEngine *engine, QObject *parent = nullptr);
@@ -109,6 +122,7 @@ private:
     void initThreads();
     void registerTypesAndContext();
     void setupNetworkMonitors();
+    void setBusy(bool value);
 
 private:
 
@@ -157,5 +171,6 @@ private:
     // Threads
     QThread *m_wifiThread = nullptr;
     QThread *m_ethThread = nullptr;
-    bool m_resetInProgress;
+    bool m_resetInProgress = false;
+    bool m_busy = false;
 };

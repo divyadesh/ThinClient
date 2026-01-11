@@ -372,6 +372,10 @@ void SessionModel::fetchAllServers()
 
         session->setAutoConnect(query.value("autoConnect").toBool());
 
+        session->setUseAVC(query.value("use_avc").toBool());
+        session->setEnableAnimation(query.value("animation_enabled").toBool());
+        session->setEnableGDI(query.value("gdi_hw_enabled").toBool());
+
         if(session->autoConnect()) {
             setAutoConnectionId(session->connectionId());
         }

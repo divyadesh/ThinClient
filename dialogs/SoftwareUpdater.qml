@@ -29,8 +29,8 @@ Partial download cleanup	✅ cleans temp file
 
 BasicPage {
     id: control
+    property bool isSuccess: false
     background: BackgroundOverlay {}
-
 
     ImageUpdater {
         id: updater
@@ -44,10 +44,37 @@ BasicPage {
 
         onErrorOccurred: function(err) {
             statusText.text = "Error: " + err;
+            showAlert(statusText.text, Type.Error);
         }
 
         onRebootCountdown: function(sec) {
             statusText.text = "Rebooting in " + sec + " seconds...";
+            showAlert(statusText.text, Type.Success);
+        }
+    }
+
+    Connections {
+        target: cApplication
+
+        function onPartialUpdateLog(log) {
+            statusText.text = log
+        }
+
+        function onPartialUpdateStarted() {
+            statusText.text  = "Starting update..."
+            showAlert(statusText.text, Type.Info);
+        }
+
+        function onPartialUpdateSuccess() {
+            isSuccess = true;
+            statusText.text = "Update completed successfully."
+            showAlert(statusText.text, Type.Success);
+        }
+
+        function onPartialUpdateFailed(reason) {
+            isSuccess = false;
+            statusText.text = "ERROR: " + reason
+            showAlert(statusText.text, Type.Error);
         }
     }
 
@@ -73,7 +100,8 @@ BasicPage {
             spacing: 10
 
             PrefsBusyIndicator {
-                visible: updater.updating
+                visible: cApplication.busy
+                running: cApplication.busy
                 radius: 10
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
@@ -102,25 +130,27 @@ BasicPage {
 
                 PrefsButton {
                     text: qsTr("Cancel")
-                    enabled: !updater.updating
+                    enabled: !cApplication.busy
+                    visible: !isSuccess
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        if(updater.updating) {
-                            updater.cancelUpdate()
-                        }
                         pageStack.pop()
                     }
                 }
 
                 PrefsButton {
-                    enabled: !updater.updating && usbMonitor.usbConnected
-                    text: qsTr("Start Update")
+                    enabled: !cApplication.busy && usbMonitor.usbConnected
+                    text: isSuccess ? qsTr("Close") : qsTr("Start Update")
                     radius: height / 2
                     highlighted: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        updater.startUpdate(usbMonitor.usbStoragePort)
+                        if(isSuccess) {
+                            pageStack.pop()
+                        }else {
+                            cApplication.partialUpdate()
+                        }
                     }
                 }
 

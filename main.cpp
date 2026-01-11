@@ -20,18 +20,28 @@
 #include "inputactivityfilter.h"
 #include "qpaplatform.h"
 
+
 int main(int argc, char *argv[])
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
-    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
-    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Eglfs));
+    /* -------------------------------------------------------
+     * Environment (Wayland + Qt)
+     * ------------------------------------------------------- */
+    qputenv("QT_IM_MODULE", "qtvirtualkeyboard");
+    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Wayland));
 
+    /* Use software rendering ONLY if GPU/EGL is unstable */
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
     qputenv("QT_QUICK_BACKEND", "software");
+
+    /* -------------------------------------------------------
+     * Qt Application
+     * ------------------------------------------------------- */
+
 
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");

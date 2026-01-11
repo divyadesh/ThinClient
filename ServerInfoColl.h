@@ -8,6 +8,10 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <QPair>
+#include <QStorageInfo>
+#include <QStringList>
+#include <QString>
 #include "PersistData.h"
 #include "Application.h"
 #include "Database.h"
@@ -75,6 +79,70 @@ private:
     int getIndexToBeRemoved(const QString &connectionId);
     void startRdp(const ServerInfoStruct &info);
     void cleanupProcess();
+
+    void buildFreeRdpArguments(const ServerInfoStruct &info);
+    QStringList buildAdvancedFreeRdpArguments(const ServerInfoStruct &info);
+
+    /**
+     * @brief Build FreeRDP connection and gateway arguments
+     *
+     * Includes server address, user credentials, and optional gateway
+     * configuration. Does not include advanced or feature flags.
+     */
+    QStringList buildConnectionFreeRdpArguments(
+        const ServerInfoStruct& info) const;
+
+    /**
+     * @brief Build codec and graphics related arguments
+     */
+    QStringList buildGraphicsArgs(bool useAvc444,
+                                  bool animationEnabled,
+                                  bool gdiHwEnabled) const;
+
+    /**
+     * @brief Build audio output redirection arguments
+     */
+    QStringList buildAudioOutputArgs(bool enabled) const;
+
+    /**
+     * @brief Build microphone redirection arguments
+     */
+    QStringList buildMicrophoneArgs(bool enabled) const;
+
+    /**
+     * @brief Build drive redirection arguments
+     */
+    QStringList buildDriveRedirectionArgs(const QString& shareName,
+                                          const QString& path,
+                                          bool enabled) const;
+
+    /**
+     * @brief Build USB redirection arguments
+     */
+    QStringList buildUsbRedirectionArgs(const QString& vendorId,
+                                        const QString& productId,
+                                        bool enabled) const;
+
+    /**
+     * @brief Build security-related arguments
+     */
+    QStringList buildSecurityArgs(bool enabled) const;
+
+    /**
+     * @brief Resolve removable drive share name and mount path
+     *
+     * Uses Yocto-compatible mount-path heuristics to detect removable storage.
+     *
+     * @return QPair<shareName, mountPath> or empty pair if none found
+     */
+    QPair<QString, QString> resolveDriveShare() const;
+
+    /**
+     * @brief Resolve USB vendor and product IDs using libudev
+     *
+     * @return QPair<vendorId, productId> or empty pair if none found
+     */
+    QPair<QString, QString> resolveUsbDeviceIds() const;
 
 private:
     std::deque<std::shared_ptr<ServerInfo>> m_ServerInfoColl;

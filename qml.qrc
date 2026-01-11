@@ -119,5 +119,8 @@
         <file>assets/icons/menu_2.svg</file>
         <file>pages/AdvancedSettingsPage.qml</file>
         <file>assets/settingsIcons/advanced.svg</file>
+        <file>dialogs/ChooseGraphicsDialog.qml</file>
+        <file>assets/icons/ic_edit.svg</file>
+        <file>dialogs/LogExporterDialog.qml</file>
     </qresource>
 </RCC>

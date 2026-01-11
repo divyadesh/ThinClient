@@ -556,7 +556,9 @@ bool DisplaySettings::writeDefaultWestonIni()
     QTextStream ts(&f);
 
     ts << "[core]\n";
-    ts << "idle-time=0\n\n";
+    ts << "idle-time=0\n";
+    ts << "renderer=gl\n";
+    ts << "require-input=false\n\n";
 
     // Additional shell options requested
     ts << "[shell]\n";

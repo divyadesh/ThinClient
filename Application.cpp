@@ -3,12 +3,13 @@
 #include <QTimer>
 #include "wifimanager.h"
 
+#include <QFileInfo>
 #include <QFile>
 #include <QDir>
 #include <QProcess>
 #include <QDebug>
 #include <QtConcurrent/QtConcurrent>
-
+#include "usblogexportcontroller.h"
 
 Application *Application::s_instance = nullptr;
 
@@ -144,7 +145,113 @@ void Application::resetAllAsync()
     });
 }
 
+void Application::factoryReset()
+{
+    static const QString scriptPath =
+        QStringLiteral("/usr/bin/factory_reset.sh");
 
+    // Prevent double trigger
+    if (m_busy)
+        return;
+
+    // 1. Validate script existence
+    if (!QFileInfo::exists(scriptPath)) {
+        emit factoryResetFailed(
+            QStringLiteral("Factory reset script not found"));
+        return;
+    }
+
+    // 🔴 START BUSY
+    setBusy(true);
+
+    // 2. Create process (async, GUI thread)
+    QProcess *process = new QProcess(this);
+    process->setProcessChannelMode(QProcess::MergedChannels);
+
+    // 3. Failed to start
+    connect(process, &QProcess::errorOccurred, this,
+            [this, process](QProcess::ProcessError) {
+                setBusy(false);   // 🟢 STOP BUSY (error case)
+                emit factoryResetFailed(
+                    QStringLiteral("Failed to start factory reset process"));
+                process->deleteLater();
+            });
+
+    // 4. Process started successfully
+    connect(process, &QProcess::started, this,
+            [this]() {
+                emit factoryResetStarted();
+                // busy remains true → reboot expected
+            });
+
+    // 5. Cleanup only (do NOT change busy here)
+    connect(process,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this,
+            [process](int, QProcess::ExitStatus) {
+                process->deleteLater();
+            });
+
+    // 6. Start script asynchronously
+    process->start(scriptPath);
+}
+
+void Application::partialUpdate()
+{
+    static const QString scriptPath =
+        QStringLiteral("/usr/bin/update.sh");
+
+    if (!QFileInfo::exists(scriptPath)) {
+        emit partialUpdateFailed("Update script not found");
+        return;
+    }
+
+    setBusy(true);   // 🔴 START BUSY
+
+    QProcess *process = new QProcess(this);
+    process->setProcessChannelMode(QProcess::MergedChannels);
+
+    // Real-time logs
+    connect(process, &QProcess::readyRead, this,
+            [this, process]() {
+                emit partialUpdateLog(
+                    QString::fromLocal8Bit(process->readAll()));
+            });
+
+    // Started
+    connect(process, &QProcess::started, this,
+            [this]() {
+                emit partialUpdateStarted();
+            });
+
+    // Finished
+    connect(process,
+            QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this,
+            [this, process](int exitCode, QProcess::ExitStatus status) {
+
+                setBusy(false);   // 🟢 STOP BUSY
+
+                if (status == QProcess::NormalExit && exitCode == 0) {
+                    emit partialUpdateSuccess();
+                } else {
+                    emit partialUpdateFailed(
+                        QString("Update failed (exit code %1)").arg(exitCode));
+                }
+
+                process->deleteLater();
+            });
+
+    // Failed to start
+    connect(process, &QProcess::errorOccurred, this,
+            [this, process](QProcess::ProcessError) {
+                setBusy(false);   // 🟢 STOP BUSY
+                emit partialUpdateFailed("Failed to start update process");
+                process->deleteLater();
+            });
+
+    process->start(scriptPath);
+}
 // ---------------------------
 // 🔹 Device Config / System
 // ---------------------------
@@ -301,6 +408,15 @@ void Application::setupNetworkMonitors()
     m_ethThread->start();
 }
 
+void Application::setBusy(bool value)
+{
+    if (m_busy == value)
+        return;
+
+    m_busy = value;
+    emit busyChanged();
+}
+
 void Application::registerTypesAndContext()
 {
     // --- Enums for QML ---
@@ -324,6 +440,7 @@ void Application::registerTypesAndContext()
     qmlRegisterType<WiFiManager>("App.Backend", 1, 0, "WiFiManager");
     qmlRegisterType<WiFiAddNetworkManager>("App.Backend", 1, 0, "WiFiAddNetworkManager");
     qmlRegisterType<DisplaySettings>("App.Backend", 1, 0, "DisplaySettings");
+    qmlRegisterType<UsbLogExportController>("App.Backend", 1, 0, "UsbLogExportController");
 
     // --- Context singletons (instances) ---
     auto *ctx = m_engine->rootContext();
@@ -383,4 +500,9 @@ void Application::setResetInProgress(bool v)
         return;
     m_resetInProgress = v;
     emit resetInProgressChanged();
+}
+
+bool Application::busy() const
+{
+    return m_busy;
 }

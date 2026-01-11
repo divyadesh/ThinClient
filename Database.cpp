@@ -103,7 +103,10 @@ bool DataBase::createTable()
         gateway_ip            VARCHAR(15),
         gateway_user_name     VARCHAR(50),
         gateway_password      VARCHAR(50),
-        autoConnect           BOOLEAN DEFAULT 0
+        autoConnect           BOOLEAN DEFAULT 0,
+        use_avc               BOOLEAN DEFAULT 1,
+        animation_enabled     BOOLEAN DEFAULT 0,
+        gdi_hw_enabled        BOOLEAN DEFAULT 0
     )
     )";
 
@@ -206,6 +209,9 @@ void DataBase::qmlInsertWifiData()
  * 12: gateway_ip
  * 13: gateway_user_name
  * 14: gateway_password
+ * 15: use_avc
+ * 16: animation_enabled
+ * 17: gdi_hw_enabled
  *
  * Example:
  * @code
@@ -236,12 +242,12 @@ void DataBase::qmlInsertServerData()
             connection_name, server_ip, deviceName, user_name, password,
             performance, enableAudio, enableMicrophone, redirectDrive,
             redirectUsbDevice, security, gateway, gateway_ip,
-            gateway_user_name, gateway_password
+            gateway_user_name, gateway_password, use_avc, animation_enabled, gdi_hw_enabled
         ) VALUES (
             :connectionname, :serverip, :deviceName, :username, :passwd,
             :performance, :enableAudio, :enableMicrophone, :redirectDrive,
             :redirectUsbDevice, :security, :gateway, :gatewayip,
-            :gatewayusername, :gatewaypassword
+            :gatewayusername, :gatewaypassword, :useAvc, :animationEnabled, :gdiHwEnabled
         )
     )");
 
@@ -261,6 +267,9 @@ void DataBase::qmlInsertServerData()
     query.bindValue(":gatewayip",         safeValue(m_insertIntoValues, 12, ""));
     query.bindValue(":gatewayusername",   safeValue(m_insertIntoValues, 13, ""));
     query.bindValue(":gatewaypassword",   safeValue(m_insertIntoValues, 14, ""));
+    query.bindValue(":useAvc",            toBool(safeValue(m_insertIntoValues, 15), false));
+    query.bindValue(":animationEnabled",  toBool(safeValue(m_insertIntoValues, 16), false));
+    query.bindValue(":gdiHwEnabled",      toBool(safeValue(m_insertIntoValues, 17), false));
 
     if (!query.exec()) {
         qWarning() << "qmlInsertServerData(): Insert failed -" << query.lastError().text();
@@ -295,6 +304,9 @@ void DataBase::qmlInsertServerData()
  * 12: gateway_ip
  * 13: gateway_user_name
  * 14: gateway_password
+ * 15: use_avc
+ * 16: animation_enabled
+ * 17: gdi_hw_enabled
  *
  * Example usage:
  * @code
@@ -346,10 +358,15 @@ void DataBase::qmlUpdateServerData(const QString &connectionId)
             gateway              = :gateway,
             gateway_ip           = :gatewayIp,
             gateway_user_name    = :gatewayUserName,
-            gateway_password     = :gatewayPassword
+            gateway_password     = :gatewayPassword,
+            use_avc              = :useAvc,
+            animation_enabled    = :animationEnabled,
+            gdi_hw_enabled       = :gdiHwEnabled
         WHERE
             connection_id = :connectionid
     )");
+
+    qDebug()<<"The Vlaues is :: " <<m_insertIntoValues;
 
     // Bind safe values using your helpers
     query.bindValue(":connectionname",    safeValue(m_insertIntoValues, 0,  "Unnamed"));
@@ -363,10 +380,13 @@ void DataBase::qmlUpdateServerData(const QString &connectionId)
     query.bindValue(":redirectdrive",     toBool(m_insertIntoValues[8], false));
     query.bindValue(":redirectusbdevice", toBool(m_insertIntoValues[9], false));
     query.bindValue(":security",          toBool(m_insertIntoValues[10], false));
-    query.bindValue(":gateway",           toBool(m_insertIntoValues[11], false));;
+    query.bindValue(":gateway",           toBool(m_insertIntoValues[11], false));
     query.bindValue(":gatewayIp",         safeValue(m_insertIntoValues, 12, ""));
     query.bindValue(":gatewayUserName",   safeValue(m_insertIntoValues, 13, ""));
     query.bindValue(":gatewayPassword",   safeValue(m_insertIntoValues, 14, ""));
+    query.bindValue(":useAvc",             toBool(m_insertIntoValues[15], false));
+    query.bindValue(":animationEnabled",   toBool(m_insertIntoValues[16], false));
+    query.bindValue(":gdiHwEnabled",       toBool(m_insertIntoValues[17], false));
 
     // Bind connection ID (primary key)
     query.bindValue(":connectionid", connectionId);
@@ -414,7 +434,7 @@ ServerInfoStruct DataBase::qmlQueryServerTable(const QString &connectionId)
         SELECT connection_id, connection_name, server_ip, deviceName, user_name, password,
                performance, enableAudio, enableMicrophone, redirectDrive,
                redirectUsbDevice, security, gateway, gateway_ip,
-               gateway_user_name, gateway_password
+               gateway_user_name, gateway_password, use_avc, animation_enabled, gdi_hw_enabled
         FROM ServerTable
         WHERE connection_id = :connectionid
     )");
@@ -452,9 +472,36 @@ ServerInfoStruct DataBase::qmlQueryServerTable(const QString &connectionId)
     info.gatewayUser = query.value("gateway_user_name").toString();
     info.gatewayPass = query.value("gateway_password").toString();
     info.autoConnect = query.value("autoConnect").toBool();
+    info.useAvc = query.value("use_avc").toBool();
+    info.animationEnabled = query.value("animation_enabled").toBool();
+    info.gdiHwEnabled = query.value("gdi_hw_enabled").toBool();
 
     // Extract all fields safely
-    QStringList resultFields = { query.value("connection_id").toString(), query.value("connection_name").toString(), query.value("server_ip").toString(), query.value("deviceName").toString(), query.value("user_name").toString(), query.value("password").toString(), query.value("performance").toString(), query.value("enableAudio").toString(), query.value("enableMicrophone").toString(), query.value("redirectDrive").toString(), query.value("redirectUsbDevice").toString(), query.value("security").toString(), query.value("gateway").toString(), query.value("gateway_ip").toString(), query.value("gateway_user_name").toString(), query.value("gateway_password").toString() };
+
+    QStringList resultFields = {
+        query.value("connection_id").toString(),
+        query.value("connection_name").toString(),
+        query.value("server_ip").toString(),
+        query.value("deviceName").toString(),
+        query.value("user_name").toString(),
+        query.value("password").toString(),
+        query.value("performance").toString(),
+
+        query.value("enableAudio").toString(),
+        query.value("enableMicrophone").toString(),
+        query.value("redirectDrive").toString(),
+        query.value("redirectUsbDevice").toString(),
+        query.value("security").toString(),
+        query.value("gateway").toString(),
+
+        query.value("gateway_ip").toString(),
+        query.value("gateway_user_name").toString(),
+        query.value("gateway_password").toString(),
+
+        query.value("use_avc").toString(),
+        query.value("animation_enabled").toString(),
+        query.value("gdi_hw_enabled").toString()
+    };
 
     // Store result internally
     setQueryResultList(resultFields);

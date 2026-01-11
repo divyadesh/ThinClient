@@ -111,8 +111,9 @@ BasicPage {
                         // Performance radio buttons
                         // "Best" / "Auto"
                         // -------------------------
-                        performanceRadioButton.leftButton.checked  = (session.performance === "Best");
-                        performanceRadioButton.rightButton.checked = (session.performance === "Auto");
+
+                        bestButton.checked = (session.performance === "Best");
+                        customButton.checked = (session.performance === "Auto");
 
                         // -------------------------
                         // Feature toggles
@@ -133,6 +134,10 @@ BasicPage {
                             gatewayUserName.text  = session.gatewayUserName  || "";
                             gatewayPassword.text  = session.gatewayPassword  || "";
                         }
+
+                        graphicsDialog.useAVC = session.useAVC
+                        graphicsDialog.enableAnimation = session.enableAnimation
+                        graphicsDialog.enableGDI = session.enableGDI
 
                         // -------------------------
                         // Auto-connect (if needed)
@@ -310,12 +315,55 @@ BasicPage {
                     contentItem: ColumnLayout {
                         spacing: 10
 
-                        PrefsButtonDelegate {
+                        PrefsItemDelegate {
                             id: performanceRadioButton
                             Layout.fillWidth: true
                             text: qsTr("Performance")
-                            leftButtonText: qsTr("Best")
-                            rightButtonText: qsTr("Auto")
+                            ButtonGroup { id: tabGroup }
+
+                            indicator: RowLayout {
+                                x: performanceRadioButton.width - width - performanceRadioButton.rightPadding
+                                y: performanceRadioButton.topPadding + (performanceRadioButton.availableHeight - height) / 2
+
+                                spacing: 20
+
+                                PrefsTabButton {
+                                    id: bestButton
+                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                    ButtonGroup.group: tabGroup
+                                    checked: true
+                                    text: qsTr("Best")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+
+                                PrefsTabButton {
+                                    id: customButton
+                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                    ButtonGroup.group: tabGroup
+                                    text: qsTr("Custom")
+                                    visible: !!text
+                                    font.weight: Font.Normal
+                                }
+
+                                ToolButton {
+                                    id: editButton
+                                    visible: customButton.checked
+                                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                    icon.source: "qrc:/assets/icons/ic_edit.svg"
+                                    icon.color: Colors.textSecondary
+                                    background: Item {
+                                        implicitWidth: 28
+                                        implicitHeight: 28
+                                    }
+
+                                    onClicked: {
+                                        if(!graphicsDialog.opened) {
+                                            graphicsDialog.open()
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         PrefsItemDelegate {
@@ -551,9 +599,7 @@ BasicPage {
                                                           deviceNameField.text.trim(),
                                                           usernameField.text.trim(),
                                                           passwordField.text.trim(),
-                                                          performanceRadioButton.tabGroup.checkedButton
-                                                          ? performanceRadioButton.tabGroup.checkedButton.text
-                                                          : "Best",
+                                                          bestButton.checked ? "Best" : "Auto",
                                                           audioButton.checked,
                                                           microphoneButton.checked,
                                                           driveButton.checked,
@@ -562,7 +608,10 @@ BasicPage {
                                                           rdGateWay.checked,
                                                           gatewayIp.text.trim(),
                                                           gatewayUserName.text.trim(),
-                                                          gatewayPassword.text.trim()
+                                                          gatewayPassword.text.trim(),
+                                                          graphicsDialog.useAVC,
+                                                          graphicsDialog.enableAnimation,
+                                                          graphicsDialog.enableGDI
                                                       ]
 
                                         dataBase.insertIntoValues = newList
@@ -618,6 +667,13 @@ BasicPage {
                                         // Optional: reset any displayed messages or validation
                                         page.errorMessage = ""
                                         page.connectionId = ""
+
+                                        graphicsDialog.useAVC = true;
+                                        graphicsDialog.enableAnimation = false;
+                                        graphicsDialog.enableGDI  = false;
+
+                                        bestButton.checked = true;
+                                        customButton.checked = false;
                                     }
 
                                     function validateRequiredFields() {
@@ -651,49 +707,14 @@ BasicPage {
         }
     }
 
-    component PrefsButtonDelegate: PrefsItemDelegate {
-        id: _control
-        property string leftButtonText: ""
-        property string rightButtonText: ""
-        property alias tabGroup: tabGroup
-        property alias leftButton: leftButton
-        property alias rightButton: rightButton
-
-        ButtonGroup { id: tabGroup }
-
-        indicator: RowLayout {
-            x: _control.width - width - _control.rightPadding
-            y: _control.topPadding + (_control.availableHeight - height) / 2
-
-            spacing: 20
-
-            PrefsTabButton {
-                id: leftButton
-                objectName: "leftButton"
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                ButtonGroup.group: tabGroup
-                checked: true
-                text: _control.leftButtonText
-                visible: !!text
-                font.weight: Font.Normal
-            }
-
-            PrefsTabButton {
-                id: rightButton
-                objectName: "rightButton"
-                Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                ButtonGroup.group: tabGroup
-                text: _control.rightButtonText
-                visible: !!text
-                font.weight: Font.Normal
-            }
-        }
-    }
-
     Connections {
         target: dataBase
         function onRefreshTable() {
             sessionModel.reloadServers()
         }
+    }
+
+    ChooseGraphicsDialog {
+        id: graphicsDialog
     }
 }

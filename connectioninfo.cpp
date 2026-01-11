@@ -223,3 +223,42 @@ void ConnectionInfo::setAutoConnect(bool value)
     m_autoConnect = value;
     emit autoConnectChanged();
 }
+
+bool ConnectionInfo::useAVC() const
+{
+    return m_useAVC;
+}
+
+void ConnectionInfo::setUseAVC(bool value)
+{
+    if (m_useAVC == value)
+        return;
+    m_useAVC = value;
+    emit useAVCChanged();
+}
+
+bool ConnectionInfo::enableAnimation() const
+{
+    return m_enableAnimation;
+}
+
+void ConnectionInfo::setEnableAnimation(bool value)
+{
+    if (m_enableAnimation == value)
+        return;
+    m_enableAnimation = value;
+    emit enableAnimationChanged();
+}
+
+bool ConnectionInfo::enableGDI() const
+{
+    return m_enableGDI;
+}
+
+void ConnectionInfo::setEnableGDI(bool value)
+{
+    if (m_enableGDI == value)
+        return;
+    m_enableGDI = value;
+    emit enableGDIChanged();
+}

@@ -19,29 +19,16 @@ BasicPage {
     id: control
     background: BackgroundOverlay {}
 
-    // Show progress log
     Connections {
         target: cApplication
 
-        function onResetStarted() {
-            console.log("Reset started")
-            progressLog.text = ""
-            progressBar.visible = true
+        function onFactoryResetStarted() {
+            showAlert(qsTr("Factory reset started..."), Type.Info);
         }
 
-        function onResetProgress(message) {
-            progressLog.text += message + "\n"
-        }
-
-        function onResetFinished(success) {
-            progressLog.text += (success ? "Reset completed.\n" : "Reset failed.\n")
-            if(!success) {
-                progressBar.visible = false
-            }
-        }
-
-        function onResetRebooting() {
-            progressLog.text += "Rebooting...\n"
+        function onFactoryResetFailed(reason) {
+            progressLog.text += reason
+            showAlert(reason, Type.Error);
         }
     }
 
@@ -56,7 +43,7 @@ BasicPage {
             topPadding: 16
 
             contentItem: PrefsLabel {
-                text: qsTr("Device Reset")
+                text: qsTr("Device Factory Reset")
                 font.pixelSize: 24
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -71,8 +58,8 @@ BasicPage {
 
             PrefsBusyIndicator {
                 id: progressBar
-                visible: false
-                running: true
+                visible: cApplication.busy
+                running: cApplication.busy
                 Layout.alignment: Qt.AlignHCenter
             }
 
@@ -100,6 +87,7 @@ BasicPage {
                 PrefsButton {
                     text: qsTr("No")
                     highlighted: true
+                    enabled: !cApplication.busy
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: pageStack.pop()
@@ -108,9 +96,12 @@ BasicPage {
                 PrefsButton {
                     text: qsTr("Factory Reset")
                     radius: height / 2
+                    enabled: !cApplication.busy
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        cApplication.resetAllAsync()
+                        progressLog.text = qsTr("Factory reset started...")
+                        showAlert(progressLog.text, Type.Info);
+                        cApplication.factoryReset()
                     }
                 }
 

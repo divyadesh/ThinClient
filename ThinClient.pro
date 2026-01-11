@@ -41,6 +41,7 @@ SOURCES += \
         timezone_filter_model.cpp \
         timezone_model.cpp \
         timezonemodel.cpp \
+        usblogexportcontroller.cpp \
         wifiaddnetworkmanager.cpp \
         wificonfigmanager.cpp \
         wifimanager.cpp \
@@ -106,6 +107,7 @@ HEADERS += \
     timezone_filter_model.h \
     timezone_model.h \
     timezonemodel.h \
+    usblogexportcontroller.h \
     wifiaddnetworkmanager.h \
     wificonfigmanager.h \
     wifimanager.h \

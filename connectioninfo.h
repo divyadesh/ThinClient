@@ -119,6 +119,10 @@ class ConnectionInfo : public QObject
      */
     Q_PROPERTY(bool autoConnect READ autoConnect WRITE setAutoConnect NOTIFY autoConnectChanged)
 
+    Q_PROPERTY(bool useAVC READ useAVC WRITE setUseAVC NOTIFY useAVCChanged FINAL)
+    Q_PROPERTY(bool enableAnimation READ enableAnimation WRITE setEnableAnimation NOTIFY enableAnimationChanged FINAL)
+    Q_PROPERTY(bool enableGDI READ enableGDI WRITE setEnableGDI NOTIFY enableGDIChanged FINAL)
+
 public:
     /**
      * @brief Constructs a new ConnectionInfo object.
@@ -174,6 +178,14 @@ public:
 
     void setAutoConnect(bool value);
 
+    bool useAVC() const;
+    bool enableAnimation() const;
+    bool enableGDI() const;
+
+    void setUseAVC(bool value);
+    void setEnableAnimation(bool value);
+    void setEnableGDI(bool value);
+
 signals:
     void connectionIdChanged();
     void connectionNameChanged();
@@ -195,6 +207,12 @@ signals:
     void gatewayPasswordChanged();
 
     void autoConnectChanged();
+
+    void useAVCChanged();
+
+    void enableAnimationChanged();
+
+    void enableGDIChanged();
 
 private:
     /* ============================================================
@@ -220,4 +238,7 @@ private:
     QString m_gatewayPassword;
 
     bool m_autoConnect = false;
+    bool m_useAVC = true;
+    bool m_enableAnimation = false;
+    bool m_enableGDI = false;
 };

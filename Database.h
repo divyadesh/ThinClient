@@ -10,24 +10,41 @@
 #include <QString>
 
 
-struct ServerInfoStruct {
+struct ServerInfoStruct
+{
+    // Identification
     QString id;
     QString name;
     QString ip;
     QString deviceName;
+
+    // Credentials
     QString username;
     QString password;
+
+    // Performance / display profile
     QString performance;
-    bool audio;
-    bool mic;
-    bool redirectDrive;
-    bool redirectUsb;
-    bool security;
-    bool gateway;
+
+    // Redirection options
+    bool audio        = false;
+    bool mic          = false;
+    bool redirectDrive= false;
+    bool redirectUsb  = false;
+
+    // Security
+    bool security     = false;
+
+    // Gateway
+    bool gateway      = false;
     QString gatewayIp;
     QString gatewayUser;
     QString gatewayPass;
-    bool autoConnect;
+
+    // Connection behavior
+    bool autoConnect  = false;
+    bool useAvc = false;
+    bool animationEnabled = false;
+    bool gdiHwEnabled = false;
 };
 
 /**

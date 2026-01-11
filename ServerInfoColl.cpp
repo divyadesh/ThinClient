@@ -1,7 +1,15 @@
 #include "ServerInfoColl.h"
 #include "ServerInfo.h"
 #include <QQmlEngine>
+#include <QStorageInfo>
+#include <QStringList>
 #include <QLoggingCategory>
+#include <QPair>
+
+extern "C" {
+    #include <libudev.h>
+}
+
 
 Q_LOGGING_CATEGORY(lcServerInfo, "app.serverinfo")
 
@@ -116,7 +124,8 @@ void ServerInfoColl::connectRdServer(const QString &connectionId)
 
     emit rdpSessionStarted(connectionId);
 
-    startRdp(info);
+    buildFreeRdpArguments(info);
+    // startRdp(info);
 }
 
 // ------------------------------------------------------
@@ -129,6 +138,335 @@ void ServerInfoColl::cleanupProcess()
         m_rdp = nullptr;
     }
     m_running = false;
+}
+
+QStringList ServerInfoColl::buildGraphicsArgs(bool useAvc444,
+                                              bool animationEnabled,
+                                              bool gdiHwEnabled) const
+{
+    QStringList args;
+
+    // Codec selection (mutually exclusive)
+    if (!useAvc444) {
+        args << "/gfx:rfx";
+    } else {
+        args << "/gfx-h264:AVC444";
+    }
+
+    // Animation options
+    if (animationEnabled) {
+        args << "+menu-anims"
+             << "+window-drag";
+    }
+
+    // Hardware GDI
+    if (gdiHwEnabled) {
+        args << "/gdi:hw";
+    }
+
+    return args;
+}
+
+/* ===================== Audio ===================== */
+
+QStringList ServerInfoColl::buildAudioOutputArgs(bool enabled) const
+{
+    if (!enabled)
+        return {};
+
+    return {
+        "/sound:sys:alsa,format:1,quality:high,rate:44100,latency:700,channel:2"
+    };
+}
+
+QStringList ServerInfoColl::buildMicrophoneArgs(bool enabled) const
+{
+    if (!enabled)
+        return {};
+
+    return {
+        "/microphone:sys:alsa,format:1,quality:high"
+    };
+}
+
+/* ===================== Drive Redirection ===================== */
+
+QStringList ServerInfoColl::buildDriveRedirectionArgs(const QString& shareName,
+                                                           const QString& path,
+                                                           bool enabled) const
+{
+    if (!enabled || shareName.isEmpty() || path.isEmpty())
+        return {};
+
+    return { QString("/drive:%1,%2").arg(shareName, path) };
+}
+
+QPair<QString, QString> ServerInfoColl::resolveDriveShare() const
+{
+    const auto volumes = QStorageInfo::mountedVolumes();
+
+    for (const QStorageInfo& volume : volumes) {
+
+        if (!volume.isValid() || !volume.isReady())
+            continue;
+
+        const QString mountPath = volume.rootPath();
+        if (mountPath.isEmpty())
+            continue;
+
+        // Yocto-safe removable detection
+        if (!mountPath.startsWith("/run/media") &&
+            !mountPath.startsWith("/media") &&
+            !mountPath.startsWith("/mnt"))
+            continue;
+
+        QString shareName = volume.displayName().trimmed();
+        if (shareName.isEmpty())
+            shareName = QStringLiteral("G1rdclient");
+
+        qInfo() << "[FreeRDP] Drive redirection:"
+                << "shareName=" << shareName
+                << "mountPath=" << mountPath;
+
+        return qMakePair(shareName, mountPath);
+    }
+
+    qInfo() << "[FreeRDP] No removable drive detected";
+    return {};
+}
+
+/* ===================== USB Redirection ===================== */
+
+QStringList ServerInfoColl::buildUsbRedirectionArgs(const QString& vendorId,
+                                                         const QString& productId,
+                                                         bool enabled) const
+{
+    if (!enabled || vendorId.isEmpty() || productId.isEmpty())
+        return {};
+
+    return {
+        QString("/usb:id,dev:%1:%2").arg(vendorId, productId)
+    };
+}
+
+QStringList ServerInfoColl::buildSecurityArgs(bool enabled) const
+{
+    if (!enabled)
+        return {};
+
+    return { "/sec:nla" };
+}
+
+QPair<QString, QString> ServerInfoColl::resolveUsbDeviceIds() const
+{
+    struct udev* udev = udev_new();
+    if (!udev)
+        return {};
+
+    struct udev_enumerate* enumerate = udev_enumerate_new(udev);
+    if (!enumerate) {
+        udev_unref(udev);
+        return {};
+    }
+
+    udev_enumerate_add_match_subsystem(enumerate, "usb");
+    udev_enumerate_scan_devices(enumerate);
+
+    struct udev_list_entry* entry =
+        udev_enumerate_get_list_entry(enumerate);
+
+    for (; entry; entry = udev_list_entry_get_next(entry)) {
+
+        const char* syspath = udev_list_entry_get_name(entry);
+        if (!syspath)
+            continue;
+
+        struct udev_device* dev =
+            udev_device_new_from_syspath(udev, syspath);
+        if (!dev)
+            continue;
+
+        struct udev_device* usbDev =
+            udev_device_get_parent_with_subsystem_devtype(
+                dev, "usb", "usb_device");
+
+        if (!usbDev) {
+            udev_device_unref(dev);
+            continue;
+        }
+
+        const char* vendor =
+            udev_device_get_sysattr_value(usbDev, "idVendor");
+        const char* product =
+            udev_device_get_sysattr_value(usbDev, "idProduct");
+
+        if (!vendor || !product) {
+            udev_device_unref(dev);
+            continue;
+        }
+
+        /* ---- FILTER ROOT HUBS ---- */
+        if (strcmp(vendor, "1d6b") == 0) {
+            // Linux Foundation USB root hub
+            udev_device_unref(dev);
+            continue;
+        }
+
+        /* ---- FILTER USB HUB CLASS ---- */
+        const char* devClass =
+            udev_device_get_sysattr_value(usbDev, "bDeviceClass");
+
+        if (devClass && strcmp(devClass, "09") == 0) {
+            // USB hub
+            udev_device_unref(dev);
+            continue;
+        }
+
+        QPair<QString, QString> ids{
+            QString::fromLatin1(vendor),
+            QString::fromLatin1(product)
+        };
+
+        qInfo() << "[FreeRDP] USB redirection device detected:"
+                << "vendor=" << ids.first
+                << "product=" << ids.second;
+
+        udev_device_unref(dev);
+        udev_enumerate_unref(enumerate);
+        udev_unref(udev);
+        return ids;
+    }
+
+    udev_enumerate_unref(enumerate);
+    udev_unref(udev);
+
+    qInfo() << "[FreeRDP] No valid USB device found for redirection";
+    return {};
+}
+
+/* ===================== Aggregation ===================== */
+
+QStringList ServerInfoColl::buildAdvancedFreeRdpArguments(const ServerInfoStruct& info)
+{
+    QStringList args;
+
+    qInfo() << "[FreeRDP] Building arguments";
+
+    const auto isBestPerformance = info.performance.compare("best", Qt::CaseInsensitive) == 0;
+
+    Q_UNUSED(isBestPerformance);
+
+    args << buildGraphicsArgs(info.useAvc, info.animationEnabled, info.gdiHwEnabled);
+    args << buildAudioOutputArgs(info.audio);
+    args << buildMicrophoneArgs(info.mic);
+    args << buildSecurityArgs(info.security);
+
+    const auto driveInfo = resolveDriveShare();
+    args << buildDriveRedirectionArgs(driveInfo.first,
+                                      driveInfo.second,
+                                      info.redirectDrive);
+
+    const auto usbIds = resolveUsbDeviceIds();
+    args << buildUsbRedirectionArgs(usbIds.first,
+                                    usbIds.second,
+                                    info.redirectUsb);
+
+    return args;
+}
+
+QStringList ServerInfoColl::buildConnectionFreeRdpArguments(const ServerInfoStruct& info) const
+{
+    QStringList args;
+
+    qInfo() << "[FreeRDP] Building connection arguments";
+
+    // Gateway configuration (optional)
+    if (info.gateway) {
+        qInfo() << "[FreeRDP] Gateway enabled:"
+                << "ip=" << info.gatewayIp
+                << "user=" << info.gatewayUser;
+
+        if (!info.gatewayIp.isEmpty())
+            args << QString("/g:%1").arg(info.gatewayIp);
+
+        if (!info.gatewayUser.isEmpty())
+            args << QString("/gu:%1").arg(info.gatewayUser);
+
+        if (!info.gatewayPass.isEmpty())
+            args << QString("/gp:%1").arg(info.gatewayPass);
+    }
+
+    // Target server
+    if (!info.ip.isEmpty()) {
+        args << QString("/v:%1").arg(info.ip);
+    }
+
+    // Credentials
+    if (!info.username.isEmpty())
+        args << QString("/u:%1").arg(info.username);
+
+    if (!info.password.isEmpty())
+        args << QString("/p:%1").arg(info.password);
+
+    return args;
+}
+
+void ServerInfoColl::buildFreeRdpArguments(const ServerInfoStruct &info) {
+
+    cleanupProcess();
+    m_rdp = new QProcess(this);
+
+    // --- Connect QProcess signals ---
+    connect(m_rdp, &QProcess::started,
+            this, &ServerInfoColl::onRdpStarted);
+
+    connect(m_rdp,
+            qOverload<QProcess::ProcessError>(&QProcess::errorOccurred),
+            this, &ServerInfoColl::onRdpError);
+
+    connect(m_rdp,
+            qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            this, &ServerInfoColl::onRdpFinished);
+
+    connect(m_rdp, &QProcess::readyReadStandardOutput,
+            this, &ServerInfoColl::onRdpStdOut);
+
+    connect(m_rdp, &QProcess::readyReadStandardError,
+            this, &ServerInfoColl::onRdpStdErr);
+
+    const QString id          = info.id.trimmed();
+    const QString name        = info.name.trimmed();
+    const QString server      = info.ip.trimmed();
+    const QString deviceName  = info.deviceName.trimmed();
+    const QString username    = info.username.trimmed();
+
+    qInfo() << "-------------------------------------------";
+    qInfo() << "[RDP] Starting RDP Connection for device name : " << deviceName;
+    qInfo() << " ID:              " << id;
+    qInfo() << " Name:            " << name;
+    qInfo() << " Server IP:       " << server;
+    qInfo() << " Username:        " << username;
+
+    QStringList args;
+    args << "/f"
+         << "/dynamic-resolution"
+         << "/bpp:32"
+         << "/network:lan"
+         << "/cert-ignore"
+         << "/client-hostname:G1rdclient";
+
+    args << buildConnectionFreeRdpArguments(info);
+    args << buildAdvancedFreeRdpArguments(info);
+
+    // Log final command
+
+    qInfo() << "-------------------------------------------";
+    qInfo() << "[RDP] Final Command:";
+    qInfo() << "wlfreerdp" << args.join(" ");
+    qInfo() << "-------------------------------------------";
+
+    // Start FreeRDP
+    m_rdp->start("wlfreerdp", args);
 }
 
 // ------------------------------------------------------

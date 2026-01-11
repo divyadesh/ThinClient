@@ -223,11 +223,28 @@ BasicPage {
                         }
 
                         contentItem: ColumnLayout {
+                            width: parent.width
                             spacing: 10
 
-                            PrefsLabel {
-                                font.pixelSize: 24
-                                text: qsTr("Device Restore & Upgrade")
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                PrefsLabel {
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    font.pixelSize: 24
+                                    text: qsTr("Device Restore & Upgrade")
+                                }
+
+                                PrefsLabel {
+                                    Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                    font.pixelSize: 16
+                                    opacity: 0.8
+                                    text: qsTr("(Insert a USB drive to export logs or install a software update.)")
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
                             }
 
                             Item {Layout.fillWidth: true}
@@ -240,8 +257,9 @@ BasicPage {
                                 PrefsButton {
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     Layout.fillWidth: true
+                                    enabled: !cApplication.busy
                                     radius: height / 2
-                                    text: qsTr("Reset")
+                                    text: qsTr("Factory Reset")
                                     onClicked: pageStack.push(deviceReset)
                                 }
 
@@ -249,37 +267,24 @@ BasicPage {
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     Layout.fillWidth: true
                                     radius: height / 2
-                                    enabled: usbMonitor.usbConnected
+                                    enabled: usbMonitor.usbConnected && !cApplication.busy
                                     text: qsTr("Update From USB")
-                                    onClicked: pageStack.push(updateDialog)
+                                    onClicked: {
+                                        pageStack.push(updateDialog)
+                                    }
                                 }
 
                                 PrefsButton {
                                     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                                     Layout.fillWidth: true
                                     radius: height / 2
-                                    text: exporter.busy ? "Exporting..." : "Export Logs to USB"
-                                    enabled: !exporter.busy && usbMonitor.usbConnected
-                                    onClicked: exporter.exportLogs(usbMonitor.usbStoragePort)
-                                }
-
-                                BusyIndicator {
-                                    running: exporter.busy
-                                    visible: exporter.busy
+                                    text: qsTr("Export Logs to USB")
+                                    enabled: usbMonitor.usbConnected && !cApplication.busy
+                                    onClicked: {
+                                        pageStack.push(logExporterDialog)
+                                    }
                                 }
                             }
-
-                            Item {Layout.fillWidth: true}
-
-                            Label {
-                                id: messageLabel
-                                text: exporter.statusMessage
-                                visible: text
-                                wrapMode: Text.WordWrap
-                                font.pixelSize: 14
-                            }
-
-                            Item {Layout.fillWidth: true}
                         }
                     }
 
@@ -320,12 +325,15 @@ BasicPage {
         SoftwareUpdater {}
     }
 
+    Component {
+        id: logExporterDialog
+        LogExporterDialog {}
+    }
+
     LogExporter {
         id: exporter
         onExportFinished: function(success, msg) {
-            messageLabel.text = msg
-            if (success) messageLabel.color = "green"
-            else messageLabel.color = "red"
+            showAlert(msg, success ? Type.Success : Type.Error);
         }
     }
 }
