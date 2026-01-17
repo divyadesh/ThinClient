@@ -48,12 +48,8 @@ BasicPage {
         console.log("[AutoConnect] autoConnectionId =", sessionModel.autoConnectionId)
 
         // Must call function → shouldShowRebootDialog()
-        if (BootHelper.shouldShowRebootDialog()
-                && sessionModel.autoConnectionId) {
-
-            console.log("[AutoConnect] Reboot detected → scheduling auto connect for ID:",
-                        sessionModel.autoConnectionId)
-
+        if (BootHelper.shouldShowRebootDialog() && sessionModel.autoConnectionId) {
+            console.log("[AutoConnect] Reboot detected → scheduling auto connect for ID:", sessionModel.autoConnectionId)
             connectRDServer(sessionModel.autoConnectionId, 5000)
         } else {
             console.log("[AutoConnect] No auto connect triggered → conditions not met")

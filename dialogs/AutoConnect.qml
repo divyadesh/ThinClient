@@ -27,6 +27,20 @@ BasicPage {
         autoConnectTimer.start()
     }
 
+    Shortcut {
+        sequence: StandardKey.Cancel   // ESC
+        onActivated: {
+            // handle ESC here
+            control.closeDialog()
+        }
+    }
+
+    function closeDialog() {
+        autoConnectTimer.stop()
+        cancelled()
+        pageStack.pop()
+    }
+
     Timer {
         id: autoConnectTimer
         interval: 5000
@@ -109,9 +123,7 @@ BasicPage {
                     radius: height / 2
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
                     onClicked: {
-                        autoConnectTimer.stop()
-                        cancelled()
-                        pageStack.pop()
+                        control.closeDialog()
                     }
                 }
 
