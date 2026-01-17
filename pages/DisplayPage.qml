@@ -29,30 +29,30 @@ BasicPage {
     ListModel {
         id: orientationModel
 
-        ListElement { text: "Landscape";              value: 0;   apply: "normal" }
-        ListElement { text: "Portrait";               value: 90;  apply: "rotate-90" }
-        ListElement { text: "Landscape (Flipped)";    value: 180; apply: "rotate-180" }
-        ListElement { text: "Portrait (Flipped)";     value: 270; apply: "rotate-270" }
+        ListElement { text: qsTr("Landscape");              value: 0;   apply: "normal" }
+        ListElement { text: qsTr("Portrait");               value: 90;  apply: "rotate-90" }
+        ListElement { text: qsTr("Landscape (Flipped)");    value: 180; apply: "rotate-180" }
+        ListElement { text: qsTr("Portrait (Flipped)");     value: 270; apply: "rotate-270" }
     }
 
     ListModel {
         id: displayOffModel
 
-        ListElement { text: "None";         value: 0 }
-        ListElement { text: "10 Minutes";   value: 10 }
-        ListElement { text: "30 Minutes";   value: 30 }
-        ListElement { text: "60 Minutes";   value: 60 }
+        ListElement { text: qsTr("None");         value: 0 }
+        ListElement { text: qsTr("10 Minutes");   value: 10 }
+        ListElement { text: qsTr("30 Minutes");   value: 30 }
+        ListElement { text: qsTr("60 Minutes");   value: 60 }
     }
 
     ListModel {
         id: devicePowerOffModel
 
-        ListElement { text: "None";      value: 0 }
-        ListElement { text: "1 Hour";    value: 1 }
-        ListElement { text: "5 Hours";   value: 5 }
-        ListElement { text: "10 Hours";  value: 10 }
-        ListElement { text: "24 Hours";  value: 24 }
-        ListElement { text: "48 Hours";  value: 48 }
+        ListElement { text: qsTr("None");      value: 0 }
+        ListElement { text: qsTr("1 Hour");    value: 1 }
+        ListElement { text: qsTr("5 Hours");   value: 5 }
+        ListElement { text: qsTr("10 Hours");  value: 10 }
+        ListElement { text: qsTr("24 Hours");  value: 24 }
+        ListElement { text: qsTr("48 Hours");  value: 48 }
     }
 
     contentItem: PrefsFlickable {

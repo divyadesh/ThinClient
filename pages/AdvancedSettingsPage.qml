@@ -60,7 +60,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: persistData.gfxMode === "auto"
-                                text: "Auto"
+                                text: qsTr("Auto")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onToggled: {
@@ -74,7 +74,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: persistData.gfxMode === "avc444"
-                                text: "AVC444"
+                                text: qsTr("AVC444")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onToggled: {
@@ -88,7 +88,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: persistData.gfxMode === "gfx"
-                                text: "GFX"
+                                text: qsTr("GFX")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onToggled: {

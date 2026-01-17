@@ -159,13 +159,13 @@ QVariant SessionModel::headerData(int section, Qt::Orientation orientation, int 
 
     switch (section) {
     case COLUMN_CONNECTION_NAME:
-        return QStringLiteral("Connection Name");
+        return QStringLiteral(tr("Connection Name"));
     case COLUMN_SERVER_IP:
-        return QStringLiteral("Server IP");
+        return QStringLiteral(tr("Server IP"));
     case COLUMN_AUTOCONNECT:
-        return QStringLiteral("Auto Connect");
+        return QStringLiteral(tr("Auto Connect"));
     case COLUMN_MANAGE:
-        return QStringLiteral("Manage Connection");
+        return QStringLiteral(tr("Manage Connection"));
     default:
         return {};
     }

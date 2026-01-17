@@ -24,17 +24,17 @@ BasicPage {
         id: logExporter
 
         onProgressChanged: {
-            // message
+            // msg
         }
 
         onSuccess: {
             isSuccess = true
-            showAlert(message, Type.Success)
+            showAlert(msg, Type.Success)
         }
 
         onError: {
             isSuccess = false
-            showAlert(message, Type.Error)
+            showAlert(msg, Type.Error)
         }
     }
 
@@ -69,7 +69,7 @@ BasicPage {
             PrefsLabel {
                 id: statusText
                 padding: 20
-                text: logExporter.isBusy ? qsTr("Transferring log files to USB storage. Please wait...") : qsTr("Press the Export Logs button to start exporting logs.")
+                text: logExporter.isBusy ? qsTr("Transferring log files to USB storage. Please wait...") : isSuccess ? qsTr("Logs exported successfully.") : qsTr("Press the Export Logs button to start exporting logs.")
                 font.pixelSize: 16
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 Layout.fillWidth: true

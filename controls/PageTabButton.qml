@@ -11,10 +11,14 @@ TabButton {
                                   focusReason === Qt.BacktabFocusReason)
     hoverEnabled: true
     scale: control.pressed ? 0.98 : 1.0
-    palette.buttonText: control.enabled ? Colors.textPrimary : Colors.textSecondary
     display: AbstractButton.TextUnderIcon
     activeFocusOnTab: true
     focusPolicy: Qt.StrongFocus
+
+    palette.buttonText: control.enabled  || control.enabled && highlighted ? Colors.textPrimary : Colors.textSecondary
+    palette.highlightedText: control.enabled || control.enabled && highlighted ? Colors.textPrimary : Colors.textSecondary
+    palette.windowText : control.enabled  || control.enabled && highlighted ? Colors.textPrimary : Colors.textSecondary
+    palette.brightText : control.enabled  || control.enabled && highlighted ? Colors.textPrimary : Colors.textSecondary
 
     background: Rectangle {
         implicitHeight: 34
@@ -31,7 +35,6 @@ TabButton {
             if (control.checked) {
                 return control.hovered ? Colors.accentHover : Colors.accentPrimary;
             }
-
             return Colors.btnBg;
         }
     }

@@ -18,8 +18,8 @@ BasicPage {
     property real popupHeight: parent.height * 0.7
     property real popupWidth: 512
 
-    property string acceptedButtonText: "Save"
-    property string rejectedButtonText: "Cancel"
+    property string acceptedButtonText: qsTr("Save")
+    property string rejectedButtonText: qsTr("Cancel")
     property string wifiSSID: ""
     property string errorMessage: ""
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QObject>
-#include <QProcess>
 #include <atomic>
 
 class UsbLogExportController : public QObject
@@ -11,7 +10,6 @@ class UsbLogExportController : public QObject
 
 public:
     explicit UsbLogExportController(QObject *parent = nullptr);
-    ~UsbLogExportController();
 
     Q_INVOKABLE void exportLogs();
     Q_INVOKABLE void cancel();
@@ -20,17 +18,20 @@ public:
 
 signals:
     void isBusyChanged();
-    void progressChanged(const QString &message);
-    void success(const QString &message);
-    void error(const QString &message);
+    void progressChanged(const QString &msg);
+    void success(const QString &msg);
+    void error(const QString &msg);
 
 private:
+    bool mountDevice(const QString &device, const QString &mountPoint, QString &err);
+    bool unmountDevice(const QString &mountPoint, QString &err);
+    bool copyLogs(const QString &mountPoint, QString &err);
+
     void setBusy(bool busy);
 
 private:
-    QProcess m_process;
-    std::atomic_bool m_cancelRequested{false};
-    bool m_isBusy{false};
+    std::atomic_bool m_cancel{false};
+    bool m_busy{false};
 
-    const QString m_exportScript{"/usr/bin/export_log_file.sh"};
+    const QString m_mountPoint{"/mnt/usb"};
 };

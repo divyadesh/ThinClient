@@ -16,8 +16,8 @@ BasicPage {
     property real popupHeight: 450
     property real popupWidth: 512
 
-    property string acceptedButtonText: "Save"
-    property string rejectedButtonText: "Cancel"
+    property string acceptedButtonText: qsTr("Save")
+    property string rejectedButtonText: qsTr("Cancel")
     property alias layout: layout
     property alias saveButton: saveButton
     property alias cancelButton: cancelButton

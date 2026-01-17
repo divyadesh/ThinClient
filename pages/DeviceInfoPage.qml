@@ -62,7 +62,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "Developed By :"
+                    text: qsTr("Developed By :")
                 }
 
                 PrefsControlLabel {
@@ -79,7 +79,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "Model :"
+                    text: qsTr("Model :")
                 }
 
                 PrefsControlLabel {
@@ -100,13 +100,13 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "CPU :"
+                    text: qsTr("CPU :")
                 }
 
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "ARM Quad-core @ 1.5 Ghz"
+                    text: qsTr("ARM Quad-core @ 1.5 Ghz")
                 }
             }
 
@@ -117,7 +117,7 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "RAM :"
+                    text: qsTr("RAM :")
                 }
 
                 PrefsControlLabel {
@@ -134,13 +134,13 @@ BasicPage {
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     Layout.minimumWidth: firmwareLabel.implicitWidth
-                    text: "GPU :"
+                    text: qsTr("GPU :")
                 }
 
                 PrefsControlLabel {
                     Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                     Layout.fillWidth: true
-                    text: "Mail 450 | H264/AVC444 Decoding"
+                    text: qsTr("Mail 450 | H264/AVC444 Decoding")
                 }
             }
         }
@@ -156,7 +156,7 @@ BasicPage {
                 PrefsControlLabel {
                     id: firmwareLabel
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    text: "Firmware version :"
+                    text: qsTr("Firmware version :")
                 }
 
                 PrefsControlLabel {
@@ -168,7 +168,7 @@ BasicPage {
 
             PrefsControlLabel {
                 Layout.fillWidth: true
-                text: "Made in %1".arg(deviceInfoSettings.madeIn)
+                text: qsTr("Made in %1").arg(deviceInfoSettings.madeIn)
             }
         }
 

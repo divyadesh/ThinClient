@@ -87,18 +87,32 @@ UdevMonitor::UdevMonitor(QObject *parent)
                 QStringList devs = devDir.entryList(QStringList() << "sd*", QDir::System);
                 m_connected = !devs.isEmpty();
             }
-            setUsbStoragePort(devNode);
-            emit usbConnectedChanged();
+            if (devNode.startsWith("/dev/sd") && devNode.contains(QRegExp("[0-9]$"))) {
+                setUsbStoragePort(devNode);   // ONLY /dev/sda1
+                emit usbConnectedChanged();
+            }
         }
 
         emit usbEvent(action, devNode);
         udev_device_unref(dev);
     });
 
-    // ✅ Initial state detection — check if any /dev/sd* devices already exist
     QDir devDir("/dev");
-    QStringList devs = devDir.entryList(QStringList() << "sd*", QDir::System);
-    m_connected = !devs.isEmpty();
+    QStringList partitions = devDir.entryList(
+        QStringList() << "sd*[0-9]",
+        QDir::System
+        );
+
+    if (!partitions.isEmpty()) {
+        m_connected = true;
+
+        // Pick first available partition
+        QString devNode = "/dev/" + partitions.first();
+        setUsbStoragePort(devNode);
+    } else {
+        m_connected = false;
+    }
+
     emit usbConnectedChanged();
 }
 

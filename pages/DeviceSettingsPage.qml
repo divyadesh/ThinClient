@@ -73,7 +73,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: audio.audioSelection === Audio.Jack   // ✅ bind to int
-                                text: "Jack"
+                                text: qsTr("Jack")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
@@ -89,7 +89,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: audio.audioSelection === Audio.Usb
-                                text: "USB"
+                                text: qsTr("USB")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
@@ -105,7 +105,7 @@ BasicPage {
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                                 ButtonGroup.group: tabGroup
                                 checked: audio.audioSelection === Audio.Hdmi
-                                text: "HDMI"
+                                text: qsTr("HDMI")
                                 visible: !!text
                                 font.weight: Font.Normal
                                 onClicked: {
@@ -239,6 +239,7 @@ BasicPage {
                                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                     font.pixelSize: 16
                                     opacity: 0.8
+                                    visible: !usbMonitor.usbConnected
                                     text: qsTr("(Insert a USB drive to export logs or install a software update.)")
                                 }
 

@@ -189,7 +189,7 @@ void RdServerModel::removeServer(const QString &connectionId)
 
 void RdServerModel::updateServer(const QString &connectionId)
 {
-    Q_UNUSED(connectionId)
+    Q_UNUSED(connectionId);
     // For simplicity — just reload model for now
     refresh();
 }

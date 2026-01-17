@@ -272,6 +272,10 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent)
     qInfo() << "[App] Initialization complete";
 
     WifiNetworkInfo *info = new WifiNetworkInfo();
+
+    const QString lan = _persistData->language();
+    const QString defaultLan = "en_US";
+    _languageModel->setSystemLanguage(lan.length() > 0 ? lan : defaultLan);
 }
 
 Application::~Application()

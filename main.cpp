@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
      * Environment (Wayland + Qt)
      * ------------------------------------------------------- */
     qputenv("QT_IM_MODULE", "qtvirtualkeyboard");
-    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Wayland));
+    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Eglfs));
 
     /* Use software rendering ONLY if GPU/EGL is unstable */
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
@@ -46,10 +46,21 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     Logger::init("/var/log/thinclient.log");
 
-    // Set global application font
-    QFont rubik("Arial", 12);
-    QGuiApplication::setFont(rubik);
 
+/* -------------------------------------------------------
+ * Load bundled fonts (VERY IMPORTANT)
+ * ------------------------------------------------------- */
+    QFontDatabase::addApplicationFont(":/assets/font/NotoSans-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/assets/font/NotoSansArabic-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/assets/font/NotoSansSC-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/assets/font/NotoSansTC-Regular.ttf");
+
+/* -------------------------------------------------------
+ * Set default application font (fallback base)
+ * ------------------------------------------------------- */
+    QFont defaultFont("Noto Sans");
+    defaultFont.setPointSize(12);
+    QGuiApplication::setFont(defaultFont);
 
     // --- Metadata ---
     const QString appName = "G1ThinClientPC";
