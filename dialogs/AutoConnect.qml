@@ -18,6 +18,8 @@ import "../controls"
 BasicPage {
     id: control
     property string connectionId: ""
+    property string autoConnectionName: ""
+    property string autoConnectionIp: ""
 
     signal cancelled()
 
@@ -75,38 +77,72 @@ BasicPage {
             rightPadding: 50
 
             contentItem: ColumnLayout {
-                spacing: 20
+                spacing: 16
+
+                // ---- Connection Name ----
+                PrefsLabel {
+                    Layout.fillWidth: true
+                    text: qsTr("Connection Name:")
+                    font.pixelSize: 12
+                    color: Colors.textSecondary
+                    horizontalAlignment: Text.AlignHCenter
+                }
 
                 PrefsLabel {
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    font.pixelSize: 12
-                    text: qsTr("Auto Connecting RD Server ...")
-                    visible: !!text
+                    text: control.autoConnectionName
+                    font.pixelSize: 16
+                    font.bold: true
                     color: Colors.textPrimary
                     horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    visible: control.autoConnectionName.length > 0
                 }
 
+                // ---- Server IP ----
+                PrefsLabel {
+                    Layout.fillWidth: true
+                    text: qsTr("Server IP:")
+                    font.pixelSize: 12
+                    color: Colors.textSecondary
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                PrefsLabel {
+                    Layout.fillWidth: true
+                    text: control.autoConnectionIp
+                    font.pixelSize: 14
+                    color: Colors.textPrimary
+                    horizontalAlignment: Text.AlignHCenter
+                    visible: control.autoConnectionIp.length > 0
+                }
+
+                // ---- Auto connect text ----
+                PrefsLabel {
+                    Layout.fillWidth: true
+                    font.pixelSize: 12
+                    text: qsTr("Auto-connecting to RD Server…")
+                    color: Colors.textSecondary
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                // ---- Busy indicator ----
                 PrefsBusyIndicator {
                     visible: true
                     radius: 10
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    Layout.alignment: Qt.AlignHCenter
                 }
 
+                // ---- Error text ----
                 PrefsLabel {
                     id: errorText
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                     font.pixelSize: 12
                     visible: !!text
                     color: Colors.statusError
                     horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
-
 
         footer: Control {
             implicitHeight: 72

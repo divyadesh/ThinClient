@@ -343,14 +343,23 @@ void SessionModel::fetchAllServers()
 
     QSqlQuery query(db);
     if (!query.exec("SELECT * FROM ServerTable ORDER BY connection_name ASC")) {
-        qWarning() << "RdServerModel::fetchAllServers(): Query failed -" << query.lastError().text();
+        qWarning() << "SessionModel::fetchAllServers(): Query failed -"
+                   << query.lastError().text();
         return;
     }
 
+    // ---- Clear previous data ----
+    qDeleteAll(m_sessions);
+    m_sessions.clear();
+
     setAutoConnectionId("");
+    setAutoConnectionName("");
+    setAutoConnectionIp("");
+
+    bool autoConnectFound = false;
 
     while (query.next()) {
-        ConnectionInfo *session = new ConnectionInfo(this);
+        auto *session = new ConnectionInfo(this);
 
         session->setConnectionId(query.value("connection_id").toString());
         session->setConnectionName(query.value("connection_name").toString());
@@ -372,20 +381,25 @@ void SessionModel::fetchAllServers()
         session->setGatewayPassword(query.value("gateway_password").toString());
 
         session->setAutoConnect(query.value("autoConnect").toBool());
-
         session->setUseAVC(query.value("use_avc").toBool());
         session->setEnableAnimation(query.value("animation_enabled").toBool());
         session->setEnableGDI(query.value("gdi_hw_enabled").toBool());
 
-        if(session->autoConnect()) {
+        // ---- Pick ONLY the first autoConnect ----
+        if (session->autoConnect() && !autoConnectFound) {
             setAutoConnectionId(session->connectionId());
+            setAutoConnectionIp(session->serverIp());
+            setAutoConnectionName(session->connectionName());
+            autoConnectFound = true;
         }
 
-        // Add object to model storage
         m_sessions.append(session);
     }
-}
 
+    if (!autoConnectFound) {
+        qDebug() << "No auto-connect server configured.";
+    }
+}
 
 void SessionModel::deleteServer(const QString &connectionId)
 {
@@ -440,7 +454,6 @@ void SessionModel::updateServerById(const QString &connectionId)
 
 bool SessionModel::updateAutoConnect(const QString &connectionId, bool enabled)
 {
-
     QSqlDatabase db = QSqlDatabase::database("ThinClientConnection");
     if (!db.isValid() || !db.isOpen()) {
         qWarning() << "SessionModel::updateAutoConnect(): Database not open.";
@@ -448,20 +461,54 @@ bool SessionModel::updateAutoConnect(const QString &connectionId, bool enabled)
     }
 
     QSqlQuery query(db);
-    query.prepare("UPDATE ServerTable "
-                  "SET autoConnect = :value "
-                  "WHERE connection_id = :id");
 
-    query.bindValue(":value", enabled);
-    query.bindValue(":id", connectionId);
-
-    if (!query.exec()) {
-        qWarning() << "SessionModel::updateAutoConnect(): Failed to update autoConnect -"
-                   << query.lastError().text();
+    // ---- Start transaction ----
+    if (!db.transaction()) {
+        qWarning() << "SessionModel::updateAutoConnect(): Failed to start transaction.";
         return false;
     }
 
-    qWarning() << "SessionModel::updateAutoConnect(): Record updated in DB successfully";
+    bool ok = true;
+
+    if (enabled) {
+        // 1️⃣ Disable autoConnect for ALL connections
+        ok = query.exec("UPDATE ServerTable SET autoConnect = 0");
+        if (!ok) {
+            qWarning() << "Failed to reset autoConnect:" << query.lastError().text();
+        }
+    }
+
+    if (ok) {
+        // 2️⃣ Update the selected connection
+        query.prepare(
+            "UPDATE ServerTable "
+            "SET autoConnect = :value "
+            "WHERE connection_id = :id"
+            );
+
+        query.bindValue(":value", enabled ? 1 : 0);
+        query.bindValue(":id", connectionId);
+
+        ok = query.exec();
+        if (!ok) {
+            qWarning() << "Failed to update autoConnect for connection:"
+                       << query.lastError().text();
+        }
+    }
+
+    // ---- Commit / rollback ----
+    if (ok) {
+        if (!db.commit()) {
+            qWarning() << "SessionModel::updateAutoConnect(): Commit failed.";
+            db.rollback();
+            return false;
+        }
+    } else {
+        db.rollback();
+        return false;
+    }
+
+    qDebug() << "SessionModel::updateAutoConnect(): autoConnect updated successfully.";
     return true;
 }
 
@@ -482,4 +529,30 @@ void SessionModel::setAutoConnectionId(const QString &newAutoConnectionId)
         return;
     m_autoConnectionId = newAutoConnectionId;
     emit autoConnectionIdChanged();
+}
+
+QString SessionModel::autoConnectionName() const
+{
+    return m_autoConnectionName;
+}
+
+void SessionModel::setAutoConnectionName(const QString &newAutoConnectionName)
+{
+    if (m_autoConnectionName == newAutoConnectionName)
+        return;
+    m_autoConnectionName = newAutoConnectionName;
+    emit autoConnectionNameChanged();
+}
+
+QString SessionModel::autoConnectionIp() const
+{
+    return m_autoConnectionIp;
+}
+
+void SessionModel::setAutoConnectionIp(const QString &newAutoConnectionIp)
+{
+    if (m_autoConnectionIp == newAutoConnectionIp)
+        return;
+    m_autoConnectionIp = newAutoConnectionIp;
+    emit autoConnectionIpChanged();
 }

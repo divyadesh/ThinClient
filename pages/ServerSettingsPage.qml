@@ -650,8 +650,8 @@ BasicPage {
                                         page.errorMessage = ""
 
                                         const fields = [
-                                                         { value: connectionField.text, label: qsTr("Connection Name") },
-                                                         { value: serverIpField.text,  label: qsTr("Server IP") },
+                                                         { value: connectionField.text.trim(), label: qsTr("Connection Name") },
+                                                         { value: serverIpField.text.trim(),  label: qsTr("Server IP") },
                                                      ]
 
                                         for (const field of fields) {

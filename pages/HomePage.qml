@@ -77,7 +77,9 @@ BasicPage {
                             sessionModel.autoConnectionId)
 
                 pageStack.push(autoConnectServer, {
-                                   "connectionId": sessionModel.autoConnectionId
+                                   "connectionId": sessionModel.autoConnectionId,
+                                   "autoConnectionName" : sessionModel.autoConnectionName,
+                                   "autoConnectionIp" : sessionModel.autoConnectionIp
                                })
             } else {
                 console.warn("[AutoConnect] Conditions failed → auto connect aborted")

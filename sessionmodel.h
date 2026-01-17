@@ -73,6 +73,8 @@ public:
     Q_ENUM(ConnectionRole);
 
     Q_PROPERTY(QString autoConnectionId READ autoConnectionId WRITE setAutoConnectionId NOTIFY autoConnectionIdChanged FINAL)
+    Q_PROPERTY(QString autoConnectionName READ autoConnectionName WRITE setAutoConnectionName NOTIFY autoConnectionNameChanged FINAL)
+    Q_PROPERTY(QString autoConnectionIp READ autoConnectionIp WRITE setAutoConnectionIp NOTIFY autoConnectionIpChanged FINAL)
 
 public:
     /**
@@ -169,11 +171,17 @@ public:
      * - "auto"   for the Auto column
      * - "manage" for the Manage Connection column
      */
+
     QVariant selectColumnType(const QModelIndex &index) const;
+
     QString autoConnectionId() const;
+    QString autoConnectionName() const;
+    QString autoConnectionIp() const;
 
 public slots:
     void setAutoConnectionId(const QString &newAutoConnectionId);
+    void setAutoConnectionName(const QString &newAutoConnectionName);
+    void setAutoConnectionIp(const QString &newAutoConnectionIp);
     // Core data operations
     void loadServers();
     void reloadServers();
@@ -187,10 +195,14 @@ public slots:
 
 signals:
     void autoConnectionIdChanged();
+    void autoConnectionNameChanged();
+    void autoConnectionIpChanged();
 
 private:
     QList<ConnectionInfo *> m_sessions;
-    QString m_autoConnectionId;
+    QString m_autoConnectionId{};
+    QString m_autoConnectionName{};
+    QString m_autoConnectionIp{};
 };
 
 #endif // SESSIONMODEL_H

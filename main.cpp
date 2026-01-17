@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
      * Environment (Wayland + Qt)
      * ------------------------------------------------------- */
     qputenv("QT_IM_MODULE", "qtvirtualkeyboard");
-    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Eglfs));
+    qputenv("QT_QPA_PLATFORM", QpaPlatform::toEnvValue(QpaPlatform::Wayland));
 
     /* Use software rendering ONLY if GPU/EGL is unstable */
     QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
