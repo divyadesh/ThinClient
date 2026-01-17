@@ -7,6 +7,7 @@
 #include <QSqlError>
 #include <QVariantList>
 #include <QDebug>
+#include <QString>
 
 namespace {
 constexpr int COLUMN_CONNECTION_NAME = 0;
@@ -159,13 +160,13 @@ QVariant SessionModel::headerData(int section, Qt::Orientation orientation, int 
 
     switch (section) {
     case COLUMN_CONNECTION_NAME:
-        return QStringLiteral(tr("Connection Name"));
+        return tr("Connection Name");
     case COLUMN_SERVER_IP:
-        return QStringLiteral(tr("Server IP"));
+        return tr("Server IP");
     case COLUMN_AUTOCONNECT:
-        return QStringLiteral(tr("Auto Connect"));
+        return tr("Auto Connect");
     case COLUMN_MANAGE:
-        return QStringLiteral(tr("Manage Connection"));
+        return tr("Manage Connection");
     default:
         return {};
     }
